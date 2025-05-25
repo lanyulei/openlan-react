@@ -42,6 +42,11 @@ export default [
         name: 'search',
         component: './Resource/Search',
       },
+      {
+        path: '/resource/directory',
+        name: 'directory',
+        component: './Resource/Directory',
+      },
     ],
   },
   // {
