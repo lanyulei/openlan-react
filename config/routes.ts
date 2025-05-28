@@ -47,6 +47,11 @@ export default [
         name: 'directory',
         component: './Resource/Directory',
       },
+      {
+        path: '/resource/models',
+        name: 'models',
+        component: './Resource/Models',
+      },
     ],
   },
   // {
