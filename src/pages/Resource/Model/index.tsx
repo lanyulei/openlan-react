@@ -17,6 +17,8 @@ import styles from './less/Models.less';
 import { Button, Dropdown, message } from 'antd';
 import type { MenuProps } from 'antd';
 
+import { createModelGroup } from '@/services/resource/model';
+
 const Models: FC = () => {
   const [modalVisit, setModalVisit] = useState(false);
 
@@ -91,6 +93,12 @@ const Models: FC = () => {
         open={modalVisit}
         onFinish={async (values) => {
           console.log(values);
+          const res = await createModelGroup({
+            name: values.name,
+            desc: values.desc,
+            order: values.order,
+          });
+          console.log(res);
           message.success('提交成功');
           return true;
         }}

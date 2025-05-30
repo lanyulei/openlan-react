@@ -28,7 +28,7 @@ export const errorConfig: RequestConfig = {
   // 错误处理： umi@3 的错误处理方案。
   errorConfig: {
     // 错误抛出
-    errorThrower: (res) => {
+    errorThrower: (res: any) => {
       const { success, data, errorCode, errorMessage, showType } =
         res as unknown as ResponseStructure;
       if (!success) {
@@ -89,14 +89,14 @@ export const errorConfig: RequestConfig = {
   requestInterceptors: [
     (config: RequestOptions) => {
       // 拦截请求配置，进行个性化处理。
-      const url = config?.url?.concat('?token = 123');
+      const url = config?.url;
       return { ...config, url };
     },
   ],
 
   // 响应拦截器
   responseInterceptors: [
-    (response) => {
+    (response: any) => {
       // 拦截响应数据，进行个性化处理
       const { data } = response as unknown as ResponseStructure;
 
