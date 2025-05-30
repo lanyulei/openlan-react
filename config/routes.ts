@@ -48,9 +48,9 @@ export default [
         component: './Resource/Directory',
       },
       {
-        path: '/resource/models',
-        name: 'models',
-        component: './Resource/Models',
+        path: '/resource/model',
+        name: 'model',
+        component: './Resource/Model',
       },
     ],
   },

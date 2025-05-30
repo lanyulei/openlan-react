@@ -2,10 +2,9 @@ import { FC, useState } from 'react';
 import {
   ModalForm,
   PageContainer,
-  ProForm,
-  ProFormDateRangePicker,
-  ProFormSelect,
+  ProFormDigit,
   ProFormText,
+  ProFormTextArea,
 } from '@ant-design/pro-components';
 import {
   CaretDownOutlined,
@@ -82,57 +81,27 @@ const Models: FC = () => {
           </div>
         </div>
       </PageContainer>
-      <ModalForm
+      <ModalForm<{
+        name: string;
+        desc: string;
+        order: number;
+      }>
+        width={500}
         title="新建表单"
         open={modalVisit}
-        onFinish={async () => {
+        onFinish={async (values) => {
+          console.log(values);
           message.success('提交成功');
           return true;
         }}
+        initialValues={{
+          order: 1,
+        }}
         onOpenChange={setModalVisit}
       >
-        <ProForm.Group>
-          <ProFormText
-            width="md"
-            name="name"
-            label="签约客户名称"
-            tooltip="最长为 24 位"
-            placeholder="请输入名称"
-          />
-
-          <ProFormText width="md" name="company" label="我方公司名称" placeholder="请输入名称" />
-        </ProForm.Group>
-        <ProForm.Group>
-          <ProFormText width="md" name="contract" label="合同名称" placeholder="请输入名称" />
-          <ProFormDateRangePicker name="contractTime" label="合同生效时间" />
-        </ProForm.Group>
-        <ProForm.Group>
-          <ProFormSelect
-            options={[
-              {
-                value: 'chapter',
-                label: '盖章后生效',
-              },
-            ]}
-            width="xs"
-            name="useMode"
-            label="合同约定生效方式"
-          />
-          <ProFormSelect
-            width="xs"
-            options={[
-              {
-                value: 'time',
-                label: '履行完终止',
-              },
-            ]}
-            name="unusedMode"
-            label="合同约定失效效方式"
-          />
-        </ProForm.Group>
-        <ProFormText width="sm" name="id" label="主合同编号" />
-        <ProFormText name="project" disabled label="项目名称" initialValue="xxxx项目" />
-        <ProFormText width="xs" name="mangerName" disabled label="商务经理" initialValue="启途" />
+        <ProFormText name="name" label="名称：" placeholder="请输入名称" />
+        <ProFormTextArea name="desc" label="备注：" placeholder="请输入备注" />
+        <ProFormDigit label="顺序：" name="order" min={1} placeholder="请输入顺序" />
       </ModalForm>
     </>
   );

@@ -8,7 +8,7 @@ export default {
   'menu.resource': '资源管理',
   'menu.resource.search': '全局搜索',
   'menu.resource.directory': '资源目录',
-  'menu.resource.models': '模型管理',
+  'menu.resource.model': '模型管理',
 
   'menu.login': '登录',
   'menu.register': '注册',
