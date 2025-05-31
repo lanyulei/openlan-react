@@ -90,8 +90,6 @@ export const errorConfig: RequestConfig = {
   // 请求拦截器
   requestInterceptors: [
     (config: RequestOptions) => {
-      // 拦截请求配置，进行个性化处理。
-
       const token = getItem(TOKEN_KEY);
       if (token) {
         config.headers = {

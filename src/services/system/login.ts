@@ -8,3 +8,10 @@ export async function login(data: object) {
     data,
   });
 }
+
+export async function logout(options?: { [key: string]: any }) {
+  return request('/api/v1/logout', {
+    method: 'POST',
+    ...(options || {}),
+  });
+}
