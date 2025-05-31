@@ -81,6 +81,7 @@ const Models: FC = () => {
           onOk: async () => {
             await deleteModelGroup(item.id);
             await getList();
+            message.success('分组删除成功');
           },
         });
       },

@@ -111,7 +111,10 @@ export const errorConfig: RequestConfig = {
       const { data } = response as unknown as ResponseStructure;
 
       if (data?.code !== SUCCESS_CODE) {
-        message.error(data?.message || 'Request error');
+        return Promise.reject({
+          message: data?.message || 'Request error',
+          code: data?.code,
+        });
       }
 
       return response;
