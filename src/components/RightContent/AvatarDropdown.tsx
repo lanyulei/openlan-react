@@ -9,7 +9,7 @@ import React, { useCallback } from 'react';
 import { flushSync } from 'react-dom';
 import HeaderDropdown from '../HeaderDropdown';
 import { removeItem } from '@/utils/session';
-import { TOKEN_KEY } from '@/utils/session/variable';
+import { TOKEN_KEY } from '@/utils/variable';
 
 export type GlobalHeaderRightProps = {
   menu?: boolean;

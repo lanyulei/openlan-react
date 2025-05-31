@@ -15,7 +15,8 @@ import React, { useState } from 'react';
 import { flushSync } from 'react-dom';
 import { createStyles } from 'antd-style';
 import { setItem } from '@/utils/session';
-import { TOKEN_KEY } from '@/utils/session/variable';
+import { TOKEN_KEY } from '@/utils/variable';
+import { SUCCESS_CODE } from '@/utils/variable';
 
 const useStyles = createStyles(({ token }) => {
   return {
@@ -116,7 +117,7 @@ const Login: React.FC = () => {
     try {
       // 登录
       const res = await login({ ...values, type });
-      if (res.code === 20000) {
+      if (res.code === SUCCESS_CODE) {
         setItem(TOKEN_KEY, res.data);
         const defaultLoginSuccessMessage = intl.formatMessage({
           id: 'pages.login.success',
