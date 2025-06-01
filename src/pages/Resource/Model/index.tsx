@@ -13,16 +13,17 @@ import {
   PlusCircleOutlined,
   PlusOutlined,
 } from '@ant-design/icons';
-import styles from './less/Models.less';
+import styles from './index.less';
 import { Button, Dropdown, message, Modal } from 'antd';
 import type { MenuProps } from 'antd';
+import CreateModel from './components/CreateModel';
 
+import { getModels } from '@/services/resource/model';
 import {
   createModelGroup,
   deleteModelGroup,
-  getModels,
   updateModelGroup,
-} from '@/services/resource/model';
+} from '@/services/resource/modelGroup';
 
 type Data = {
   list: any[];
@@ -223,6 +224,7 @@ const Models: FC = () => {
           rules={[{ required: true, message: '顺序不能为空' }]}
         />
       </ModalForm>
+      <CreateModel />
     </>
   );
 };
