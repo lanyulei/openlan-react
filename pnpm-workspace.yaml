@@ -1,0 +1,2 @@
+patchedDependencies:
+  '@ant-design/pro-editor': patches/@ant-design__pro-editor.patch

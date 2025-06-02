@@ -1,0 +1,16 @@
+diff --git a/es/IconPicker/components/SearchBar.js b/es/IconPicker/components/SearchBar.js
+index 169f6b49bec32a86f6b927ca3cd50d58dc31c999..37ed4b9badc96cc0f79ea7033d81befed4bb96ba 100644
+--- a/es/IconPicker/components/SearchBar.js
++++ b/es/IconPicker/components/SearchBar.js
+@@ -19,7 +19,7 @@ var SearchBar = function SearchBar() {
+         filterKeywords: e.target.value
+       });
+     },
+-    bordered: false,
++    variant: 'borderless',
+     className: cx(css(_templateObject || (_templateObject = _taggedTemplateLiteral(["\n        border-radius: 0;\n        border-bottom: 1px solid ", " !important;\n        &:hover {\n          border-bottom: 1px solid ", " !important;\n        }\n      "])), token.colorBorderSecondary, token.colorBorder))
+   });
+ };
+diff --git a/node_modules/.cache/logger/umi.log b/node_modules/.cache/logger/umi.log
+new file mode 100644
+index 0000000000000000000000000000000000000000..e69de29bb2d1d6434b8b29ae775ad8c2e48c5391

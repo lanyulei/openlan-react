@@ -24,14 +24,14 @@ const CreateModel: FC = () => {
     icon: string;
     status: boolean;
     desc: string;
-    group_id: string;
+    group_id: string | undefined;
     order: number;
   }>({
     name: '',
     icon: '',
     status: true,
     desc: '',
-    group_id: '',
+    group_id: undefined,
     order: 1,
   });
 
