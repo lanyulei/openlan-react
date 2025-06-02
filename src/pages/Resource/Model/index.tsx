@@ -8,7 +8,6 @@ import {
 } from '@ant-design/pro-components';
 import {
   CaretDownOutlined,
-  GithubOutlined,
   MoreOutlined,
   PlusCircleOutlined,
   PlusOutlined,
@@ -24,6 +23,7 @@ import {
   deleteModelGroup,
   updateModelGroup,
 } from '@/services/resource/modelGroup';
+import { IconPicker } from '@ant-design/pro-editor';
 
 type Data = {
   list: any[];
@@ -144,7 +144,7 @@ const Models: FC = () => {
                   <div className={styles.modelValue}>
                     <div className={styles.modelInfo}>
                       <div className={styles.modelIcon}>
-                        <GithubOutlined />
+                        <IconPicker icon={modelItem.icon} />
                       </div>
                       <div className={styles.modelDetails}>
                         <div className={styles.modelName}>{modelItem.name}</div>

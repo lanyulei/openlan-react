@@ -8,3 +8,12 @@ export async function getModels() {
     method: 'GET',
   });
 }
+
+/** create model POST /api/v1/resource/model */
+export async function createModel(data: object, options?: { [key: string]: any }) {
+  return request('/api/v1/resource/model', {
+    method: 'POST',
+    data,
+    ...(options || {}),
+  });
+}

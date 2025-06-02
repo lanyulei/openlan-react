@@ -9,6 +9,7 @@ import { FC, useEffect, useState } from 'react';
 import { IconPicker, IconUnit } from '@ant-design/pro-editor';
 import styles from './CreateModel.less';
 import { getModelGroupList } from '@/services/resource/modelGroup';
+import { createModel } from '@/services/resource/model';
 
 type modelGroup = {
   id: string;
@@ -58,8 +59,19 @@ const CreateModel: FC = () => {
         }}
         open={modalVisit}
         onFinish={async (values) => {
-          console.log(modelIcon);
-          console.log(values);
+          let _data = {
+            ...values,
+            status: true,
+            icon: {},
+          };
+
+          if (modelIcon) {
+            _data.icon = modelIcon;
+          }
+
+          await createModel(_data);
+
+          setModalVisit(false);
           return true;
         }}
         initialValues={modelForm}
