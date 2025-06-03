@@ -32,7 +32,11 @@ type Data = {
 };
 
 const Models: FC = () => {
-  const createModelRef = useRef<{ showModal: (groupId: string) => void }>();
+  interface CreateModelRef {
+    showModal: (groupId: string) => void;
+  }
+
+  const createModelRef = useRef<CreateModelRef>(null);
   const [modalVisit, setModalVisit] = useState(false);
   const [modalStatus, setModalStatus] = useState('create');
   const [groupForm, setGroupForm] = useState({
@@ -150,9 +154,9 @@ const Models: FC = () => {
                 </div>
               </div>
             ) : (
-              item.models?.map((modelItem: any) => (
-                <div className={styles.modelItem} key={modelItem.id}>
-                  <div className={styles.modelValue}>
+              <div className={styles.modelItem}>
+                {item.models?.map((modelItem: any) => (
+                  <div className={styles.modelValue} key={modelItem.id}>
                     <div className={styles.modelInfo}>
                       <div className={styles.modelIcon}>
                         <IconPicker icon={modelItem.icon} />
@@ -164,12 +168,17 @@ const Models: FC = () => {
                     </div>
                     <div className={styles.modelInstanceCount}>0</div>
                   </div>
-                  <div className={styles.modelAdd}>
-                    <PlusOutlined />
-                    <span style={{ marginLeft: '5px' }}>新建模型</span>
-                  </div>
+                ))}
+                <div
+                  className={styles.modelAdd}
+                  onClick={() => {
+                    handleModelAdd(item);
+                  }}
+                >
+                  <PlusOutlined />
+                  <span style={{ marginLeft: '5px' }}>新建模型</span>
                 </div>
-              ))
+              </div>
             )}
           </div>
         ))}
@@ -235,7 +244,7 @@ const Models: FC = () => {
           rules={[{ required: true, message: '顺序不能为空' }]}
         />
       </ModalForm>
-      <CreateModel ref={createModelRef} />
+      <CreateModel ref={createModelRef} getList={getList} />
     </>
   );
 };

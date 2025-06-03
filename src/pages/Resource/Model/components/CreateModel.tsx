@@ -16,7 +16,16 @@ type modelGroup = {
   name: string;
 };
 
-const CreateModel = forwardRef((props, ref) => {
+// 定义组件，接收父组件传过来的 getList 函数
+interface CreateModelProps {
+  getList?: () => void; // 父组件传递的函数
+}
+
+interface CreateModelRef {
+  showModal: (groupId: string) => void; // 暴露给父组件的方法
+}
+
+const CreateModel = forwardRef<CreateModelRef, CreateModelProps>(({ getList }, ref) => {
   const [modalVisit, setModalVisit] = useState(false);
   const [modelGroupList, setModelGroupList] = useState<modelGroup[]>([]);
   const [modelIcon, setModelIcon] = useState<IconUnit>();
@@ -36,7 +45,7 @@ const CreateModel = forwardRef((props, ref) => {
     order: 1,
   });
 
-  const showModal = (groupId: string) => {
+  const showModal = async (groupId: string) => {
     setModelForm({
       ...modelForm,
       group_id: groupId,
@@ -83,6 +92,10 @@ const CreateModel = forwardRef((props, ref) => {
           }
 
           await createModel(_data);
+
+          if (getList) {
+            getList();
+          }
 
           setModalVisit(false);
           return true;
