@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { FC, useEffect, useRef, useState } from 'react';
 import {
   ModalForm,
@@ -32,6 +33,8 @@ type Data = {
 };
 
 const Models: FC = () => {
+  const navigate = useNavigate();
+
   interface CreateModelRef {
     showModal: (groupId: string) => void;
   }
@@ -98,6 +101,10 @@ const Models: FC = () => {
     createModelRef.current?.showModal(item.id);
   };
 
+  const handleDetails = (id: string) => {
+    navigate('/resource/model-details/' + id);
+  };
+
   useEffect(() => {
     (async () => {
       await getList();
@@ -156,14 +163,22 @@ const Models: FC = () => {
             ) : (
               <div className={styles.modelItem}>
                 {item.models?.map((modelItem: any) => (
-                  <div className={styles.modelValue} key={modelItem.id}>
+                  <div
+                    className={styles.modelValue}
+                    key={modelItem.id}
+                    onClick={() => {
+                      handleDetails(modelItem.id);
+                    }}
+                  >
                     <div className={styles.modelInfo}>
                       <div className={styles.modelIcon}>
                         <IconPicker icon={modelItem.icon} />
                       </div>
                       <div className={styles.modelDetails}>
                         <div className={styles.modelName}>{modelItem.name}</div>
-                        <div className={styles.modelDescription}>{modelItem.desc}</div>
+                        <div className={styles.modelDescription}>
+                          {modelItem.desc !== '' ? modelItem.desc : '暂无描述'}
+                        </div>
                       </div>
                     </div>
                     <div className={styles.modelInstanceCount}>0</div>

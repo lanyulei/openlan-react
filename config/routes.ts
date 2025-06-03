@@ -52,6 +52,12 @@ export default [
         name: 'model',
         component: './Resource/Model',
       },
+      {
+        path: '/resource/model-details/:id',
+        name: 'modelDetails',
+        component: './Resource/Model/details',
+        hideInMenu: true,
+      },
     ],
   },
   // {
