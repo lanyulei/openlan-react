@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from 'react';
+import { FC, useEffect, useRef, useState } from 'react';
 import {
   ModalForm,
   PageContainer,
@@ -32,6 +32,7 @@ type Data = {
 };
 
 const Models: FC = () => {
+  const createModelRef = useRef<{ showModal: (groupId: string) => void }>();
   const [modalVisit, setModalVisit] = useState(false);
   const [modalStatus, setModalStatus] = useState('create');
   const [groupForm, setGroupForm] = useState({
@@ -89,6 +90,10 @@ const Models: FC = () => {
     },
   ];
 
+  const handleModelAdd = (item: any) => {
+    createModelRef.current?.showModal(item.id);
+  };
+
   useEffect(() => {
     (async () => {
       await getList();
@@ -133,7 +138,13 @@ const Models: FC = () => {
             </div>
             {!item.models || item.models?.length === 0 ? (
               <div className={styles.modelItem}>
-                <div className={styles.modelAdd} style={{ display: 'block' }}>
+                <div
+                  className={styles.modelAdd}
+                  style={{ display: 'block' }}
+                  onClick={() => {
+                    handleModelAdd(item);
+                  }}
+                >
                   <PlusOutlined />
                   <span style={{ marginLeft: '5px' }}>新建模型</span>
                 </div>
@@ -224,7 +235,7 @@ const Models: FC = () => {
           rules={[{ required: true, message: '顺序不能为空' }]}
         />
       </ModalForm>
-      <CreateModel />
+      <CreateModel ref={createModelRef} />
     </>
   );
 };

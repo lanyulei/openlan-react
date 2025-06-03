@@ -5,7 +5,7 @@ import {
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
-import { FC, useEffect, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { IconPicker, IconUnit } from '@ant-design/pro-editor';
 import styles from './CreateModel.less';
 import { getModelGroupList } from '@/services/resource/modelGroup';
@@ -16,8 +16,8 @@ type modelGroup = {
   name: string;
 };
 
-const CreateModel: FC = () => {
-  const [modalVisit, setModalVisit] = useState(true);
+const CreateModel = forwardRef((props, ref) => {
+  const [modalVisit, setModalVisit] = useState(false);
   const [modelGroupList, setModelGroupList] = useState<modelGroup[]>([]);
   const [modelIcon, setModelIcon] = useState<IconUnit>();
   const [modelForm, setModelForm] = useState<{
@@ -35,6 +35,19 @@ const CreateModel: FC = () => {
     group_id: undefined,
     order: 1,
   });
+
+  const showModal = (groupId: string) => {
+    setModelForm({
+      ...modelForm,
+      group_id: groupId,
+    });
+    setModalVisit(true);
+  };
+
+  // 向父组件暴露方法
+  useImperativeHandle(ref, () => ({
+    showModal,
+  }));
 
   useEffect(() => {
     (async () => {
@@ -114,6 +127,6 @@ const CreateModel: FC = () => {
       </ModalForm>
     </>
   );
-};
+});
 
 export default CreateModel;
