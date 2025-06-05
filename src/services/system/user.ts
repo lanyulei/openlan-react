@@ -9,3 +9,12 @@ export async function getCurrentUser(options?: { [key: string]: any }) {
     ...(options || {}),
   });
 }
+
+/* 获取用户列表 GET /api/v1/system/user/list */
+export async function getUserList(params: object, options?: { [key: string]: any }) {
+  return request('/api/v1/system/user', {
+    method: 'GET',
+    params,
+    ...(options || {}),
+  });
+}
