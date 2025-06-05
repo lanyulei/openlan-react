@@ -1,4 +1,11 @@
-import { EyeOutlined, MinusCircleOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
+import {
+  CaretDownOutlined,
+  EyeOutlined,
+  MinusCircleOutlined,
+  MoreOutlined,
+  PlusOutlined,
+  SearchOutlined,
+} from '@ant-design/icons';
 import {
   DrawerForm,
   ModalForm,
@@ -10,11 +17,14 @@ import {
   ProFormTextArea,
   ProFormTimePicker,
 } from '@ant-design/pro-components';
-import { Button, Flex, Form, Input } from 'antd';
-import { FC, useState } from 'react';
+import { Button, Dropdown, Flex, Form, Input, MenuProps, message, Modal } from 'antd';
+import { FC, useEffect, useState } from 'react';
 import styles from './ModelField.less';
+import modelStyles from '../index.less';
 import { getUserList } from '@/services/system/user';
 import { useParams } from 'react-router-dom';
+import { createFieldGroup } from '@/services/resource/fieldGroup';
+import { getModelFieldList } from '@/services/resource/field';
 
 interface FieldForm {
   name?: string;
@@ -98,6 +108,27 @@ const ModelField: FC = () => {
     model_id: id,
   });
   const [fieldGroupStatus, setFieldGroupStatus] = useState('create');
+  const [fieldList, setFieldList] = useState<any[]>([]);
+
+  const handleRestFieldForm = async (groupId: string | undefined) => {
+    const _data = {
+      name: '',
+      group_id: groupId,
+      type: 'shortString' as FieldType,
+      options: {
+        options: [], // 初始化options数组
+      },
+      is_edit: false,
+      is_required: false,
+      is_list: false,
+      placeholder: '',
+      desc: '',
+      order: 1,
+      model_id: id,
+    };
+    setFieldForm(_data);
+    form.setFieldsValue(_data);
+  };
 
   // 修改handleChange函数
   const handleChange = (index: number, field: 'id' | 'value', val: string) => {
@@ -121,28 +152,49 @@ const ModelField: FC = () => {
     setUserList(data?.list);
   };
 
+  const getModelFields = async () => {
+    const _res = await getModelFieldList(id, {});
+    const { data } = _res;
+    setFieldList(data);
+  };
+
+  const getItems = (item: any): MenuProps['items'] => [
+    {
+      label: <div>编辑分组</div>,
+      key: '0',
+      onClick: () => {
+        console.log(item);
+      },
+    },
+    {
+      label: <div>删除分组</div>,
+      key: '1',
+      onClick: () => {
+        Modal.confirm({
+          title: '确认删除分组',
+          content: '确定要删除此分组吗？',
+          okText: '确认',
+          cancelText: '取消',
+          onOk: async () => {
+            console.log(item);
+          },
+        });
+      },
+    },
+  ];
+
+  useEffect(() => {
+    getModelFields();
+  }, []);
+
   return (
     <div>
       <Flex gap={10} wrap>
         <Button
           type="primary"
-          onClick={() => {
+          onClick={async () => {
             getUsers();
-            setFieldForm({
-              name: '',
-              group_id: undefined,
-              type: 'shortString',
-              options: {
-                options: [], // 初始化options数组
-              },
-              is_edit: false,
-              is_required: false,
-              is_list: false,
-              placeholder: '',
-              desc: '',
-              order: 1,
-              model_id: '',
-            });
+            await handleRestFieldForm(undefined);
             setDrawerStatus('create');
             setFieldVisit(true);
           }}
@@ -171,6 +223,68 @@ const ModelField: FC = () => {
         </Button>
         <Input placeholder="请输入字段名" style={{ width: '300px' }} suffix={<SearchOutlined />} />
       </Flex>
+      <div style={{ marginTop: '12px' }}>
+        {fieldList.map((groupItem) => (
+          <div key={groupItem.id} style={{ marginBottom: '15px' }}>
+            <div className={modelStyles.modelGroup}>
+              <CaretDownOutlined />
+              <span className={modelStyles.modelGroupName}>
+                {groupItem.name} ( {groupItem.models?.length || 0} ){''}
+              </span>
+              <Dropdown menu={{ items: getItems(groupItem) }} trigger={['click']}>
+                <MoreOutlined className={modelStyles.modelGroupMoreIcon} />
+              </Dropdown>
+            </div>
+            {!groupItem.models || groupItem.models?.length === 0 ? (
+              <div className={modelStyles.modelItem}>
+                <div
+                  className={modelStyles.modelAdd}
+                  style={{ display: 'block' }}
+                  onClick={async () => {
+                    await handleRestFieldForm(groupItem.id);
+                    setFieldVisit(true);
+                  }}
+                >
+                  <PlusOutlined />
+                  <span style={{ marginLeft: '5px' }}>新建字段</span>
+                </div>
+              </div>
+            ) : (
+              <div className={modelStyles.modelItem}>
+                {groupItem.fields?.map((fieldItem: any) => (
+                  <div
+                    className={modelStyles.modelValue}
+                    key={fieldItem.id}
+                    onClick={() => {
+                      // 点击字段时，设置表单值
+                      setFieldVisit(true);
+                    }}
+                  >
+                    <div className={modelStyles.modelInfo}>
+                      <div className={modelStyles.modelDetails}>
+                        <div className={modelStyles.modelName}>{fieldItem.name}</div>
+                        <div className={modelStyles.modelDescription}>
+                          {fieldItem.desc !== '' ? fieldItem.desc : '暂无描述'}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                <div
+                  className={modelStyles.modelAdd}
+                  onClick={async () => {
+                    await handleRestFieldForm(groupItem.id);
+                    setFieldVisit(true);
+                  }}
+                >
+                  <PlusOutlined />
+                  <span style={{ marginLeft: '5px' }}>新建字段</span>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
 
       <DrawerForm
         form={form}
@@ -203,10 +317,10 @@ const ModelField: FC = () => {
         <ProFormSelect
           name="group_id"
           label="所属分组"
-          options={[
-            { label: '基础信息', value: 'basic' },
-            { label: '扩展信息', value: 'extend' },
-          ]}
+          options={fieldList.map((item) => ({
+            label: item.name,
+            value: item.id,
+          }))}
           rules={[{ required: true, message: '请选择分组' }]}
           placeholder="请选择分组"
         />
@@ -481,7 +595,7 @@ const ModelField: FC = () => {
             ) : null}
           </div>
         )}
-        <Flex justify="space-between">
+        <Flex justify="flex-start" gap={80}>
           <ProFormSwitch name="is_edit" label="是否可编辑" />
           <ProFormSwitch name="is_required" label="是否必填" />
           <ProFormSwitch name="is_list" label="列表展示" />
@@ -498,14 +612,16 @@ const ModelField: FC = () => {
 
       <ModalForm
         title="新建分组"
-        form={form}
         autoFocusFirstInput
         modalProps={{
           destroyOnHidden: true,
         }}
-        onFinish={async (values) => {
-          console.log(fieldGroupStatus, values);
-          return true;
+        onFinish={async () => {
+          if (fieldGroupStatus === 'create') {
+            await createFieldGroup(fieldGroupForm);
+            setFieldGroupVisit(false);
+            message.success('创建成功');
+          }
         }}
         onValuesChange={(_, values) => {
           setFieldGroupForm((prev) => ({
