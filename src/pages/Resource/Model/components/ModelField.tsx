@@ -1,11 +1,13 @@
 import { EyeOutlined, MinusCircleOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import {
   DrawerForm,
+  ProFormDatePicker,
   ProFormDigit,
   ProFormSelect,
   ProFormSwitch,
   ProFormText,
   ProFormTextArea,
+  ProFormTimePicker,
 } from '@ant-design/pro-components';
 import { Button, Flex, Form, Input } from 'antd';
 import { FC, useState } from 'react';
@@ -33,6 +35,7 @@ type FieldType =
   | 'enumMulti'
   | 'date'
   | 'time'
+  | 'datetime'
   | 'longString'
   | 'user'
   | 'timeZone'
@@ -53,6 +56,7 @@ const baseFieldTypeMap: LabelValue[] = [
   { Label: '枚举多选', Value: 'enumMulti' },
   { Label: '日期', Value: 'date' },
   { Label: '时间', Value: 'time' },
+  { Label: '日期时间', Value: 'datetime' },
   { Label: '长字符串', Value: 'longString' },
   { Label: '用户', Value: 'user' },
   { Label: '时区', Value: 'timeZone' },
@@ -62,6 +66,7 @@ const baseFieldTypeMap: LabelValue[] = [
 ];
 
 const ModelField: FC = () => {
+  const [form] = Form.useForm();
   const [fieldForm, setFieldForm] = useState<FieldForm>({
     name: '',
     group_id: undefined,
@@ -100,6 +105,21 @@ const ModelField: FC = () => {
         <Button
           type="primary"
           onClick={() => {
+            setFieldForm({
+              name: '',
+              group_id: undefined,
+              type: 'shortString',
+              options: {
+                options: [], // 初始化options数组
+              },
+              is_edit: false,
+              is_required: false,
+              is_list: false,
+              placeholder: '',
+              desc: '',
+              order: 1,
+              model_id: '',
+            });
             setDrawerStatus('create');
             setFieldVisit(true);
           }}
@@ -118,8 +138,8 @@ const ModelField: FC = () => {
         <Input placeholder="请输入字段名" style={{ width: '300px' }} suffix={<SearchOutlined />} />
       </Flex>
       <DrawerForm
+        form={form}
         title={drawerStatus === 'create' ? '新建字段' : '编辑字段'}
-        initialValues={fieldForm}
         width={600}
         autoFocusFirstInput
         drawerProps={{
@@ -130,8 +150,23 @@ const ModelField: FC = () => {
           return true;
         }}
         onValuesChange={(_, values) => {
-          setFieldForm((prev) => ({ ...prev, ...values }));
+          const newOptions = {};
+          setFieldForm((prev) => ({
+            ...prev,
+            ...values,
+            options: newOptions,
+          }));
+          form.setFieldsValue({
+            options: {
+              options: [],
+              regexp: undefined,
+              min: undefined,
+              max: undefined,
+              default: undefined,
+            },
+          });
         }}
+        initialValues={fieldForm}
         onOpenChange={setFieldVisit}
         open={fieldVisit}
       >
@@ -159,6 +194,7 @@ const ModelField: FC = () => {
             value: item.Value,
           }))}
           rules={[{ required: true, message: '请选择字段类型' }]}
+          placeholder="请选择字段类型"
         />
         <div className={styles.modelFieldOptions}>
           {fieldForm?.type === 'shortString' || fieldForm?.type === 'longString' ? (
@@ -269,6 +305,7 @@ const ModelField: FC = () => {
                   key={fieldForm?.options?.options?.length} // 添加key触发重新渲染
                   name={['options', 'default']}
                   placeholder="请选择默认值"
+                  mode={fieldForm?.type === 'enumMulti' ? 'multiple' : undefined} // 动态设置多选模式
                   options={
                     fieldForm?.options?.options
                       ?.filter((opt: { id: any; value: any }) => opt?.id && opt?.value)
@@ -282,6 +319,43 @@ const ModelField: FC = () => {
                   }}
                 />
               </div>
+            </>
+          ) : fieldForm?.type === 'date' ? (
+            <>
+              <ProFormDatePicker
+                name={['options', 'default']}
+                label="默认值"
+                placeholder="请选择日期"
+                fieldProps={{
+                  format: 'YYYY-MM-DD',
+                  style: { width: '100%' },
+                }}
+              />
+            </>
+          ) : fieldForm?.type === 'time' ? (
+            <>
+              <ProFormTimePicker
+                name={['options', 'default']}
+                label="默认值"
+                placeholder="请选择时间"
+                fieldProps={{
+                  format: 'HH:mm:ss',
+                  style: { width: '100%' },
+                }}
+              />
+            </>
+          ) : fieldForm?.type === 'datetime' ? (
+            <>
+              <ProFormDatePicker
+                name={['options', 'default']}
+                label="默认值"
+                placeholder="请选择日期时间"
+                fieldProps={{
+                  showTime: true,
+                  format: 'YYYY-MM-DD HH:mm:ss',
+                  style: { width: '100%' },
+                }}
+              />
             </>
           ) : null}
         </div>
