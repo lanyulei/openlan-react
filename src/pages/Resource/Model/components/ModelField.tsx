@@ -1,6 +1,7 @@
 import { EyeOutlined, MinusCircleOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import {
   DrawerForm,
+  ModalForm,
   ProFormDatePicker,
   ProFormDigit,
   ProFormSelect,
@@ -13,6 +14,7 @@ import { Button, Flex, Form, Input } from 'antd';
 import { FC, useState } from 'react';
 import styles from './ModelField.less';
 import { getUserList } from '@/services/system/user';
+import { useParams } from 'react-router-dom';
 
 interface FieldForm {
   name?: string;
@@ -67,6 +69,7 @@ const baseFieldTypeMap: LabelValue[] = [
 ];
 
 const ModelField: FC = () => {
+  const { id } = useParams();
   const [form] = Form.useForm();
   const [fieldForm, setFieldForm] = useState<FieldForm>({
     name: '',
@@ -81,11 +84,20 @@ const ModelField: FC = () => {
     placeholder: '',
     desc: '',
     order: 1,
-    model_id: '',
+    model_id: id,
   });
   const [fieldVisit, setFieldVisit] = useState(false);
   const [drawerStatus, setDrawerStatus] = useState('create');
   const [userList, setUserList] = useState<any[]>([]);
+
+  const [fieldGroupVisit, setFieldGroupVisit] = useState(false);
+  const [fieldGroupForm, setFieldGroupForm] = useState<FieldForm>({
+    name: '',
+    desc: '',
+    order: 1,
+    model_id: id,
+  });
+  const [fieldGroupStatus, setFieldGroupStatus] = useState('create');
 
   // 修改handleChange函数
   const handleChange = (index: number, field: 'id' | 'value', val: string) => {
@@ -138,7 +150,18 @@ const ModelField: FC = () => {
           <PlusOutlined />
           新建字段
         </Button>
-        <Button>
+        <Button
+          onClick={() => {
+            setFieldGroupForm({
+              name: '',
+              desc: '',
+              order: 1,
+              model_id: '',
+            });
+            setFieldGroupStatus('create');
+            setFieldGroupVisit(true);
+          }}
+        >
           <PlusOutlined />
           新建分组
         </Button>
@@ -148,6 +171,7 @@ const ModelField: FC = () => {
         </Button>
         <Input placeholder="请输入字段名" style={{ width: '300px' }} suffix={<SearchOutlined />} />
       </Flex>
+
       <DrawerForm
         form={form}
         title={drawerStatus === 'create' ? '新建字段' : '编辑字段'}
@@ -471,6 +495,53 @@ const ModelField: FC = () => {
         />
         <ProFormTextArea name="desc" label="字段描述" placeholder="请输入字段描述" />
       </DrawerForm>
+
+      <ModalForm
+        title="新建分组"
+        form={form}
+        autoFocusFirstInput
+        modalProps={{
+          destroyOnHidden: true,
+        }}
+        onFinish={async (values) => {
+          console.log(fieldGroupStatus, values);
+          return true;
+        }}
+        onValuesChange={(_, values) => {
+          setFieldGroupForm((prev) => ({
+            ...prev,
+            ...values,
+            model_id: fieldForm?.model_id,
+          }));
+        }}
+        initialValues={fieldGroupForm}
+        onOpenChange={setFieldGroupVisit}
+        open={fieldGroupVisit}
+      >
+        <Flex gap={12} style={{ width: '100%' }} className={styles.flexWidth100}>
+          <ProFormText
+            name="name"
+            label="名称"
+            placeholder="请输入名称"
+            rules={[{ required: true, message: '名称不能为空' }]}
+            style={{
+              flex: 1,
+              width: '100%',
+            }}
+          />
+          <ProFormDigit
+            name="order"
+            label="排序序号"
+            min={1}
+            rules={[{ required: true, message: '请输入排序' }]}
+            style={{
+              flex: 1,
+              width: '100%',
+            }}
+          />
+        </Flex>
+        <ProFormTextArea name="desc" label="描述" placeholder="请输入描述" />
+      </ModalForm>
     </div>
   );
 };
