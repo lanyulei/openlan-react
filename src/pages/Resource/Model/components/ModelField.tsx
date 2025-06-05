@@ -24,7 +24,7 @@ import modelStyles from '../index.less';
 import { getUserList } from '@/services/system/user';
 import { useParams } from 'react-router-dom';
 import { createFieldGroup } from '@/services/resource/fieldGroup';
-import { getModelFieldList } from '@/services/resource/field';
+import { createModelField, getModelFieldList } from '@/services/resource/field';
 
 interface FieldForm {
   name?: string;
@@ -109,6 +109,7 @@ const ModelField: FC = () => {
   });
   const [fieldGroupStatus, setFieldGroupStatus] = useState('create');
   const [fieldList, setFieldList] = useState<any[]>([]);
+  const [fieldName, setFieldName] = useState<string>('');
 
   const handleRestFieldForm = async (groupId: string | undefined) => {
     const _data = {
@@ -153,7 +154,9 @@ const ModelField: FC = () => {
   };
 
   const getModelFields = async () => {
-    const _res = await getModelFieldList(id, {});
+    const _res = await getModelFieldList(id, {
+      name: fieldName,
+    });
     const { data } = _res;
     setFieldList(data);
   };
@@ -221,7 +224,14 @@ const ModelField: FC = () => {
           <EyeOutlined />
           字段预览
         </Button>
-        <Input placeholder="请输入字段名" style={{ width: '300px' }} suffix={<SearchOutlined />} />
+        <Input
+          placeholder="请输入字段名"
+          style={{ width: '300px' }}
+          suffix={<SearchOutlined />}
+          value={fieldName}
+          onChange={(e) => setFieldName(e.target.value)}
+          onPressEnter={getModelFields}
+        />
       </Flex>
       <div style={{ marginTop: '12px' }}>
         {fieldList.map((groupItem) => (
@@ -229,13 +239,13 @@ const ModelField: FC = () => {
             <div className={modelStyles.modelGroup}>
               <CaretDownOutlined />
               <span className={modelStyles.modelGroupName}>
-                {groupItem.name} ( {groupItem.models?.length || 0} ){''}
+                {groupItem.name} ( {groupItem.fields?.length || 0} ){''}
               </span>
               <Dropdown menu={{ items: getItems(groupItem) }} trigger={['click']}>
                 <MoreOutlined className={modelStyles.modelGroupMoreIcon} />
               </Dropdown>
             </div>
-            {!groupItem.models || groupItem.models?.length === 0 ? (
+            {!groupItem.fields || groupItem.fields?.length === 0 ? (
               <div className={modelStyles.modelItem}>
                 <div
                   className={modelStyles.modelAdd}
@@ -258,6 +268,13 @@ const ModelField: FC = () => {
                     onClick={() => {
                       // 点击字段时，设置表单值
                       setFieldVisit(true);
+                    }}
+                    style={{
+                      backgroundColor: '#f5f7fa',
+                      border: '1px solid #eaeaea',
+                      borderRadius: '2px',
+                      paddingLeft: '3px',
+                      paddingRight: '3px',
                     }}
                   >
                     <div className={modelStyles.modelInfo}>
@@ -294,9 +311,11 @@ const ModelField: FC = () => {
         drawerProps={{
           destroyOnHidden: true,
         }}
-        onFinish={async (values) => {
-          console.log(values);
-          return true;
+        onFinish={async () => {
+          await createModelField(fieldForm);
+          await getModelFields();
+          setFieldVisit(false);
+          message.success('字段创建成功');
         }}
         onValuesChange={(_, values) => {
           setFieldForm((prev) => ({

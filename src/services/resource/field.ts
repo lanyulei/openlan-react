@@ -14,3 +14,12 @@ export async function getModelFieldList(
     ...(options || {}),
   });
 }
+
+/** create a field group POST /api/v1/resource/field/create */
+export async function createModelField(data: object, options?: { [key: string]: any }) {
+  return request('/api/v1/resource/field', {
+    method: 'POST',
+    data,
+    ...(options || {}),
+  });
+}
