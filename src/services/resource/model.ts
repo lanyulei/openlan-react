@@ -18,3 +18,19 @@ export async function createModel(data: object, options?: { [key: string]: any }
     ...(options || {}),
   });
 }
+
+/** get details GET /api/v1/resource/model/:id */
+export async function getModelDetails(id: string | undefined, options?: { [key: string]: any }) {
+  return request(`/api/v1/resource/model/${id}`, {
+    method: 'GET',
+    ...(options || {}),
+  });
+}
+
+/** delete model DELETE /api/v1/resource/model/:id */
+export async function deleteModel(id: string | undefined, options?: { [key: string]: any }) {
+  return request(`/api/v1/resource/model/${id}`, {
+    method: 'DELETE',
+    ...(options || {}),
+  });
+}

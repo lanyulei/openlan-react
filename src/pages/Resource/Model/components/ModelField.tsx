@@ -17,7 +17,7 @@ import {
   ProFormTextArea,
   ProFormTimePicker,
 } from '@ant-design/pro-components';
-import { Button, Dropdown, Flex, Form, Input, MenuProps, message, Modal } from 'antd';
+import { Button, Dropdown, Empty, Flex, Form, Input, MenuProps, message, Modal } from 'antd';
 import { FC, useEffect, useState } from 'react';
 import styles from './ModelField.less';
 import modelStyles from '../index.less';
@@ -174,7 +174,7 @@ const ModelField: FC = () => {
       key: '1',
       onClick: () => {
         Modal.confirm({
-          title: '确认删除分组',
+          title: '删除分组',
           content: '确定要删除此分组吗？',
           okText: '确认',
           cancelText: '取消',
@@ -234,73 +234,87 @@ const ModelField: FC = () => {
         />
       </Flex>
       <div style={{ marginTop: '12px' }}>
-        {fieldList.map((groupItem) => (
-          <div key={groupItem.id} style={{ marginBottom: '15px' }}>
-            <div className={modelStyles.modelGroup}>
-              <CaretDownOutlined />
-              <span className={modelStyles.modelGroupName}>
-                {groupItem.name} ( {groupItem.fields?.length || 0} ){''}
-              </span>
-              <Dropdown menu={{ items: getItems(groupItem) }} trigger={['click']}>
-                <MoreOutlined className={modelStyles.modelGroupMoreIcon} />
-              </Dropdown>
-            </div>
-            {!groupItem.fields || groupItem.fields?.length === 0 ? (
-              <div className={modelStyles.modelItem}>
-                <div
-                  className={modelStyles.modelAdd}
-                  style={{ display: 'block' }}
-                  onClick={async () => {
-                    await handleRestFieldForm(groupItem.id);
-                    setFieldVisit(true);
-                  }}
-                >
-                  <PlusOutlined />
-                  <span style={{ marginLeft: '5px' }}>新建字段</span>
-                </div>
+        {Array.isArray(fieldList) && fieldList.length > 0 ? (
+          fieldList.map((groupItem) => (
+            <div key={groupItem.id} style={{ marginBottom: '15px' }}>
+              <div className={modelStyles.modelGroup}>
+                <CaretDownOutlined />
+                <span className={modelStyles.modelGroupName}>
+                  {groupItem.name} ( {groupItem.fields?.length || 0} ){''}
+                </span>
+                <Dropdown menu={{ items: getItems(groupItem) }} trigger={['click']}>
+                  <MoreOutlined className={modelStyles.modelGroupMoreIcon} />
+                </Dropdown>
               </div>
-            ) : (
-              <div className={modelStyles.modelItem}>
-                {groupItem.fields?.map((fieldItem: any) => (
+              {!groupItem.fields || groupItem.fields?.length === 0 ? (
+                <div className={modelStyles.modelItem}>
                   <div
-                    className={modelStyles.modelValue}
-                    key={fieldItem.id}
-                    onClick={() => {
-                      // 点击字段时，设置表单值
+                    className={modelStyles.modelAdd}
+                    style={{ display: 'block' }}
+                    onClick={async () => {
+                      await handleRestFieldForm(groupItem.id);
                       setFieldVisit(true);
                     }}
-                    style={{
-                      backgroundColor: '#f5f7fa',
-                      border: '1px solid #eaeaea',
-                      borderRadius: '2px',
-                      paddingLeft: '3px',
-                      paddingRight: '3px',
-                    }}
                   >
-                    <div className={modelStyles.modelInfo}>
-                      <div className={modelStyles.modelDetails}>
-                        <div className={modelStyles.modelName}>{fieldItem.name}</div>
-                        <div className={modelStyles.modelDescription}>
-                          {fieldItem.desc !== '' ? fieldItem.desc : '暂无描述'}
+                    <PlusOutlined />
+                    <span style={{ marginLeft: '5px' }}>新建字段</span>
+                  </div>
+                </div>
+              ) : (
+                <div className={modelStyles.modelItem}>
+                  {groupItem.fields?.map((fieldItem: any) => (
+                    <div
+                      className={modelStyles.modelValue}
+                      key={fieldItem.id}
+                      onClick={() => {
+                        // 点击字段时，设置表单值
+                        setFieldVisit(true);
+                      }}
+                      style={{
+                        backgroundColor: '#f5f7fa',
+                        border: '1px solid #eaeaea',
+                        borderRadius: '2px',
+                        paddingLeft: '3px',
+                        paddingRight: '3px',
+                      }}
+                    >
+                      <div className={modelStyles.modelInfo}>
+                        <div className={modelStyles.modelDetails}>
+                          <div className={modelStyles.modelName}>{fieldItem.name}</div>
+                          <div className={modelStyles.modelDescription}>
+                            {fieldItem.desc !== '' ? fieldItem.desc : '暂无描述'}
+                          </div>
                         </div>
                       </div>
                     </div>
+                  ))}
+                  <div
+                    className={modelStyles.modelAdd}
+                    onClick={async () => {
+                      await handleRestFieldForm(groupItem.id);
+                      setFieldVisit(true);
+                    }}
+                  >
+                    <PlusOutlined />
+                    <span style={{ marginLeft: '5px' }}>新建字段</span>
                   </div>
-                ))}
-                <div
-                  className={modelStyles.modelAdd}
-                  onClick={async () => {
-                    await handleRestFieldForm(groupItem.id);
-                    setFieldVisit(true);
-                  }}
-                >
-                  <PlusOutlined />
-                  <span style={{ marginLeft: '5px' }}>新建字段</span>
                 </div>
-              </div>
-            )}
-          </div>
-        ))}
+              )}
+            </div>
+          ))
+        ) : (
+          <Empty
+            style={{
+              height: '120px',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              flexDirection: 'column',
+            }}
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description="暂无字段数据"
+          />
+        )}
       </div>
 
       <DrawerForm

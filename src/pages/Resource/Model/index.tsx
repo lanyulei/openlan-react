@@ -9,6 +9,7 @@ import {
 } from '@ant-design/pro-components';
 import {
   CaretDownOutlined,
+  EditOutlined,
   MoreOutlined,
   PlusCircleOutlined,
   PlusOutlined,
@@ -87,7 +88,7 @@ const Models: FC = () => {
       key: '1',
       onClick: () => {
         Modal.confirm({
-          title: '确认删除分组',
+          title: '删除分组',
           content: '确定要删除此分组吗？',
           okText: '确认',
           cancelText: '取消',
@@ -157,7 +158,7 @@ const Models: FC = () => {
             <div className={styles.modelGroup}>
               <CaretDownOutlined />
               <span className={styles.modelGroupName}>
-                {item.name} ( {item.models?.length || 0} ){' '}
+                {item.name} ( {item.models?.length || 0} )
               </span>
               <Dropdown menu={{ items: getItems(item) }} trigger={['click']}>
                 <MoreOutlined className={styles.modelGroupMoreIcon} />
@@ -179,14 +180,13 @@ const Models: FC = () => {
             ) : (
               <div className={styles.modelItem}>
                 {item.models?.map((modelItem: any) => (
-                  <div
-                    className={styles.modelValue}
-                    key={modelItem.id}
-                    onClick={() => {
-                      handleDetails(modelItem.id);
-                    }}
-                  >
-                    <div className={styles.modelInfo}>
+                  <div className={styles.modelValue} key={modelItem.id}>
+                    <div
+                      className={styles.modelInfo}
+                      onClick={() => {
+                        handleDetails(modelItem.id);
+                      }}
+                    >
                       <div className={styles.modelIcon}>
                         <IconPicker icon={modelItem.icon} />
                       </div>
@@ -197,7 +197,9 @@ const Models: FC = () => {
                         </div>
                       </div>
                     </div>
-                    <div className={styles.modelInstanceCount}>0</div>
+                    <div className={styles.modelEdit}>
+                      <EditOutlined />
+                    </div>
                   </div>
                 ))}
                 <div

@@ -1,11 +1,27 @@
 import { PageContainer, ProCard } from '@ant-design/pro-components';
-import { Descriptions } from 'antd';
-import { FC, useState } from 'react';
+import { Button, Descriptions, Modal, Tag } from 'antd';
+import { FC, useEffect, useState } from 'react';
 import ModelField from './components/ModelField';
 import styles from './details.less';
+import { deleteModel, getModelDetails } from '@/services/resource/model';
+import { useNavigate, useParams } from 'react-router-dom';
+import { formatDate } from '@/utils/tools/tools';
+import { IconPicker } from '@ant-design/pro-editor';
+import { DeleteOutlined } from '@ant-design/icons';
 
 const ModelDetails: FC = () => {
+  const navigate = useNavigate();
+  const { id } = useParams();
   const [tab, setTab] = useState('fields');
+  const [modelDetails, setModelDetails] = useState<any>();
+
+  useEffect(() => {
+    (async () => {
+      await getModelDetails(id).then((res) => {
+        setModelDetails(res.data);
+      });
+    })();
+  }, []);
 
   return (
     <div
@@ -14,15 +30,56 @@ const ModelDetails: FC = () => {
       }}
     >
       <PageContainer
+        header={{
+          extra: [
+            <Button
+              key="2"
+              icon={<DeleteOutlined />}
+              onClick={() => {
+                Modal.confirm({
+                  title: '删除模型',
+                  content:
+                    '删除模型将同步删除对应的字段分组及字段数据，请确认是否进行删除模型操作？',
+                  okText: '确认',
+                  cancelText: '取消',
+                  onOk: async () => {
+                    await deleteModel(modelDetails.id);
+                    navigate('/resource/model');
+                  },
+                });
+              }}
+            >
+              删除
+            </Button>,
+          ],
+        }}
         content={
-          <Descriptions column={2} style={{ marginBlockEnd: -16 }}>
-            <Descriptions.Item label="创建人">曲丽丽</Descriptions.Item>
-            <Descriptions.Item label="关联表单">
-              <a>421421</a>
-            </Descriptions.Item>
-            <Descriptions.Item label="创建时间">2017-01-10</Descriptions.Item>
-            <Descriptions.Item label="单据备注">浙江省杭州市西湖区工专路</Descriptions.Item>
-          </Descriptions>
+          <>
+            <div className={styles.modelInfo}>
+              <div className={styles.modelIcon}>
+                <IconPicker icon={modelDetails?.icon} />
+              </div>
+              <div className={styles.modelDesc}>{modelDetails?.desc || '暂无描述'}</div>
+            </div>
+            <Descriptions column={2} style={{ marginBlockEnd: -16 }}>
+              <Descriptions.Item label="ID">{modelDetails?.id}</Descriptions.Item>
+              <Descriptions.Item label="名称">{modelDetails?.name}</Descriptions.Item>
+              <Descriptions.Item label="分组名称">{modelDetails?.group_name}</Descriptions.Item>
+              <Descriptions.Item label="状态">
+                {modelDetails?.status ? (
+                  <Tag color="geekblue">启用</Tag>
+                ) : (
+                  <Tag color="red">禁用</Tag>
+                )}
+              </Descriptions.Item>
+              <Descriptions.Item label="创建时间">
+                {formatDate(modelDetails?.create_time)}
+              </Descriptions.Item>
+              <Descriptions.Item label="更新时间">
+                {formatDate(modelDetails?.update_time)}
+              </Descriptions.Item>
+            </Descriptions>
+          </>
         }
       >
         <ProCard
@@ -39,16 +96,6 @@ const ModelDetails: FC = () => {
                 key: 'fields',
                 children: <ModelField />,
               },
-              // {
-              //   label: `产品二`,
-              //   key: 'tab2',
-              //   children: `内容二`,
-              // },
-              // {
-              //   label: `产品三`,
-              //   key: 'tab3',
-              //   children: `内容三`,
-              // },
             ],
             onChange: (key) => {
               setTab(key);

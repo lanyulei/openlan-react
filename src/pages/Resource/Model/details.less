@@ -9,3 +9,32 @@
     }
   }
 }
+
+.modelInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 25px 0;
+  .modelIcon {
+    background-color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 60px;
+    height: 60px;
+    border-radius: 10px;
+    :global {
+      .ant-btn-icon-only {
+        pointer-events: none !important;
+        .ant-btn-icon {
+          font-size: 40px;
+        }
+      }
+    }
+  }
+  .modelDesc {
+    font-size: 13px;
+    color: #979797;
+    margin-top: 10px;
+  }
+}
