@@ -3,9 +3,10 @@
 import { request } from '@umijs/max';
 
 /** Get model GET /api/v1/resource/model/list */
-export async function getModels() {
+export async function getModels(params: object, options?: { [key: string]: any }) {
   return request('/api/v1/resource/model/list', {
     method: 'GET',
+    params,
   });
 }
 

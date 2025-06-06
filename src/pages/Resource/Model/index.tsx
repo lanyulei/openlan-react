@@ -12,9 +12,10 @@ import {
   MoreOutlined,
   PlusCircleOutlined,
   PlusOutlined,
+  SearchOutlined,
 } from '@ant-design/icons';
 import styles from './index.less';
-import { Button, Dropdown, message, Modal } from 'antd';
+import { Button, Dropdown, Input, message, Modal } from 'antd';
 import type { MenuProps } from 'antd';
 import CreateModel from './components/CreateModel';
 
@@ -48,6 +49,7 @@ const Models: FC = () => {
     desc: '',
     order: 1,
   });
+  const [modelName, setModelName] = useState('');
 
   const [data, setData] = useState<Data>({
     list: [],
@@ -56,7 +58,9 @@ const Models: FC = () => {
   });
 
   const getList = async () => {
-    const res = await getModels();
+    const res = await getModels({
+      name: modelName,
+    });
     setData((prevData) => ({
       ...prevData,
       list: res.data || [],
@@ -133,6 +137,18 @@ const Models: FC = () => {
             >
               新建分组
             </Button>,
+            <Input
+              key="2"
+              placeholder="请输入模型名称"
+              style={{ width: '300px' }}
+              suffix={<SearchOutlined />}
+              onChange={(e) => {
+                setModelName(e.target.value);
+              }}
+              onPressEnter={() => {
+                getList();
+              }}
+            />,
           ],
         }}
       >
