@@ -38,7 +38,7 @@ const Models: FC = () => {
   const navigate = useNavigate();
 
   interface CreateModelRef {
-    showModal: (groupId: string) => void;
+    showModal: (status: string, groupId: string, data: object | undefined) => void;
   }
 
   const createModelRef = useRef<CreateModelRef>(null);
@@ -103,7 +103,7 @@ const Models: FC = () => {
   ];
 
   const handleModelAdd = (item: any) => {
-    createModelRef.current?.showModal(item.id);
+    createModelRef.current?.showModal('create', item.id, undefined);
   };
 
   const handleDetails = (id: string) => {
@@ -197,7 +197,12 @@ const Models: FC = () => {
                         </div>
                       </div>
                     </div>
-                    <div className={styles.modelEdit}>
+                    <div
+                      className={styles.modelEdit}
+                      onClick={() => {
+                        createModelRef.current?.showModal('edit', item.id, modelItem);
+                      }}
+                    >
                       <EditOutlined />
                     </div>
                   </div>
@@ -216,6 +221,7 @@ const Models: FC = () => {
           </div>
         ))}
       </PageContainer>
+
       <ModalForm<{
         name: string;
         desc: string;

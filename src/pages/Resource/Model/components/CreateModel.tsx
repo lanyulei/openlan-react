@@ -6,7 +6,7 @@ import {
   ProFormTextArea,
 } from '@ant-design/pro-components';
 import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
-import { IconPicker, IconUnit } from '@ant-design/pro-editor';
+import { Form, IconPicker, IconUnit } from '@ant-design/pro-editor';
 import styles from './CreateModel.less';
 import { getModelGroupList } from '@/services/resource/modelGroup';
 import { createModel } from '@/services/resource/model';
@@ -22,10 +22,11 @@ interface CreateModelProps {
 }
 
 interface CreateModelRef {
-  showModal: (groupId: string) => void; // 暴露给父组件的方法
+  showModal: (status: string, groupId: string, data: object | undefined) => void;
 }
 
 const CreateModel = forwardRef<CreateModelRef, CreateModelProps>(({ getList }, ref) => {
+  const [form] = Form.useForm();
   const [modalVisit, setModalVisit] = useState(false);
   const [modelGroupList, setModelGroupList] = useState<modelGroup[]>([]);
   const [modelIcon, setModelIcon] = useState<IconUnit>();
@@ -45,11 +46,33 @@ const CreateModel = forwardRef<CreateModelRef, CreateModelProps>(({ getList }, r
     order: 1,
   });
 
-  const showModal = async (groupId: string) => {
-    setModelForm({
-      ...modelForm,
-      group_id: groupId,
-    });
+  const showModal = async (status: string, groupId: string, data: object | undefined) => {
+    if (status === 'create') {
+      const _data = {
+        name: '',
+        icon: '',
+        status: true,
+        desc: '',
+        group_id: groupId,
+        order: 1,
+      };
+      setModelForm(_data);
+    } else if (status === 'edit') {
+      // 编辑模型时，获取模型信息
+      if (data) {
+        const _data = {
+          ...modelForm,
+          ...data,
+        };
+        if ((data as { icon?: any })?.icon) {
+          if ((data as { icon?: IconUnit })?.icon) {
+            setModelIcon((data as { icon: IconUnit }).icon);
+          }
+        }
+        setModelForm(_data);
+      }
+    }
+
     setModalVisit(true);
   };
 
@@ -57,6 +80,15 @@ const CreateModel = forwardRef<CreateModelRef, CreateModelProps>(({ getList }, r
   useImperativeHandle(ref, () => ({
     showModal,
   }));
+
+  // 新增 useEffect 监听 modalVisit 变化
+  useEffect(() => {
+    if (modalVisit) {
+      // 当 modal 打开时重置表单
+      form.resetFields();
+      form.setFieldsValue(modelForm);
+    }
+  }, [modalVisit, form, modelForm]);
 
   useEffect(() => {
     (async () => {
@@ -69,10 +101,8 @@ const CreateModel = forwardRef<CreateModelRef, CreateModelProps>(({ getList }, r
 
   return (
     <>
-      <ModalForm<{
-        name: string;
-        company: string;
-      }>
+      <ModalForm
+        form={form}
         width={500}
         title="新建模型"
         autoFocusFirstInput
