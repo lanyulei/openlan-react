@@ -35,6 +35,8 @@ type Data = {
 };
 
 const Models: FC = () => {
+  const [modal, modalContextHolder] = Modal.useModal();
+  const [messageApi, messageContextHolder] = message.useMessage();
   const navigate = useNavigate();
 
   interface CreateModelRef {
@@ -87,7 +89,7 @@ const Models: FC = () => {
       label: <div>删除分组</div>,
       key: '1',
       onClick: () => {
-        Modal.confirm({
+        modal.confirm({
           title: '删除分组',
           content: '确定要删除此分组吗？',
           okText: '确认',
@@ -95,7 +97,7 @@ const Models: FC = () => {
           onOk: async () => {
             await deleteModelGroup(item.id);
             await getList();
-            message.success('分组删除成功');
+            messageApi.success('分组删除成功');
           },
         });
       },
@@ -118,6 +120,8 @@ const Models: FC = () => {
 
   return (
     <>
+      {modalContextHolder}
+      {messageContextHolder}
       <PageContainer
         header={{
           extra: [
@@ -241,11 +245,10 @@ const Models: FC = () => {
               order: values.order,
             });
             await getList();
-            message.success('模型分组创建成功');
-            return true;
+            messageApi.success('模型分组创建成功');
           } else if (modalStatus === 'update') {
             if (!groupForm.id) {
-              message.error('模型分组创建失败');
+              messageApi.error('模型分组创建失败');
               return false;
             }
 
@@ -255,12 +258,8 @@ const Models: FC = () => {
               order: values.order,
             });
             await getList();
-            message.success('模型分组更新成功');
-            return true;
+            messageApi.success('模型分组更新成功');
           }
-
-          message.error('模型分组创建失败');
-          return false;
         }}
         initialValues={groupForm}
         onValuesChange={(_, values) => {

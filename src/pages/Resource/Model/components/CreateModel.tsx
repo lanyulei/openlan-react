@@ -27,6 +27,7 @@ interface CreateModelRef {
 }
 
 const CreateModel = forwardRef<CreateModelRef, CreateModelProps>(({ getList }, ref) => {
+  const [messageApi, messageContextHolder] = message.useMessage();
   const [form] = Form.useForm();
   const [modalVisit, setModalVisit] = useState(false);
   const [modelGroupList, setModelGroupList] = useState<modelGroup[]>([]);
@@ -85,7 +86,6 @@ const CreateModel = forwardRef<CreateModelRef, CreateModelProps>(({ getList }, r
 
   useEffect(() => {
     if (modalVisit) {
-      console.log('modalVisit: ', modelForm.icon);
       form.setFieldsValue(modelForm);
     }
   }, [modalVisit]);
@@ -101,6 +101,7 @@ const CreateModel = forwardRef<CreateModelRef, CreateModelProps>(({ getList }, r
 
   return (
     <>
+      {messageContextHolder}
       <ModalForm
         form={form}
         width={500}
@@ -129,7 +130,7 @@ const CreateModel = forwardRef<CreateModelRef, CreateModelProps>(({ getList }, r
             await createModel(_data);
           } else if (modelStatus === 'edit') {
             if (!modelForm.id) {
-              message.error('模型 ID 不存在');
+              messageApi.error('模型 ID 不存在');
               return false;
             }
             await updateModel(modelForm.id, _data);
