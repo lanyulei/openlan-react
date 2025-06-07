@@ -114,6 +114,7 @@ const CreateModel = forwardRef<CreateModelRef, CreateModelProps>(({ getList }, r
         onFinish={async (values) => {
           let _data = {
             ...values,
+            ...modelForm,
           };
 
           if (modelIcon) {
@@ -179,6 +180,17 @@ const CreateModel = forwardRef<CreateModelRef, CreateModelProps>(({ getList }, r
           placeholder="请输入顺序"
           rules={[{ required: true, message: '请输入顺序' }]}
         />
+        {modelStatus === 'edit' && (
+          <ProFormSelect
+            name="status"
+            label="模型状态："
+            options={[
+              { value: true, label: '启用' },
+              { value: false, label: '禁用' },
+            ]}
+            rules={[{ required: true, message: '请选择模型状态' }]}
+          />
+        )}
         <ProFormTextArea name="desc" label="备注：" placeholder="请输入备注" />
       </ModalForm>
     </>

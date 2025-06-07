@@ -81,7 +81,7 @@ const Models: FC = () => {
           desc: item.desc,
           order: item.order,
         });
-        setModalStatus('update');
+        setModalStatus('edit');
         setModalVisit(true);
       },
     },
@@ -246,7 +246,7 @@ const Models: FC = () => {
             });
             await getList();
             messageApi.success('模型分组创建成功');
-          } else if (modalStatus === 'update') {
+          } else if (modalStatus === 'edit') {
             if (!groupForm.id) {
               messageApi.error('模型分组创建失败');
               return false;

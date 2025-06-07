@@ -36,3 +36,11 @@ export async function updateModelField(
     ...(options || {}),
   });
 }
+
+/** delete a field DELETE /api/v1/resource/field/:id */
+export async function deleteModelField(id: string | undefined, options?: { [key: string]: any }) {
+  return request(`/api/v1/resource/field/${id}`, {
+    method: 'DELETE',
+    ...(options || {}),
+  });
+}

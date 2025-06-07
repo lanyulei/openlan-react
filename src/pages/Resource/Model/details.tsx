@@ -69,7 +69,9 @@ const ModelDetails: FC = () => {
                 <Descriptions.Item label="名称">{modelDetails?.name}</Descriptions.Item>
                 <Descriptions.Item label="分组名称">{modelDetails?.group_name}</Descriptions.Item>
                 <Descriptions.Item label="状态">
-                  {modelDetails?.status ? (
+                  {modelDetails === undefined ? (
+                    <></>
+                  ) : modelDetails?.status ? (
                     <Tag color="geekblue">启用</Tag>
                   ) : (
                     <Tag color="red">禁用</Tag>

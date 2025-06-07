@@ -1,5 +1,6 @@
 import {
   CaretDownOutlined,
+  DeleteOutlined,
   EyeOutlined,
   MinusCircleOutlined,
   MoreOutlined,
@@ -28,7 +29,12 @@ import {
   deleteFieldGroup,
   updateFieldGroup,
 } from '@/services/resource/fieldGroup';
-import { createModelField, getModelFieldList, updateModelField } from '@/services/resource/field';
+import {
+  createModelField,
+  deleteModelField,
+  getModelFieldList,
+  updateModelField,
+} from '@/services/resource/field';
 
 interface FieldForm {
   id?: string | undefined;
@@ -298,19 +304,6 @@ const ModelField: FC = () => {
                       <div
                         className={modelStyles.modelValue}
                         key={fieldItem.id}
-                        onClick={() => {
-                          const _data = {
-                            ...fieldItem,
-                            options: {
-                              ...fieldItem.options,
-                              options: fieldItem.options?.options || [],
-                            },
-                          };
-                          setFieldForm(_data);
-                          form.setFieldsValue(_data);
-                          setDrawerStatus('edit');
-                          setFieldVisit(true);
-                        }}
                         style={{
                           backgroundColor: '#f5f7fa',
                           border: '1px solid #eaeaea',
@@ -323,6 +316,19 @@ const ModelField: FC = () => {
                             paddingLeft: '3px',
                             paddingRight: '3px',
                           }}
+                          onClick={() => {
+                            const _data = {
+                              ...fieldItem,
+                              options: {
+                                ...fieldItem.options,
+                                options: fieldItem.options?.options || [],
+                              },
+                            };
+                            setFieldForm(_data);
+                            form.setFieldsValue(_data);
+                            setDrawerStatus('edit');
+                            setFieldVisit(true);
+                          }}
                         >
                           <div className={modelStyles.modelDetails}>
                             <div className={modelStyles.modelName}>{fieldItem.name}</div>
@@ -330,6 +336,24 @@ const ModelField: FC = () => {
                               {fieldItem.desc !== '' ? fieldItem.desc : '暂无描述'}
                             </div>
                           </div>
+                        </div>
+                        <div
+                          className={`${modelStyles.modelEdit} ${styles.fieldDelete}`}
+                          onClick={() => {
+                            modal.confirm({
+                              title: '删除字段',
+                              content: '确定要删除此模型字段吗？',
+                              okText: '确认',
+                              cancelText: '取消',
+                              onOk: async () => {
+                                await deleteModelField(fieldItem.id);
+                                await getModelFields();
+                                messageApi.success('分组删除成功');
+                              },
+                            });
+                          }}
+                        >
+                          <DeleteOutlined />
                         </div>
                       </div>
                     ))}
