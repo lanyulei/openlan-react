@@ -28,9 +28,10 @@ import {
   deleteFieldGroup,
   updateFieldGroup,
 } from '@/services/resource/fieldGroup';
-import { createModelField, getModelFieldList } from '@/services/resource/field';
+import { createModelField, getModelFieldList, updateModelField } from '@/services/resource/field';
 
 interface FieldForm {
+  id?: string | undefined;
   name?: string;
   group_id?: string | undefined;
   type?: FieldType;
@@ -89,6 +90,7 @@ const ModelField: FC = () => {
   const [form] = Form.useForm();
   const [mgForm] = Form.useForm();
   const [fieldForm, setFieldForm] = useState<FieldForm>({
+    id: undefined,
     name: '',
     group_id: undefined,
     type: 'shortString',
@@ -121,6 +123,7 @@ const ModelField: FC = () => {
 
   const handleRestFieldForm = async (groupId: string | undefined) => {
     const _data = {
+      id: undefined,
       name: '',
       group_id: groupId,
       type: 'shortString' as FieldType,
@@ -281,6 +284,7 @@ const ModelField: FC = () => {
                       style={{ display: 'block' }}
                       onClick={async () => {
                         await handleRestFieldForm(groupItem.id);
+                        setDrawerStatus('create');
                         setFieldVisit(true);
                       }}
                     >
@@ -295,18 +299,31 @@ const ModelField: FC = () => {
                         className={modelStyles.modelValue}
                         key={fieldItem.id}
                         onClick={() => {
-                          // 点击字段时，设置表单值
+                          const _data = {
+                            ...fieldItem,
+                            options: {
+                              ...fieldItem.options,
+                              options: fieldItem.options?.options || [],
+                            },
+                          };
+                          setFieldForm(_data);
+                          form.setFieldsValue(_data);
+                          setDrawerStatus('edit');
                           setFieldVisit(true);
                         }}
                         style={{
                           backgroundColor: '#f5f7fa',
                           border: '1px solid #eaeaea',
                           borderRadius: '2px',
-                          paddingLeft: '3px',
-                          paddingRight: '3px',
                         }}
                       >
-                        <div className={modelStyles.modelInfo}>
+                        <div
+                          className={modelStyles.modelInfo}
+                          style={{
+                            paddingLeft: '3px',
+                            paddingRight: '3px',
+                          }}
+                        >
                           <div className={modelStyles.modelDetails}>
                             <div className={modelStyles.modelName}>{fieldItem.name}</div>
                             <div className={modelStyles.modelDescription}>
@@ -354,10 +371,21 @@ const ModelField: FC = () => {
             destroyOnHidden: true,
           }}
           onFinish={async () => {
-            await createModelField(fieldForm);
-            await getModelFields();
-            setFieldVisit(false);
-            messageApi.success('字段创建成功');
+            if (drawerStatus === 'create') {
+              await createModelField(fieldForm);
+              await getModelFields();
+              setFieldVisit(false);
+              messageApi.success('字段创建成功');
+            } else if (drawerStatus === 'edit') {
+              if (!fieldForm.id) {
+                messageApi.error('字段创建失败');
+                return false;
+              }
+              await updateModelField(fieldForm.id, fieldForm);
+              await getModelFields();
+              setFieldVisit(false);
+              messageApi.success('更新字段失败');
+            }
           }}
           onValuesChange={(_, values) => {
             setFieldForm((prev) => ({
