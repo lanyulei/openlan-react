@@ -8,7 +8,7 @@ export async function getModelFieldList(
   params: object,
   options?: { [key: string]: any },
 ) {
-  return request(`/api/v1/resource/field/list1/${id}`, {
+  return request(`/api/v1/resource/field/list/${id}`, {
     method: 'GET',
     params,
     ...(options || {}),
