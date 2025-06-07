@@ -63,6 +63,7 @@ const CreateModel = forwardRef<CreateModelRef, CreateModelProps>(({ getList }, r
         group_id: groupId,
         order: 1,
       };
+      setModelIcon(undefined);
       setModelForm(_data);
     } else if (status === 'edit') {
       // 编辑模型时，获取模型信息

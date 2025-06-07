@@ -89,6 +89,14 @@ const baseFieldTypeMap: LabelValue[] = [
   { Label: '表格', Value: 'table' },
 ];
 
+const initOptions = {
+  options: [],
+  regexp: undefined,
+  min: undefined,
+  max: undefined,
+  default: undefined,
+};
+
 const ModelField: FC = () => {
   const [modal, modalContextHolder] = Modal.useModal();
   const [messageApi, messageContextHolder] = message.useMessage();
@@ -361,6 +369,7 @@ const ModelField: FC = () => {
                       className={modelStyles.modelAdd}
                       onClick={async () => {
                         await handleRestFieldForm(groupItem.id);
+                        setDrawerStatus('create');
                         setFieldVisit(true);
                       }}
                     >
@@ -393,6 +402,11 @@ const ModelField: FC = () => {
           autoFocusFirstInput
           drawerProps={{
             destroyOnHidden: true,
+            onClose: () => {
+              form?.setFieldsValue({
+                options: initOptions,
+              });
+            },
           }}
           onFinish={async () => {
             if (drawerStatus === 'create') {
@@ -448,13 +462,7 @@ const ModelField: FC = () => {
             placeholder="请选择字段类型"
             onChange={() => {
               form.setFieldsValue({
-                options: {
-                  options: [],
-                  regexp: undefined,
-                  min: undefined,
-                  max: undefined,
-                  default: undefined,
-                },
+                options: initOptions,
               });
             }}
           />
