@@ -9,7 +9,8 @@ import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { Form, IconPicker, IconUnit } from '@ant-design/pro-editor';
 import styles from './CreateModel.less';
 import { getModelGroupList } from '@/services/resource/modelGroup';
-import { createModel } from '@/services/resource/model';
+import { createModel, updateModel } from '@/services/resource/model';
+import { message } from 'antd';
 
 type modelGroup = {
   id: string;
@@ -31,6 +32,7 @@ const CreateModel = forwardRef<CreateModelRef, CreateModelProps>(({ getList }, r
   const [modelGroupList, setModelGroupList] = useState<modelGroup[]>([]);
   const [modelIcon, setModelIcon] = useState<IconUnit>();
   const [modelForm, setModelForm] = useState<{
+    id: undefined | string;
     name: string;
     icon: string;
     status: boolean;
@@ -38,6 +40,7 @@ const CreateModel = forwardRef<CreateModelRef, CreateModelProps>(({ getList }, r
     group_id: string | undefined;
     order: number;
   }>({
+    id: undefined,
     name: '',
     icon: '',
     status: true,
@@ -45,10 +48,13 @@ const CreateModel = forwardRef<CreateModelRef, CreateModelProps>(({ getList }, r
     group_id: undefined,
     order: 1,
   });
+  const [modelStatus, setModelStatus] = useState<string>('create');
 
   const showModal = async (status: string, groupId: string, data: object | undefined) => {
+    setModelStatus(status);
     if (status === 'create') {
       const _data = {
+        id: undefined,
         name: '',
         icon: '',
         status: true,
@@ -64,11 +70,7 @@ const CreateModel = forwardRef<CreateModelRef, CreateModelProps>(({ getList }, r
           ...modelForm,
           ...data,
         };
-        if ((data as { icon?: any })?.icon) {
-          if ((data as { icon?: IconUnit })?.icon) {
-            setModelIcon((data as { icon: IconUnit }).icon);
-          }
-        }
+        setModelIcon((data as { icon: IconUnit }).icon);
         setModelForm(_data);
       }
     }
@@ -81,14 +83,12 @@ const CreateModel = forwardRef<CreateModelRef, CreateModelProps>(({ getList }, r
     showModal,
   }));
 
-  // 新增 useEffect 监听 modalVisit 变化
   useEffect(() => {
     if (modalVisit) {
-      // 当 modal 打开时重置表单
-      form.resetFields();
+      console.log('modalVisit: ', modelForm.icon);
       form.setFieldsValue(modelForm);
     }
-  }, [modalVisit, form, modelForm]);
+  }, [modalVisit]);
 
   useEffect(() => {
     (async () => {
@@ -113,15 +113,27 @@ const CreateModel = forwardRef<CreateModelRef, CreateModelProps>(({ getList }, r
         onFinish={async (values) => {
           let _data = {
             ...values,
-            status: true,
-            icon: {},
           };
 
           if (modelIcon) {
             _data.icon = modelIcon;
           }
 
-          await createModel(_data);
+          if (modelStatus === 'create') {
+            _data = {
+              ..._data,
+              status: true,
+              icon: {},
+            };
+
+            await createModel(_data);
+          } else if (modelStatus === 'edit') {
+            if (!modelForm.id) {
+              message.error('模型 ID 不存在');
+              return false;
+            }
+            await updateModel(modelForm.id, _data);
+          }
 
           if (getList) {
             getList();

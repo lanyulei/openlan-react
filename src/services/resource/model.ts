@@ -34,3 +34,16 @@ export async function deleteModel(id: string | undefined, options?: { [key: stri
     ...(options || {}),
   });
 }
+
+/** update model PUT /api/v1/resource/model/:id */
+export async function updateModel(
+  id: string | undefined,
+  data: object,
+  options?: { [key: string]: any },
+) {
+  return request(`/api/v1/resource/model/${id}`, {
+    method: 'PUT',
+    data,
+    ...(options || {}),
+  });
+}
