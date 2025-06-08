@@ -1,6 +1,15 @@
-import { DrawerForm, ProFormText } from '@ant-design/pro-components';
+import {
+  DrawerForm,
+  ProFormDatePicker,
+  ProFormDigit,
+  ProFormSelect,
+  ProFormSwitch,
+  ProFormText,
+  ProFormTextArea,
+  ProFormTimePicker,
+} from '@ant-design/pro-components';
 import { Col, Form, Row } from 'antd';
-import { forwardRef, useImperativeHandle, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import modelStyles from '../index.less';
 import { CaretDownOutlined } from '@ant-design/icons';
 
@@ -27,6 +36,10 @@ const FieldPreview = forwardRef<{ showDrawer: () => void }, FieldPreviewProps>(
       }),
     );
 
+    useEffect(() => {
+      console.log(dataForm);
+    }, []);
+
     return (
       <DrawerForm
         title="字段预览"
@@ -48,7 +61,6 @@ const FieldPreview = forwardRef<{ showDrawer: () => void }, FieldPreviewProps>(
             ...values,
           }));
         }}
-        initialValues={dataForm}
       >
         {Array.isArray(fieldList) && fieldList.length > 0
           ? fieldList.map((item) => (
@@ -57,23 +69,242 @@ const FieldPreview = forwardRef<{ showDrawer: () => void }, FieldPreviewProps>(
                   <CaretDownOutlined />
                   <span className={modelStyles.modelGroupName}>{item.name}</span>
                 </div>
-                {item.fields && item.fields?.length > 0 ? (
-                  <Row>
-                    {item.fields?.map((fieldItem: any) => (
-                      <div key={fieldItem.id}>
-                        {fieldItem?.type === 'shortString' || fieldItem?.type === 'longString' ? (
-                          <Col span={12}>
+                <div style={{ paddingLeft: '2px' }}>
+                  {item.fields && item.fields?.length > 0 ? (
+                    <Row gutter={15}>
+                      {item.fields?.map((fieldItem: any) => (
+                        <Col key={fieldItem.id} span={12}>
+                          {fieldItem?.type === 'shortString' ? (
                             <ProFormText
-                              name={[fieldItem.name]}
-                              label="正则表达式"
-                              placeholder="请输入验证正则表达式"
+                              name={fieldItem.key}
+                              label={fieldItem.name}
+                              placeholder={fieldItem.placeholder}
+                              disabled={!fieldItem?.is_edit}
+                              rules={[
+                                fieldItem?.is_required && {
+                                  required: true,
+                                  message: `${fieldItem.name} 为必填项`,
+                                },
+                                {
+                                  validator: async (_: any, value: string) => {
+                                    if (fieldItem?.options?.regexp) {
+                                      const regex = new RegExp(fieldItem?.options?.regexp);
+                                      if (!regex.test(value)) {
+                                        return Promise.reject(
+                                          new Error('输入内容不符合指定的正则表达式'),
+                                        );
+                                      }
+                                    }
+                                    return Promise.resolve();
+                                  },
+                                },
+                              ].filter(Boolean)}
+                              initialValue={fieldItem?.options?.default}
                             />
-                          </Col>
-                        ) : null}
-                      </div>
-                    ))}
-                  </Row>
-                ) : null}
+                          ) : fieldItem?.type === 'number' ? (
+                            <ProFormDigit
+                              name={fieldItem.key}
+                              label={fieldItem.name}
+                              placeholder={fieldItem.placeholder}
+                              disabled={!fieldItem?.is_edit}
+                              rules={[
+                                fieldItem?.is_required && {
+                                  required: true,
+                                  message: `${fieldItem.name} 为必填项`,
+                                },
+                                fieldItem?.options?.min !== undefined && {
+                                  min: fieldItem.options.min,
+                                  message: `${fieldItem.name} 不能小于 ${fieldItem.options.min}`,
+                                },
+                                fieldItem?.options?.max !== undefined && {
+                                  max: fieldItem.options.max,
+                                  message: `${fieldItem.name} 不能大于 ${fieldItem.options.max}`,
+                                },
+                              ].filter(Boolean)}
+                              initialValue={fieldItem?.options?.default}
+                            />
+                          ) : fieldItem?.type === 'float' ? (
+                            <ProFormDigit
+                              name={fieldItem.key}
+                              label={fieldItem.name}
+                              placeholder={fieldItem.placeholder}
+                              disabled={!fieldItem?.is_edit}
+                              rules={[
+                                fieldItem?.is_required && {
+                                  required: true,
+                                  message: `${fieldItem.name} 为必填项`,
+                                },
+                                fieldItem?.options?.min !== undefined && {
+                                  min: fieldItem.options.min,
+                                  message: `${fieldItem.name} 不能小于 ${fieldItem.options.min}`,
+                                },
+                                fieldItem?.options?.max !== undefined && {
+                                  max: fieldItem.options.max,
+                                  message: `${fieldItem.name} 不能大于 ${fieldItem.options.max}`,
+                                },
+                              ].filter(Boolean)}
+                              initialValue={fieldItem?.options?.default}
+                              fieldProps={{ step: 0.01 }}
+                            />
+                          ) : fieldItem?.type === 'enum' ? (
+                            <ProFormSelect
+                              name={fieldItem.key}
+                              label={fieldItem.name}
+                              placeholder={fieldItem.placeholder}
+                              disabled={!fieldItem?.is_edit}
+                              options={
+                                fieldItem?.options?.options?.map((item: any) => ({
+                                  value: item.id,
+                                  label: item.value,
+                                })) || []
+                              }
+                              rules={[
+                                fieldItem?.is_required && {
+                                  required: true,
+                                  message: `${fieldItem.name} 为必填项`,
+                                },
+                              ].filter(Boolean)}
+                              initialValue={fieldItem?.options?.default}
+                            />
+                          ) : fieldItem?.type === 'enumMulti' ? (
+                            <ProFormSelect
+                              name={fieldItem.key}
+                              label={fieldItem.name}
+                              placeholder={fieldItem.placeholder}
+                              disabled={!fieldItem?.is_edit}
+                              options={
+                                fieldItem?.options?.options?.map((item: any) => ({
+                                  value: item.id,
+                                  label: item.value,
+                                })) || []
+                              }
+                              rules={[
+                                fieldItem?.is_required && {
+                                  required: true,
+                                  message: `${fieldItem.name} 为必填项`,
+                                },
+                              ].filter(Boolean)}
+                              initialValue={fieldItem?.options?.default}
+                              mode="multiple"
+                            />
+                          ) : fieldItem?.type === 'date' ? (
+                            <ProFormDatePicker
+                              name={fieldItem.key}
+                              label={fieldItem.name}
+                              placeholder={fieldItem.placeholder}
+                              disabled={!fieldItem?.is_edit}
+                              rules={[
+                                fieldItem?.is_required && {
+                                  required: true,
+                                  message: `${fieldItem.name} 为必填项`,
+                                },
+                              ].filter(Boolean)}
+                              initialValue={fieldItem?.options?.default}
+                            />
+                          ) : fieldItem?.type === 'time' ? (
+                            <ProFormTimePicker
+                              name={fieldItem.key}
+                              label={fieldItem.name}
+                              placeholder={fieldItem.placeholder}
+                              disabled={!fieldItem?.is_edit}
+                              rules={[
+                                fieldItem?.is_required && {
+                                  required: true,
+                                  message: `${fieldItem.name} 为必填项`,
+                                },
+                              ].filter(Boolean)}
+                              initialValue={fieldItem?.options?.default}
+                            />
+                          ) : fieldItem?.type === 'datetime' ? (
+                            <ProFormDatePicker
+                              name={fieldItem.key}
+                              label={fieldItem.name}
+                              placeholder={fieldItem.placeholder}
+                              disabled={!fieldItem?.is_edit}
+                              rules={[
+                                fieldItem?.is_required && {
+                                  required: true,
+                                  message: `${fieldItem.name} 为必填项`,
+                                },
+                              ].filter(Boolean)}
+                              initialValue={fieldItem?.options?.default}
+                              showTime
+                            />
+                          ) : fieldItem?.type === 'longString' ? (
+                            <ProFormTextArea
+                              name={fieldItem.key}
+                              label={fieldItem.name}
+                              placeholder={fieldItem.placeholder}
+                              disabled={!fieldItem?.is_edit}
+                              rules={[
+                                fieldItem?.is_required && {
+                                  required: true,
+                                  message: `${fieldItem.name} 为必填项`,
+                                },
+                                fieldItem?.options?.regexp && {
+                                  validator: async (_: any, value: string) => {
+                                    const regex = new RegExp(fieldItem.options.regexp);
+                                    if (!regex.test(value)) {
+                                      return Promise.reject(
+                                        new Error('输入内容不符合指定的正则表达式'),
+                                      );
+                                    }
+                                    return Promise.resolve();
+                                  },
+                                },
+                              ].filter(Boolean)}
+                              initialValue={fieldItem?.options?.default}
+                            />
+                          ) : // ) : fieldItem?.type === 'user' ? (
+                          fieldItem?.type === 'timeZone' ? (
+                            <ProFormText
+                              name={fieldItem.key}
+                              label={fieldItem.name}
+                              placeholder={fieldItem.placeholder}
+                              disabled={!fieldItem?.is_edit}
+                              rules={[
+                                fieldItem?.is_required && {
+                                  required: true,
+                                  message: `${fieldItem.name} 为必填项`,
+                                },
+                              ].filter(Boolean)}
+                              initialValue={fieldItem?.options?.default}
+                            />
+                          ) : fieldItem?.type === 'boolean' ? (
+                            <ProFormSwitch
+                              name={fieldItem.key}
+                              label={fieldItem.name}
+                              disabled={!fieldItem?.is_edit}
+                              rules={[
+                                fieldItem?.is_required && {
+                                  required: true,
+                                  message: `${fieldItem.name} 为必填项`,
+                                },
+                              ].filter(Boolean)}
+                              initialValue={fieldItem?.options?.default === true}
+                            />
+                          ) : fieldItem?.type === 'list' ? (
+                            <ProFormSelect
+                              name={fieldItem.key}
+                              label={fieldItem.name}
+                              placeholder={fieldItem.placeholder}
+                              disabled={!fieldItem?.is_edit}
+                              options={fieldItem?.options?.options || []}
+                              rules={[
+                                fieldItem?.is_required && {
+                                  required: true,
+                                  message: `${fieldItem.name} 为必填项`,
+                                },
+                              ].filter(Boolean)}
+                              initialValue={fieldItem?.options?.default}
+                            />
+                          ) : // ) : fieldItem?.type === 'table' ? (
+                          null}
+                        </Col>
+                      ))}
+                    </Row>
+                  ) : null}
+                </div>
               </div>
             ))
           : null}
