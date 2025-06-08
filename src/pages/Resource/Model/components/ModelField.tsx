@@ -19,7 +19,7 @@ import {
   ProFormTimePicker,
 } from '@ant-design/pro-components';
 import { Button, Dropdown, Empty, Flex, Form, Input, MenuProps, message, Modal } from 'antd';
-import { FC, useEffect, useState } from 'react';
+import { FC, useEffect, useRef, useState } from 'react';
 import styles from './ModelField.less';
 import modelStyles from '../index.less';
 import { getUserList } from '@/services/system/user';
@@ -35,6 +35,7 @@ import {
   getModelFieldList,
   updateModelField,
 } from '@/services/resource/field';
+import FieldPreview from './FieldPreview';
 
 interface FieldForm {
   id?: string | undefined;
@@ -98,6 +99,11 @@ const initOptions = {
 };
 
 const ModelField: FC = () => {
+  interface FieldPreview {
+    showDrawer: () => void;
+  }
+
+  const fieldPreviewRef = useRef<FieldPreview>(null);
   const [modal, modalContextHolder] = Modal.useModal();
   const [messageApi, messageContextHolder] = message.useMessage();
   const { id } = useParams();
@@ -111,7 +117,7 @@ const ModelField: FC = () => {
     options: {
       options: [], // 初始化options数组
     },
-    is_edit: false,
+    is_edit: true,
     is_required: false,
     is_list: false,
     placeholder: '',
@@ -144,7 +150,7 @@ const ModelField: FC = () => {
       options: {
         options: [], // 初始化options数组
       },
-      is_edit: false,
+      is_edit: true,
       is_required: false,
       is_list: false,
       placeholder: '',
@@ -215,6 +221,7 @@ const ModelField: FC = () => {
             await deleteFieldGroup(item.id);
             await getModelFields();
             messageApi.success('分组删除成功');
+            return true;
           },
         });
       },
@@ -265,7 +272,11 @@ const ModelField: FC = () => {
             <PlusOutlined />
             新建分组
           </Button>
-          <Button>
+          <Button
+            onClick={() => {
+              fieldPreviewRef.current?.showDrawer();
+            }}
+          >
             <EyeOutlined />
             字段预览
           </Button>
@@ -357,6 +368,7 @@ const ModelField: FC = () => {
                                 await deleteModelField(fieldItem.id);
                                 await getModelFields();
                                 messageApi.success('分组删除成功');
+                                return true;
                               },
                             });
                           }}
@@ -424,6 +436,10 @@ const ModelField: FC = () => {
               setFieldVisit(false);
               messageApi.success('更新字段失败');
             }
+            form?.resetFields();
+            form?.setFieldsValue({
+              options: initOptions,
+            });
           }}
           onValuesChange={(_, values) => {
             setFieldForm((prev) => ({
@@ -435,6 +451,18 @@ const ModelField: FC = () => {
           onOpenChange={setFieldVisit}
           open={fieldVisit}
         >
+          <ProFormText
+            name="key"
+            label="字段标识"
+            placeholder="请输入字段标识"
+            rules={[
+              { required: true, message: '标识不能为空' },
+              {
+                pattern: /^[a-zA-Z_][a-zA-Z0-9_]*$/,
+                message: '只能包含字母、数字、下划线，且不能以数字开头',
+              },
+            ]}
+          />
           <ProFormText
             name="name"
             label="字段名称"
@@ -798,6 +826,8 @@ const ModelField: FC = () => {
           </Flex>
           <ProFormTextArea name="desc" label="描述" placeholder="请输入描述" />
         </ModalForm>
+
+        <FieldPreview ref={fieldPreviewRef} fieldList={fieldList} />
       </div>
     </>
   );

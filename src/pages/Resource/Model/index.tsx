@@ -98,6 +98,7 @@ const Models: FC = () => {
             await deleteModelGroup(item.id);
             await getList();
             messageApi.success('分组删除成功');
+            return true;
           },
         });
       },
