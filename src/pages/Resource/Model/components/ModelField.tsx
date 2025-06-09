@@ -18,7 +18,19 @@ import {
   ProFormTextArea,
   ProFormTimePicker,
 } from '@ant-design/pro-components';
-import { Button, Dropdown, Empty, Flex, Form, Input, MenuProps, message, Modal } from 'antd';
+import {
+  Button,
+  Col,
+  Dropdown,
+  Empty,
+  Flex,
+  Form,
+  Input,
+  MenuProps,
+  message,
+  Modal,
+  Row,
+} from 'antd';
 import { FC, useEffect, useRef, useState } from 'react';
 import styles from './ModelField.less';
 import modelStyles from '../index.less';
@@ -49,6 +61,7 @@ interface FieldForm {
   placeholder?: string;
   desc?: string;
   order?: number;
+  span?: number;
   model_id?: string;
 }
 
@@ -123,6 +136,7 @@ const ModelField: FC = () => {
     placeholder: '',
     desc: '',
     order: 1,
+    span: 4,
     model_id: id,
   });
   const [fieldVisit, setFieldVisit] = useState(false);
@@ -156,6 +170,7 @@ const ModelField: FC = () => {
       placeholder: '',
       desc: '',
       order: 1,
+      span: 4,
       model_id: id,
     };
     setFieldForm(_data);
@@ -758,12 +773,25 @@ const ModelField: FC = () => {
             <ProFormSwitch name="is_list" label="列表展示" />
           </Flex>
           <ProFormText name="placeholder" label="占位提示" placeholder="请输入占位提示" />
-          <ProFormDigit
-            name="order"
-            label="排序序号"
-            min={1}
-            rules={[{ required: true, message: '请输入排序' }]}
-          />
+          <Row gutter={15}>
+            <Col span={12}>
+              <ProFormDigit
+                name="order"
+                label="排序序号"
+                min={1}
+                rules={[{ required: true, message: '请输入排序' }]}
+              />
+            </Col>
+            <Col span={12}>
+              <ProFormDigit
+                name="span"
+                label="跨度"
+                min={4}
+                max={24}
+                rules={[{ required: true, message: '请输入宽度' }]}
+              />
+            </Col>
+          </Row>
           <ProFormTextArea name="desc" label="字段描述" placeholder="请输入字段描述" />
         </DrawerForm>
 
