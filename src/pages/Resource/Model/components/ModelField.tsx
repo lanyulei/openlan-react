@@ -8,6 +8,7 @@ import {
   SearchOutlined,
 } from '@ant-design/icons';
 import {
+  DragSortTable,
   DrawerForm,
   ModalForm,
   ProFormDatePicker,
@@ -127,7 +128,7 @@ const ModelField: FC = () => {
     id: undefined,
     name: '',
     group_id: undefined,
-    type: FieldTypeShortString,
+    type: FieldTypeTable,
     options: {
       options: [], // 初始化options数组
     },
@@ -140,7 +141,7 @@ const ModelField: FC = () => {
     span: 4,
     model_id: id,
   });
-  const [fieldVisit, setFieldVisit] = useState(false);
+  const [fieldVisit, setFieldVisit] = useState(true);
   const [drawerStatus, setDrawerStatus] = useState('create');
   const [userList, setUserList] = useState<any[]>([]);
 
@@ -253,6 +254,19 @@ const ModelField: FC = () => {
   useEffect(() => {
     getModelFields();
   }, []);
+
+  const handleMoveColumn = (record: any, type: string): void => {
+    console.log(record, type);
+    throw new Error('Function not implemented.');
+  };
+
+  function handleDragSortEnd(
+    beforeIndex: number,
+    afterIndex: number,
+    newDataSource: Record<string, any>[],
+  ): void | Promise<void> {
+    console.log(beforeIndex, afterIndex, newDataSource);
+  }
 
   return (
     <>
@@ -426,7 +440,7 @@ const ModelField: FC = () => {
         <DrawerForm
           form={form}
           title={drawerStatus === 'create' ? '新建字段' : '编辑字段'}
-          width={600}
+          width={800}
           autoFocusFirstInput
           drawerProps={{
             destroyOnHidden: true,
@@ -757,7 +771,105 @@ const ModelField: FC = () => {
                 </div>
               </>
             ) : fieldForm?.type === FieldTypeTable ? (
-              <></>
+              <>
+                <div className={styles.defaultSection}>
+                  <h4>表格设置</h4>
+                  <DragSortTable
+                    dataSource={[
+                      {
+                        key: '1',
+                        id: 'age',
+                        name: '年龄',
+                        type: FieldTypeNumber,
+                      },
+                      {
+                        key: '2',
+                        id: 'gender',
+                        name: '性别',
+                        type: FieldTypeEnum,
+                      },
+                      {
+                        key: '3',
+                        id: 'birthday',
+                        name: '出生日期',
+                        type: FieldTypeDate,
+                      },
+                    ]}
+                    columns={[
+                      {
+                        title: '列 ID',
+                        dataIndex: 'id',
+                        width: 120,
+                        formItemProps: { rules: [{ required: true, message: '必填项' }] },
+                      },
+                      {
+                        title: '列名称',
+                        dataIndex: 'name',
+                        formItemProps: { rules: [{ required: true, message: '必填项' }] },
+                      },
+                      {
+                        title: '列类型',
+                        dataIndex: 'type',
+                        valueType: 'select',
+                        valueEnum: baseFieldTypeMap.reduce((acc, cur) => {
+                          const typedAcc = acc as Record<FieldType, string>;
+                          typedAcc[cur.Value] = cur.Label;
+                          return acc;
+                        }, {}),
+                        formItemProps: { rules: [{ required: true, message: '必填项' }] },
+                      },
+                      {
+                        title: '操作',
+                        valueType: 'option',
+                        render: (_, row, index, action) => [
+                          <a key="edit" onClick={() => action?.startEditable(row.key)}>
+                            编辑
+                          </a>,
+                          <a
+                            key="delete"
+                            onClick={() => {
+                              setFieldForm((prev) => ({
+                                ...prev,
+                                options: {
+                                  ...prev.options,
+                                  columns: prev.options.columns?.filter(
+                                    (item: { key: any }) => item.key !== row.key,
+                                  ),
+                                },
+                              }));
+                            }}
+                          >
+                            删除
+                          </a>,
+                          <a key="up" onClick={() => handleMoveColumn(row, 'up')}>
+                            上移
+                          </a>,
+                          <a key="down" onClick={() => handleMoveColumn(row, 'down')}>
+                            下移
+                          </a>,
+                        ],
+                      },
+                    ]}
+                    rowKey="key"
+                    search={false}
+                    pagination={false}
+                    dragSortKey="sort"
+                    onDragSortEnd={handleDragSortEnd}
+                    options={{
+                      reload: false, // 隐藏刷新按钮
+                      density: false, // 隐藏密度按钮
+                      setting: false, // 隐藏列设置按钮
+                    }}
+                  />
+                  <Button
+                    style={{ marginTop: '10px', width: '100%' }}
+                    type="dashed"
+                    icon={<PlusOutlined />}
+                  >
+                    新增列
+                  </Button>
+                </div>
+              </>
             ) : null}
           </div>
           <Flex justify="flex-start" gap={80}>
