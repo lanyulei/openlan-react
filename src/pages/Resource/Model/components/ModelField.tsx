@@ -48,6 +48,23 @@ import {
   updateModelField,
 } from '@/services/resource/field';
 import FieldPreview from './FieldPreview';
+import {
+  FieldType,
+  FieldTypeBoolean,
+  FieldTypeDate,
+  FieldTypeDatetime,
+  FieldTypeEnum,
+  FieldTypeEnumMulti,
+  FieldTypeFloat,
+  FieldTypeList,
+  FieldTypeLongString,
+  FieldTypeNumber,
+  FieldTypeShortString,
+  FieldTypeTable,
+  FieldTypeTime,
+  FieldTypeTimeZone,
+  FieldTypeUser,
+} from '../variable';
 
 interface FieldForm {
   id?: string | undefined;
@@ -65,42 +82,26 @@ interface FieldForm {
   model_id?: string;
 }
 
-type FieldType =
-  | 'shortString'
-  | 'number'
-  | 'float'
-  | 'enum'
-  | 'enumMulti'
-  | 'date'
-  | 'time'
-  | 'datetime'
-  | 'longString'
-  | 'user'
-  | 'timeZone'
-  | 'boolean'
-  | 'list'
-  | 'table';
-
 interface LabelValue {
   Label: string;
   Value: FieldType;
 }
 
 const baseFieldTypeMap: LabelValue[] = [
-  { Label: '短字符串', Value: 'shortString' },
-  { Label: '数字', Value: 'number' },
-  { Label: '浮点数', Value: 'float' },
-  { Label: '枚举', Value: 'enum' },
-  { Label: '枚举多选', Value: 'enumMulti' },
-  { Label: '日期', Value: 'date' },
-  { Label: '时间', Value: 'time' },
-  { Label: '日期时间', Value: 'datetime' },
-  { Label: '长字符串', Value: 'longString' },
-  { Label: '用户', Value: 'user' },
-  { Label: '时区', Value: 'timeZone' },
-  { Label: '布尔值', Value: 'boolean' },
-  { Label: '列表', Value: 'list' },
-  { Label: '表格', Value: 'table' },
+  { Label: '短字符串', Value: FieldTypeShortString },
+  { Label: '数字', Value: FieldTypeNumber },
+  { Label: '浮点数', Value: FieldTypeFloat },
+  { Label: '枚举', Value: FieldTypeEnum },
+  { Label: '枚举多选', Value: FieldTypeEnumMulti },
+  { Label: '日期', Value: FieldTypeDate },
+  { Label: '时间', Value: FieldTypeTime },
+  { Label: '日期时间', Value: FieldTypeDatetime },
+  { Label: '长字符串', Value: FieldTypeLongString },
+  { Label: '用户', Value: FieldTypeUser },
+  { Label: '时区', Value: FieldTypeTimeZone },
+  { Label: '布尔值', Value: FieldTypeBoolean },
+  { Label: '列表', Value: FieldTypeList },
+  { Label: '表格', Value: FieldTypeTable },
 ];
 
 const initOptions = {
@@ -126,7 +127,7 @@ const ModelField: FC = () => {
     id: undefined,
     name: '',
     group_id: undefined,
-    type: 'shortString',
+    type: FieldTypeShortString,
     options: {
       options: [], // 初始化options数组
     },
@@ -160,7 +161,7 @@ const ModelField: FC = () => {
       id: undefined,
       name: '',
       group_id: groupId,
-      type: 'shortString' as FieldType,
+      type: FieldTypeShortString,
       options: {
         options: [], // 初始化options数组
       },
@@ -509,264 +510,256 @@ const ModelField: FC = () => {
               });
             }}
           />
-          {fieldForm?.type !== 'table' && (
-            <div className={styles.modelFieldOptions}>
-              {fieldForm?.type === 'shortString' || fieldForm?.type === 'longString' ? (
-                <>
+          <div className={styles.modelFieldOptions}>
+            {fieldForm?.type === FieldTypeShortString || fieldForm?.type === FieldTypeLongString ? (
+              <>
+                <ProFormTextArea
+                  name={['options', 'regexp']}
+                  label="正则表达式"
+                  placeholder="请输入验证正则表达式"
+                />
+                {fieldForm?.type === FieldTypeLongString ? (
                   <ProFormTextArea
-                    name={['options', 'regexp']}
-                    label="正则表达式"
-                    placeholder="请输入验证正则表达式"
-                  />
-                  {fieldForm?.type === 'longString' ? (
-                    <ProFormTextArea
-                      name={['options', 'default']}
-                      label="默认值"
-                      placeholder="请输入默认值"
-                    />
-                  ) : (
-                    <ProFormText
-                      name={['options', 'default']}
-                      label="默认值"
-                      placeholder="请输入默认值"
-                    />
-                  )}
-                </>
-              ) : fieldForm?.type === 'number' ? (
-                <>
-                  <ProFormDigit
-                    name={['options', 'min']}
-                    label="最小值"
-                    placeholder="请输入最小值"
-                  />
-                  <ProFormDigit
-                    name={['options', 'max']}
-                    label="最大值"
-                    placeholder="请输入最大值"
-                  />
-                  <ProFormDigit
                     name={['options', 'default']}
                     label="默认值"
                     placeholder="请输入默认值"
                   />
-                </>
-              ) : fieldForm?.type === 'float' ? (
-                <>
-                  <ProFormDigit
-                    name={['options', 'min']}
-                    label="最小值"
-                    placeholder="请输入最小值"
-                    fieldProps={{ step: 0.01 }}
-                  />
-                  <ProFormDigit
-                    name={['options', 'max']}
-                    label="最大值"
-                    placeholder="请输入最大值"
-                    fieldProps={{ step: 0.01 }}
-                  />
-                  <ProFormDigit
-                    name={['options', 'default']}
-                    label="默认值"
-                    placeholder="请输入默认值"
-                    fieldProps={{ step: 0.01 }}
-                  />
-                </>
-              ) : fieldForm?.type === 'enum' || fieldForm?.type === 'enumMulti' ? (
-                <>
-                  <div className={styles.enumSection}>
-                    <h4>枚举值</h4>
-                    <Form.List name={['options', 'options']}>
-                      {(fields, { add, remove }) => (
-                        <>
-                          {fields.map(({ key, name, ...restField }) => (
-                            <Flex
-                              key={key}
-                              gap={8}
-                              style={{
-                                width: '100%', // 添加宽度设置
-                              }}
-                              className={styles.enumItem}
-                            >
-                              <ProFormText
-                                {...restField}
-                                name={[name, 'id']}
-                                placeholder="请输入ID"
-                                style={{ flex: 1, width: '100%' }}
-                                fieldProps={{
-                                  onChange: (e) => handleChange(name, 'id', e.target.value),
-                                }}
-                              />
-                              <ProFormText
-                                {...restField}
-                                name={[name, 'value']}
-                                placeholder="请输入值"
-                                style={{ flex: 1, width: '100%' }}
-                                fieldProps={{
-                                  onChange: (e) => handleChange(name, 'value', e.target.value),
-                                }}
-                              />
-                              <Button
-                                type="link"
-                                danger
-                                onClick={() => remove(name)}
-                                icon={<MinusCircleOutlined />}
-                              />
-                            </Flex>
-                          ))}
-                          <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
-                            新增枚举值
-                          </Button>
-                        </>
-                      )}
-                    </Form.List>
-                  </div>
-
-                  <div className={styles.defaultSection}>
-                    <h4>默认值设置</h4>
-                    <ProFormSelect
-                      name={['options', 'default']}
-                      placeholder="请选择默认值"
-                      mode={fieldForm?.type === 'enumMulti' ? 'multiple' : undefined} // 动态设置多选模式
-                      options={
-                        fieldForm?.options?.options
-                          ?.filter((opt: { id: any; value: any }) => opt?.id && opt?.value)
-                          .map((opt: { id: any; value: any }) => ({
-                            label: opt.value,
-                            value: opt.id,
-                          })) || []
-                      }
-                      fieldProps={{
-                        loading: !fieldForm.options?.options,
-                      }}
-                    />
-                  </div>
-                </>
-              ) : fieldForm?.type === 'date' ? (
-                <>
-                  <ProFormDatePicker
-                    name={['options', 'default']}
-                    label="默认值"
-                    placeholder="请选择日期"
-                    fieldProps={{
-                      format: 'YYYY-MM-DD',
-                      style: { width: '100%' },
-                    }}
-                  />
-                </>
-              ) : fieldForm?.type === 'time' ? (
-                <>
-                  <ProFormTimePicker
-                    name={['options', 'default']}
-                    label="默认值"
-                    placeholder="请选择时间"
-                    fieldProps={{
-                      format: 'HH:mm:ss',
-                      style: { width: '100%' },
-                    }}
-                  />
-                </>
-              ) : fieldForm?.type === 'datetime' ? (
-                <>
-                  <ProFormDatePicker
-                    name={['options', 'default']}
-                    label="默认值"
-                    placeholder="请选择日期时间"
-                    fieldProps={{
-                      showTime: true,
-                      format: 'YYYY-MM-DD HH:mm:ss',
-                      style: { width: '100%' },
-                    }}
-                  />
-                </>
-              ) : fieldForm?.type === 'user' ? (
-                <>
-                  <ProFormSelect
-                    name={['options', 'default']}
-                    label="默认用户"
-                    placeholder="请选择默认用户"
-                    mode="multiple"
-                    options={userList.map((user) => ({
-                      label: user.username,
-                      value: user.id,
-                    }))}
-                    fieldProps={{
-                      loading: !userList.length,
-                    }}
-                  />
-                </>
-              ) : fieldForm?.type === 'timeZone' ? (
-                <>
+                ) : (
                   <ProFormText
                     name={['options', 'default']}
-                    label="默认时区"
-                    placeholder="请输入默认时区"
+                    label="默认值"
+                    placeholder="请输入默认值"
                   />
-                </>
-              ) : fieldForm?.type === 'boolean' ? (
-                <>
-                  <ProFormSwitch name={['options', 'default']} label="默认值" />
-                </>
-              ) : fieldForm?.type === 'list' ? (
-                <>
-                  <div className={styles.enumSection}>
-                    <h4>列表值</h4>
-                    <Form.List name={['options', 'options']}>
-                      {(fields, { add, remove }) => (
-                        <>
-                          {fields.map(({ key, name, ...restField }) => (
-                            <Flex
-                              key={key}
-                              gap={8}
-                              style={{
-                                width: '100%',
-                              }}
-                            >
-                              <ProFormText
-                                {...restField}
-                                name={name}
-                                placeholder="请输入值"
-                                rules={[{ required: true, message: '该字段是必填项' }]}
-                              />
-                              <Button
-                                type="link"
-                                danger
-                                onClick={() => remove(name)}
-                                icon={<MinusCircleOutlined />}
-                              />
-                            </Flex>
-                          ))}
-                          <Button
-                            type="dashed"
-                            onClick={() => {
-                              add();
+                )}
+              </>
+            ) : fieldForm?.type === FieldTypeNumber ? (
+              <>
+                <ProFormDigit name={['options', 'min']} label="最小值" placeholder="请输入最小值" />
+                <ProFormDigit name={['options', 'max']} label="最大值" placeholder="请输入最大值" />
+                <ProFormDigit
+                  name={['options', 'default']}
+                  label="默认值"
+                  placeholder="请输入默认值"
+                />
+              </>
+            ) : fieldForm?.type === FieldTypeFloat ? (
+              <>
+                <ProFormDigit
+                  name={['options', 'min']}
+                  label="最小值"
+                  placeholder="请输入最小值"
+                  fieldProps={{ step: 0.01 }}
+                />
+                <ProFormDigit
+                  name={['options', 'max']}
+                  label="最大值"
+                  placeholder="请输入最大值"
+                  fieldProps={{ step: 0.01 }}
+                />
+                <ProFormDigit
+                  name={['options', 'default']}
+                  label="默认值"
+                  placeholder="请输入默认值"
+                  fieldProps={{ step: 0.01 }}
+                />
+              </>
+            ) : fieldForm?.type === FieldTypeEnum || fieldForm?.type === FieldTypeEnumMulti ? (
+              <>
+                <div className={styles.enumSection}>
+                  <h4>枚举值</h4>
+                  <Form.List name={['options', 'options']}>
+                    {(fields, { add, remove }) => (
+                      <>
+                        {fields.map(({ key, name, ...restField }) => (
+                          <Flex
+                            key={key}
+                            gap={8}
+                            style={{
+                              width: '100%', // 添加宽度设置
                             }}
-                            block
-                            icon={<PlusOutlined />}
+                            className={styles.enumItem}
                           >
-                            新增
-                          </Button>
-                        </>
-                      )}
-                    </Form.List>
-                  </div>
+                            <ProFormText
+                              {...restField}
+                              name={[name, 'id']}
+                              placeholder="请输入ID"
+                              style={{ flex: 1, width: '100%' }}
+                              fieldProps={{
+                                onChange: (e) => handleChange(name, 'id', e.target.value),
+                              }}
+                            />
+                            <ProFormText
+                              {...restField}
+                              name={[name, 'value']}
+                              placeholder="请输入值"
+                              style={{ flex: 1, width: '100%' }}
+                              fieldProps={{
+                                onChange: (e) => handleChange(name, 'value', e.target.value),
+                              }}
+                            />
+                            <Button
+                              type="link"
+                              danger
+                              onClick={() => remove(name)}
+                              icon={<MinusCircleOutlined />}
+                            />
+                          </Flex>
+                        ))}
+                        <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
+                          新增枚举值
+                        </Button>
+                      </>
+                    )}
+                  </Form.List>
+                </div>
 
-                  <div className={styles.defaultSection}>
-                    <h4>默认值设置</h4>
-                    <ProFormSelect
-                      name={['options', 'default']}
-                      placeholder="请选择"
-                      options={
-                        fieldForm?.options?.options?.map((value: string) => ({
-                          label: value,
-                          value: value,
+                <div className={styles.defaultSection}>
+                  <h4>默认值设置</h4>
+                  <ProFormSelect
+                    name={['options', 'default']}
+                    placeholder="请选择默认值"
+                    mode={fieldForm?.type === FieldTypeEnumMulti ? 'multiple' : undefined} // 动态设置多选模式
+                    options={
+                      fieldForm?.options?.options
+                        ?.filter((opt: { id: any; value: any }) => opt?.id && opt?.value)
+                        .map((opt: { id: any; value: any }) => ({
+                          label: opt.value,
+                          value: opt.id,
                         })) || []
-                      }
-                    />
-                  </div>
-                </>
-              ) : null}
-            </div>
-          )}
+                    }
+                    fieldProps={{
+                      loading: !fieldForm.options?.options,
+                    }}
+                  />
+                </div>
+              </>
+            ) : fieldForm?.type === FieldTypeDate ? (
+              <>
+                <ProFormDatePicker
+                  name={['options', 'default']}
+                  label="默认值"
+                  placeholder="请选择日期"
+                  fieldProps={{
+                    format: 'YYYY-MM-DD',
+                    style: { width: '100%' },
+                  }}
+                />
+              </>
+            ) : fieldForm?.type === FieldTypeTime ? (
+              <>
+                <ProFormTimePicker
+                  name={['options', 'default']}
+                  label="默认值"
+                  placeholder="请选择时间"
+                  fieldProps={{
+                    format: 'HH:mm:ss',
+                    style: { width: '100%' },
+                  }}
+                />
+              </>
+            ) : fieldForm?.type === FieldTypeDatetime ? (
+              <>
+                <ProFormDatePicker
+                  name={['options', 'default']}
+                  label="默认值"
+                  placeholder="请选择日期时间"
+                  fieldProps={{
+                    showTime: true,
+                    format: 'YYYY-MM-DD HH:mm:ss',
+                    style: { width: '100%' },
+                  }}
+                />
+              </>
+            ) : fieldForm?.type === FieldTypeUser ? (
+              <>
+                <ProFormSelect
+                  name={['options', 'default']}
+                  label="默认用户"
+                  placeholder="请选择默认用户"
+                  mode="multiple"
+                  options={userList.map((user) => ({
+                    label: user.username,
+                    value: user.id,
+                  }))}
+                  fieldProps={{
+                    loading: !userList.length,
+                  }}
+                />
+              </>
+            ) : fieldForm?.type === FieldTypeTimeZone ? (
+              <>
+                <ProFormText
+                  name={['options', 'default']}
+                  label="默认时区"
+                  placeholder="请输入默认时区"
+                />
+              </>
+            ) : fieldForm?.type === FieldTypeBoolean ? (
+              <>
+                <ProFormSwitch name={['options', 'default']} label="默认值" />
+              </>
+            ) : fieldForm?.type === FieldTypeList ? (
+              <>
+                <div className={styles.enumSection}>
+                  <h4>列表值</h4>
+                  <Form.List name={['options', 'options']}>
+                    {(fields, { add, remove }) => (
+                      <>
+                        {fields.map(({ key, name, ...restField }) => (
+                          <Flex
+                            key={key}
+                            gap={8}
+                            style={{
+                              width: '100%',
+                            }}
+                          >
+                            <ProFormText
+                              {...restField}
+                              name={name}
+                              placeholder="请输入值"
+                              rules={[{ required: true, message: '该字段是必填项' }]}
+                            />
+                            <Button
+                              type="link"
+                              danger
+                              onClick={() => remove(name)}
+                              icon={<MinusCircleOutlined />}
+                            />
+                          </Flex>
+                        ))}
+                        <Button
+                          type="dashed"
+                          onClick={() => {
+                            add();
+                          }}
+                          block
+                          icon={<PlusOutlined />}
+                        >
+                          新增
+                        </Button>
+                      </>
+                    )}
+                  </Form.List>
+                </div>
+
+                <div className={styles.defaultSection}>
+                  <h4>默认值设置</h4>
+                  <ProFormSelect
+                    name={['options', 'default']}
+                    placeholder="请选择"
+                    options={
+                      fieldForm?.options?.options?.map((value: string) => ({
+                        label: value,
+                        value: value,
+                      })) || []
+                    }
+                  />
+                </div>
+              </>
+            ) : fieldForm?.type === FieldTypeTable ? (
+              <></>
+            ) : null}
+          </div>
           <Flex justify="flex-start" gap={80}>
             <ProFormSwitch name="is_edit" label="是否可编辑" />
             <ProFormSwitch name="is_required" label="是否必填" />

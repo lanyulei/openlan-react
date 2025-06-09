@@ -13,6 +13,22 @@ import { forwardRef, Fragment, useEffect, useImperativeHandle, useState } from '
 import modelStyles from '../index.less';
 import { CaretDownOutlined } from '@ant-design/icons';
 import { getUserList } from '@/services/system/user';
+import {
+  FieldTypeBoolean,
+  FieldTypeDate,
+  FieldTypeDatetime,
+  FieldTypeEnum,
+  FieldTypeEnumMulti,
+  FieldTypeFloat,
+  FieldTypeList,
+  FieldTypeLongString,
+  FieldTypeNumber,
+  FieldTypeShortString,
+  FieldTypeTable,
+  FieldTypeTime,
+  FieldTypeTimeZone,
+  FieldTypeUser,
+} from '../variable';
 
 // 定义一个接口来描述组件的 props 类型
 interface FieldPreviewProps {
@@ -85,7 +101,7 @@ const FieldPreview = forwardRef<{ showDrawer: () => void }, FieldPreviewProps>(
                     <Row gutter={15}>
                       {item.fields?.map((fieldItem: any) => (
                         <Fragment key={fieldItem.id}>
-                          {fieldItem?.type === 'shortString' ? (
+                          {fieldItem?.type === FieldTypeShortString ? (
                             <Col span={fieldItem.span}>
                               <ProFormText
                                 name={fieldItem.key}
@@ -114,7 +130,7 @@ const FieldPreview = forwardRef<{ showDrawer: () => void }, FieldPreviewProps>(
                                 initialValue={fieldItem?.options?.default}
                               />
                             </Col>
-                          ) : fieldItem?.type === 'number' ? (
+                          ) : fieldItem?.type === FieldTypeNumber ? (
                             <Col span={fieldItem.span}>
                               <ProFormDigit
                                 name={fieldItem.key}
@@ -138,7 +154,7 @@ const FieldPreview = forwardRef<{ showDrawer: () => void }, FieldPreviewProps>(
                                 initialValue={fieldItem?.options?.default}
                               />
                             </Col>
-                          ) : fieldItem?.type === 'float' ? (
+                          ) : fieldItem?.type === FieldTypeFloat ? (
                             <Col span={fieldItem.span}>
                               <ProFormDigit
                                 name={fieldItem.key}
@@ -163,7 +179,7 @@ const FieldPreview = forwardRef<{ showDrawer: () => void }, FieldPreviewProps>(
                                 fieldProps={{ step: 0.01 }}
                               />
                             </Col>
-                          ) : fieldItem?.type === 'enum' ? (
+                          ) : fieldItem?.type === FieldTypeEnum ? (
                             <Col span={fieldItem.span}>
                               <ProFormSelect
                                 name={fieldItem.key}
@@ -185,7 +201,7 @@ const FieldPreview = forwardRef<{ showDrawer: () => void }, FieldPreviewProps>(
                                 initialValue={fieldItem?.options?.default}
                               />
                             </Col>
-                          ) : fieldItem?.type === 'enumMulti' ? (
+                          ) : fieldItem?.type === FieldTypeEnumMulti ? (
                             <Col span={fieldItem.span}>
                               <ProFormSelect
                                 name={fieldItem.key}
@@ -208,7 +224,7 @@ const FieldPreview = forwardRef<{ showDrawer: () => void }, FieldPreviewProps>(
                                 mode="multiple"
                               />
                             </Col>
-                          ) : fieldItem?.type === 'date' ? (
+                          ) : fieldItem?.type === FieldTypeDate ? (
                             <Col span={fieldItem.span}>
                               <ProFormDatePicker
                                 name={fieldItem.key}
@@ -225,7 +241,7 @@ const FieldPreview = forwardRef<{ showDrawer: () => void }, FieldPreviewProps>(
                                 initialValue={fieldItem?.options?.default}
                               />
                             </Col>
-                          ) : fieldItem?.type === 'time' ? (
+                          ) : fieldItem?.type === FieldTypeTime ? (
                             <Col span={fieldItem.span}>
                               <ProFormTimePicker
                                 name={fieldItem.key}
@@ -243,7 +259,7 @@ const FieldPreview = forwardRef<{ showDrawer: () => void }, FieldPreviewProps>(
                                 initialValue={fieldItem?.options?.default}
                               />
                             </Col>
-                          ) : fieldItem?.type === 'datetime' ? (
+                          ) : fieldItem?.type === FieldTypeDatetime ? (
                             <Col span={fieldItem.span}>
                               <ProFormDatePicker
                                 name={fieldItem.key}
@@ -261,7 +277,7 @@ const FieldPreview = forwardRef<{ showDrawer: () => void }, FieldPreviewProps>(
                                 showTime
                               />
                             </Col>
-                          ) : fieldItem?.type === 'longString' ? (
+                          ) : fieldItem?.type === FieldTypeLongString ? (
                             <Col span={fieldItem.span}>
                               <ProFormTextArea
                                 name={fieldItem.key}
@@ -288,7 +304,7 @@ const FieldPreview = forwardRef<{ showDrawer: () => void }, FieldPreviewProps>(
                                 initialValue={fieldItem?.options?.default}
                               />
                             </Col>
-                          ) : fieldItem?.type === 'user' ? (
+                          ) : fieldItem?.type === FieldTypeUser ? (
                             <Col span={fieldItem.span}>
                               <ProFormSelect
                                 name={fieldItem.key}
@@ -312,7 +328,7 @@ const FieldPreview = forwardRef<{ showDrawer: () => void }, FieldPreviewProps>(
                                 }}
                               />
                             </Col>
-                          ) : fieldItem?.type === 'timeZone' ? (
+                          ) : fieldItem?.type === FieldTypeTimeZone ? (
                             <Col span={fieldItem.span}>
                               <ProFormText
                                 name={fieldItem.key}
@@ -328,7 +344,7 @@ const FieldPreview = forwardRef<{ showDrawer: () => void }, FieldPreviewProps>(
                                 initialValue={fieldItem?.options?.default}
                               />
                             </Col>
-                          ) : fieldItem?.type === 'boolean' ? (
+                          ) : fieldItem?.type === FieldTypeBoolean ? (
                             <Col span={fieldItem.span}>
                               <ProFormSwitch
                                 name={fieldItem.key}
@@ -343,7 +359,7 @@ const FieldPreview = forwardRef<{ showDrawer: () => void }, FieldPreviewProps>(
                                 initialValue={fieldItem?.options?.default === true}
                               />
                             </Col>
-                          ) : fieldItem?.type === 'list' ? (
+                          ) : fieldItem?.type === FieldTypeList ? (
                             <Col span={fieldItem.span}>
                               <ProFormSelect
                                 name={fieldItem.key}
@@ -360,8 +376,8 @@ const FieldPreview = forwardRef<{ showDrawer: () => void }, FieldPreviewProps>(
                                 initialValue={fieldItem?.options?.default}
                               />
                             </Col>
-                          ) : fieldItem?.type === 'table' ? (
-                            <Col span={fieldItem.span}>this is table</Col>
+                          ) : fieldItem?.type === FieldTypeTable ? (
+                            <Col span={fieldItem.span}></Col>
                           ) : null}
                         </Fragment>
                       ))}
