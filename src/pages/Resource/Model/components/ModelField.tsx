@@ -780,7 +780,7 @@ const ModelField: FC = () => {
               </>
             ) : fieldForm?.type === FieldTypeTable ? (
               <>
-                <div className={styles.defaultSection}>
+                <div className={styles.modelFieldTable}>
                   <h4>表格设置</h4>
                   <EditableProTable<DataSourceType>
                     key={fieldForm?.options?.columns?.length || 0}
