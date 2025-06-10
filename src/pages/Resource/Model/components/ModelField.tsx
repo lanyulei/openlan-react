@@ -8,8 +8,8 @@ import {
   SearchOutlined,
 } from '@ant-design/icons';
 import {
-  DragSortTable,
   DrawerForm,
+  EditableProTable,
   ModalForm,
   ProFormDatePicker,
   ProFormDigit,
@@ -113,6 +113,11 @@ const initOptions = {
   default: undefined,
 };
 
+type DataSourceType = {
+  label: string;
+  value: string;
+};
+
 const ModelField: FC = () => {
   interface FieldPreview {
     showDrawer: () => void;
@@ -128,7 +133,7 @@ const ModelField: FC = () => {
     id: undefined,
     name: '',
     group_id: undefined,
-    type: FieldTypeTable,
+    type: FieldTypeShortString,
     options: {
       options: [], // 初始化options数组
     },
@@ -141,7 +146,7 @@ const ModelField: FC = () => {
     span: 4,
     model_id: id,
   });
-  const [fieldVisit, setFieldVisit] = useState(true);
+  const [fieldVisit, setFieldVisit] = useState(false);
   const [drawerStatus, setDrawerStatus] = useState('create');
   const [userList, setUserList] = useState<any[]>([]);
 
@@ -156,6 +161,8 @@ const ModelField: FC = () => {
   const [fieldGroupStatus, setFieldGroupStatus] = useState('create');
   const [fieldList, setFieldList] = useState<any[]>([]);
   const [fieldName, setFieldName] = useState<string>('');
+
+  const [dataSource, setDataSource] = useState<readonly DataSourceType[]>([]);
 
   const handleRestFieldForm = async (groupId: string | undefined) => {
     const _data = {
@@ -254,19 +261,6 @@ const ModelField: FC = () => {
   useEffect(() => {
     getModelFields();
   }, []);
-
-  const handleMoveColumn = (record: any, type: string): void => {
-    console.log(record, type);
-    throw new Error('Function not implemented.');
-  };
-
-  function handleDragSortEnd(
-    beforeIndex: number,
-    afterIndex: number,
-    newDataSource: Record<string, any>[],
-  ): void | Promise<void> {
-    console.log(beforeIndex, afterIndex, newDataSource);
-  }
 
   return (
     <>
@@ -452,6 +446,14 @@ const ModelField: FC = () => {
           }}
           onFinish={async () => {
             if (drawerStatus === 'create') {
+              setFieldForm({
+                ...fieldForm,
+                options: {
+                  ...fieldForm.options,
+                  options: fieldForm.options?.options || [],
+                  Columns: dataSource || [],
+                },
+              });
               await createModelField(fieldForm);
               await getModelFields();
               setFieldVisit(false);
@@ -461,6 +463,15 @@ const ModelField: FC = () => {
                 messageApi.error('字段创建失败');
                 return false;
               }
+              setFieldForm({
+                ...fieldForm,
+                options: {
+                  ...fieldForm.options,
+                  options: fieldForm.options?.options || [],
+                  Columns: dataSource || [],
+                },
+              });
+
               await updateModelField(fieldForm.id, fieldForm);
               await getModelFields();
               setFieldVisit(false);
@@ -774,100 +785,73 @@ const ModelField: FC = () => {
               <>
                 <div className={styles.defaultSection}>
                   <h4>表格设置</h4>
-                  <DragSortTable
-                    dataSource={[
-                      {
-                        key: '1',
-                        id: 'age',
-                        name: '年龄',
-                        type: FieldTypeNumber,
+                  <EditableProTable<DataSourceType>
+                    rowKey="id"
+                    recordCreatorProps={{
+                      position: 'bottom',
+                      // 为了满足 DataSourceType 类型要求，生成包含 label 和 value 的对象
+                      record: () => {
+                        const id = (Math.random() * 1000000).toFixed(0);
+                        return {
+                          id: id,
+                          label: '',
+                          value: '',
+                        };
                       },
-                      {
-                        key: '2',
-                        id: 'gender',
-                        name: '性别',
-                        type: FieldTypeEnum,
-                      },
-                      {
-                        key: '3',
-                        id: 'birthday',
-                        name: '出生日期',
-                        type: FieldTypeDate,
-                      },
-                    ]}
+                    }}
+                    loading={false}
                     columns={[
                       {
                         title: '列 ID',
-                        dataIndex: 'id',
-                        width: 120,
-                        formItemProps: { rules: [{ required: true, message: '必填项' }] },
+                        dataIndex: 'value',
+                        formItemProps: () => {
+                          return {
+                            rules: [
+                              { required: true, message: '此项为必填项' },
+                              {
+                                pattern: /^[A-Za-z][A-Za-z0-9_]*$/,
+                                message: '只能是字母开头，且仅允许包含字母、数字、下划线',
+                              },
+                            ],
+                          };
+                        },
                       },
                       {
                         title: '列名称',
-                        dataIndex: 'name',
-                        formItemProps: { rules: [{ required: true, message: '必填项' }] },
-                      },
-                      {
-                        title: '列类型',
-                        dataIndex: 'type',
-                        valueType: 'select',
-                        valueEnum: baseFieldTypeMap.reduce((acc, cur) => {
-                          const typedAcc = acc as Record<FieldType, string>;
-                          typedAcc[cur.Value] = cur.Label;
-                          return acc;
-                        }, {}),
-                        formItemProps: { rules: [{ required: true, message: '必填项' }] },
+                        dataIndex: 'label',
+                        formItemProps: () => {
+                          return {
+                            rules: [{ required: true, message: '此项为必填项' }],
+                          };
+                        },
                       },
                       {
                         title: '操作',
                         valueType: 'option',
-                        render: (_, row, index, action) => [
-                          <a key="edit" onClick={() => action?.startEditable(row.key)}>
-                            编辑
-                          </a>,
-                          <a
-                            key="delete"
-                            onClick={() => {
-                              setFieldForm((prev) => ({
-                                ...prev,
-                                options: {
-                                  ...prev.options,
-                                  columns: prev.options.columns?.filter(
-                                    (item: { key: any }) => item.key !== row.key,
-                                  ),
-                                },
-                              }));
-                            }}
-                          >
-                            删除
-                          </a>,
-                          <a key="up" onClick={() => handleMoveColumn(row, 'up')}>
-                            上移
-                          </a>,
-                          <a key="down" onClick={() => handleMoveColumn(row, 'down')}>
-                            下移
-                          </a>,
-                        ],
+                        width: 200,
+                        render: (_, record, __, action) => {
+                          // 获取当前记录在数据源中的索引
+                          return [
+                            <a key="editable" onClick={() => action?.startEditable?.(record.value)}>
+                              编辑
+                            </a>,
+                            <a
+                              key="delete"
+                              onClick={() => {
+                                setDataSource(
+                                  dataSource.filter((item) => item.value !== record.value),
+                                );
+                              }}
+                            >
+                              删除
+                            </a>,
+                          ];
+                        },
                       },
                     ]}
-                    rowKey="key"
-                    search={false}
-                    pagination={false}
-                    dragSortKey="sort"
-                    onDragSortEnd={handleDragSortEnd}
-                    options={{
-                      reload: false, // 隐藏刷新按钮
-                      density: false, // 隐藏密度按钮
-                      setting: false, // 隐藏列设置按钮
-                    }}
+                    dataSource={dataSource}
+                    onChange={setDataSource}
                   />
-                  <Button
-                    style={{ marginTop: '10px', width: '100%' }}
-                    type="dashed"
-                    icon={<PlusOutlined />}
-                  >
-                    新增列
-                  </Button>
                 </div>
               </>
             ) : null}
