@@ -114,6 +114,8 @@ const initOptions = {
 };
 
 type DataSourceType = {
+  id: number;
+  index: number;
   label: string;
   value: string;
 };
@@ -135,7 +137,8 @@ const ModelField: FC = () => {
     group_id: undefined,
     type: FieldTypeShortString,
     options: {
-      options: [], // 初始化options数组
+      options: [],
+      columns: [],
     },
     is_edit: true,
     is_required: false,
@@ -162,8 +165,6 @@ const ModelField: FC = () => {
   const [fieldList, setFieldList] = useState<any[]>([]);
   const [fieldName, setFieldName] = useState<string>('');
 
-  const [dataSource, setDataSource] = useState<readonly DataSourceType[]>([]);
-
   const handleRestFieldForm = async (groupId: string | undefined) => {
     const _data = {
       id: undefined,
@@ -171,7 +172,8 @@ const ModelField: FC = () => {
       group_id: groupId,
       type: FieldTypeShortString,
       options: {
-        options: [], // 初始化options数组
+        options: [],
+        columns: [],
       },
       is_edit: true,
       is_required: false,
@@ -441,38 +443,33 @@ const ModelField: FC = () => {
             onClose: () => {
               form?.setFieldsValue({
                 options: initOptions,
+                columns: [],
               });
             },
           }}
           onFinish={async () => {
+            const _fieldForm = {
+              ...fieldForm,
+              options: {
+                ...fieldForm.options,
+                options: fieldForm.options?.options || [],
+                columns: fieldForm.options?.columns || [],
+              },
+            };
+
             if (drawerStatus === 'create') {
-              setFieldForm({
-                ...fieldForm,
-                options: {
-                  ...fieldForm.options,
-                  options: fieldForm.options?.options || [],
-                  Columns: dataSource || [],
-                },
-              });
-              await createModelField(fieldForm);
+              setFieldForm(_fieldForm);
+              await createModelField(_fieldForm);
               await getModelFields();
               setFieldVisit(false);
               messageApi.success('字段创建成功');
             } else if (drawerStatus === 'edit') {
-              if (!fieldForm.id) {
+              if (!_fieldForm.id) {
                 messageApi.error('字段创建失败');
                 return false;
               }
-              setFieldForm({
-                ...fieldForm,
-                options: {
-                  ...fieldForm.options,
-                  options: fieldForm.options?.options || [],
-                  Columns: dataSource || [],
-                },
-              });
-
-              await updateModelField(fieldForm.id, fieldForm);
+              setFieldForm(_fieldForm);
+              await updateModelField(_fieldForm.id, _fieldForm);
               await getModelFields();
               setFieldVisit(false);
               messageApi.success('更新字段失败');
@@ -786,14 +783,15 @@ const ModelField: FC = () => {
                 <div className={styles.defaultSection}>
                   <h4>表格设置</h4>
                   <EditableProTable<DataSourceType>
+                    key={fieldForm?.options?.columns?.length || 0}
                     rowKey="id"
                     recordCreatorProps={{
                       position: 'bottom',
-                      // 为了满足 DataSourceType 类型要求，生成包含 label 和 value 的对象
-                      record: () => {
-                        const id = (Math.random() * 1000000).toFixed(0);
+                      record: (index) => {
+                        const id = parseInt((Math.random() * 1000000).toFixed(0));
                         return {
                           id: id,
+                          index: index,
                           label: '',
                           value: '',
                         };
@@ -838,9 +836,17 @@ const ModelField: FC = () => {
                             <a
                               key="delete"
                               onClick={() => {
-                                setDataSource(
-                                  dataSource.filter((item) => item.value !== record.value),
-                                );
+                                setFieldForm((prev) => {
+                                  return {
+                                    ...prev,
+                                    options: {
+                                      ...prev.options,
+                                      columns: fieldForm.options?.columns.filter(
+                                        (item: { value: string }) => item.value !== record.value,
+                                      ),
+                                    },
+                                  };
+                                });
                               }}
                             >
                               删除
@@ -849,8 +855,18 @@ const ModelField: FC = () => {
                         },
                       },
                     ]}
-                    dataSource={dataSource}
-                    onChange={setDataSource}
+                    dataSource={fieldForm.options?.columns || []}
+                    onChange={(newValue) => {
+                      setFieldForm((prev) => {
+                        return {
+                          ...prev,
+                          options: {
+                            ...prev.options,
+                            columns: newValue,
+                          },
+                        };
+                      });
+                    }}
                   />
                 </div>
               </>
