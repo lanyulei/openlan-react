@@ -15,7 +15,7 @@ import {
   PlusOutlined,
   SearchOutlined,
 } from '@ant-design/icons';
-import styles from './index.less';
+import styles from '../common.less';
 import { Button, Dropdown, Input, message, Modal } from 'antd';
 import type { MenuProps } from 'antd';
 import CreateModel from './components/CreateModel';

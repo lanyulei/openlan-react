@@ -11,7 +11,7 @@ import {
 } from '@ant-design/pro-components';
 import { Col, Form, Row } from 'antd';
 import { forwardRef, Fragment, useEffect, useImperativeHandle, useState } from 'react';
-import modelStyles from '../index.less';
+import modelStyles from '../../common.less';
 import { CaretDownOutlined } from '@ant-design/icons';
 import { getUserList } from '@/services/system/user';
 import {

@@ -34,7 +34,7 @@ import {
 } from 'antd';
 import { FC, useEffect, useRef, useState } from 'react';
 import styles from './ModelField.less';
-import modelStyles from '../index.less';
+import modelStyles from '../../common.less';
 import { getUserList } from '@/services/system/user';
 import { useParams } from 'react-router-dom';
 import {
