@@ -318,10 +318,10 @@ const ModelField: FC = () => {
             onPressEnter={getModelFields}
           />
         </Flex>
-        <div style={{ marginTop: '12px' }}>
+        <>
           {Array.isArray(fieldList) && fieldList.length > 0 ? (
-            fieldList.map((groupItem) => (
-              <div key={groupItem.id} style={{ marginBottom: '15px' }}>
+            fieldList.map((groupItem, groupIndex) => (
+              <div key={groupItem.id} style={{ marginTop: groupIndex === 0 ? '12px' : '15px' }}>
                 <div className={modelStyles.modelGroup}>
                   <CaretDownOutlined />
                   <span className={modelStyles.modelGroupName}>
@@ -437,7 +437,7 @@ const ModelField: FC = () => {
               description="暂无字段数据"
             />
           )}
-        </div>
+        </>
 
         <DrawerForm
           form={form}
