@@ -114,7 +114,7 @@ const initOptions = {
 };
 
 type DataSourceType = {
-  id: number;
+  id: string;
   index: number;
   label: string;
   value: string;
@@ -135,9 +135,9 @@ const ModelField: FC = () => {
     id: undefined,
     name: '',
     group_id: undefined,
-    type: FieldTypeShortString,
+    type: FieldTypeTable,
     options: {
-      options: [],
+      options: [], // 初始化options数组
       columns: [],
     },
     is_edit: true,
@@ -149,7 +149,7 @@ const ModelField: FC = () => {
     span: 4,
     model_id: id,
   });
-  const [fieldVisit, setFieldVisit] = useState(false);
+  const [fieldVisit, setFieldVisit] = useState(true);
   const [drawerStatus, setDrawerStatus] = useState('create');
   const [userList, setUserList] = useState<any[]>([]);
 
@@ -164,6 +164,9 @@ const ModelField: FC = () => {
   const [fieldGroupStatus, setFieldGroupStatus] = useState('create');
   const [fieldList, setFieldList] = useState<any[]>([]);
   const [fieldName, setFieldName] = useState<string>('');
+
+  const [dataSource, setDataSource] = useState<readonly DataSourceType[]>([]);
+  const [editableKeys, setEditableRowKeys] = useState<React.Key[]>([]);
 
   const handleRestFieldForm = async (groupId: string | undefined) => {
     const _data = {
@@ -448,28 +451,30 @@ const ModelField: FC = () => {
             },
           }}
           onFinish={async () => {
-            const _fieldForm = {
+            const _data = {
               ...fieldForm,
               options: {
                 ...fieldForm.options,
                 options: fieldForm.options?.options || [],
-                columns: fieldForm.options?.columns || [],
+                Columns: dataSource || [],
               },
             };
 
             if (drawerStatus === 'create') {
-              setFieldForm(_fieldForm);
-              await createModelField(_fieldForm);
+              setFieldForm(_data);
+              await createModelField(fieldForm);
               await getModelFields();
               setFieldVisit(false);
               messageApi.success('字段创建成功');
             } else if (drawerStatus === 'edit') {
-              if (!_fieldForm.id) {
+              if (!fieldForm.id) {
                 messageApi.error('字段创建失败');
                 return false;
               }
-              setFieldForm(_fieldForm);
-              await updateModelField(_fieldForm.id, _fieldForm);
+
+              setFieldForm(_data);
+
+              await updateModelField(fieldForm.id, fieldForm);
               await getModelFields();
               setFieldVisit(false);
               messageApi.success('更新字段失败');
@@ -780,22 +785,18 @@ const ModelField: FC = () => {
               </>
             ) : fieldForm?.type === FieldTypeTable ? (
               <>
-                <div className={styles.modelFieldTable}>
+                <div className={styles.defaultSection}>
                   <h4>表格设置</h4>
                   <EditableProTable<DataSourceType>
-                    key={fieldForm?.options?.columns?.length || 0}
                     rowKey="id"
                     recordCreatorProps={{
                       position: 'bottom',
-                      record: (index) => {
-                        const id = parseInt((Math.random() * 1000000).toFixed(0));
-                        return {
-                          id: id,
-                          index: index,
-                          label: '',
-                          value: '',
-                        };
-                      },
+                      record: (index) => ({
+                        id: (Math.random() * 1000000).toFixed(0),
+                        index: index,
+                        value: '',
+                        label: '',
+                      }),
                     }}
                     loading={false}
                     columns={[
@@ -830,23 +831,13 @@ const ModelField: FC = () => {
                         render: (_, record, __, action) => {
                           // 获取当前记录在数据源中的索引
                           return [
-                            <a key="editable" onClick={() => action?.startEditable?.(record.value)}>
+                            <a key="editable" onClick={() => action?.startEditable?.(record.id)}>
                               编辑
                             </a>,
                             <a
                               key="delete"
                               onClick={() => {
-                                setFieldForm((prev) => {
-                                  return {
-                                    ...prev,
-                                    options: {
-                                      ...prev.options,
-                                      columns: fieldForm.options?.columns.filter(
-                                        (item: { value: string }) => item.value !== record.value,
-                                      ),
-                                    },
-                                  };
-                                });
+                                setDataSource(dataSource.filter((item) => item.id !== record.id));
                               }}
                             >
                               删除
@@ -855,17 +846,12 @@ const ModelField: FC = () => {
                         },
                       },
                     ]}
-                    dataSource={fieldForm.options?.columns || []}
-                    onChange={(newValue) => {
-                      setFieldForm((prev) => {
-                        return {
-                          ...prev,
-                          options: {
-                            ...prev.options,
-                            columns: newValue,
-                          },
-                        };
-                      });
+                    dataSource={dataSource}
+                    onChange={setDataSource}
+                    editable={{
+                      type: 'multiple',
+                      editableKeys,
+                      onChange: setEditableRowKeys,
                     }}
                   />
                 </div>
