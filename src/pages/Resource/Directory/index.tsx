@@ -35,7 +35,7 @@ const Models: FC = () => {
   };
 
   const handleDetails = (id: string) => {
-    navigate('/resource/model-details/' + id);
+    navigate('/resource/data/' + id);
   };
 
   useEffect(() => {
@@ -79,13 +79,11 @@ const Models: FC = () => {
                     <div
                       className={`${styles.modelValue} ${indexStyles.modelValue}`}
                       key={modelItem.id}
+                      onClick={() => {
+                        handleDetails(modelItem.id);
+                      }}
                     >
-                      <div
-                        className={styles.modelInfo}
-                        onClick={() => {
-                          handleDetails(modelItem.id);
-                        }}
-                      >
+                      <div className={styles.modelInfo}>
                         <div className={styles.modelIcon}>
                           <IconPicker icon={modelItem.icon} />
                         </div>
@@ -96,7 +94,7 @@ const Models: FC = () => {
                           </div>
                         </div>
                       </div>
-                      <div className={indexStyles.modelInstanceCount}>10</div>
+                      <div className={indexStyles.modelInstanceCount}>{modelItem.data_count}</div>
                     </div>
                   ))}
                 </div>
