@@ -135,7 +135,7 @@ const ModelField: FC = () => {
     id: undefined,
     name: '',
     group_id: undefined,
-    type: FieldTypeTable,
+    type: FieldTypeShortString,
     options: {
       options: [], // 初始化options数组
       columns: [],
@@ -149,7 +149,7 @@ const ModelField: FC = () => {
     span: 4,
     model_id: id,
   });
-  const [fieldVisit, setFieldVisit] = useState(true);
+  const [fieldVisit, setFieldVisit] = useState(false);
   const [drawerStatus, setDrawerStatus] = useState('create');
   const [userList, setUserList] = useState<any[]>([]);
 
@@ -372,6 +372,9 @@ const ModelField: FC = () => {
                                 options: fieldItem.options?.options || [],
                               },
                             };
+
+                            setDataSource(fieldItem.options?.columns || []);
+
                             setFieldForm(_data);
                             form.setFieldsValue(_data);
                             setDrawerStatus('edit');
@@ -456,25 +459,25 @@ const ModelField: FC = () => {
               options: {
                 ...fieldForm.options,
                 options: fieldForm.options?.options || [],
-                Columns: dataSource || [],
+                columns: dataSource || [],
               },
             };
 
             if (drawerStatus === 'create') {
               setFieldForm(_data);
-              await createModelField(fieldForm);
+              await createModelField(_data);
               await getModelFields();
               setFieldVisit(false);
               messageApi.success('字段创建成功');
             } else if (drawerStatus === 'edit') {
-              if (!fieldForm.id) {
+              if (!_data.id) {
                 messageApi.error('字段创建失败');
                 return false;
               }
 
               setFieldForm(_data);
 
-              await updateModelField(fieldForm.id, fieldForm);
+              await updateModelField(_data.id, _data);
               await getModelFields();
               setFieldVisit(false);
               messageApi.success('更新字段失败');
@@ -846,7 +849,7 @@ const ModelField: FC = () => {
                         },
                       },
                     ]}
-                    dataSource={dataSource}
+                    value={dataSource}
                     onChange={setDataSource}
                     editable={{
                       type: 'multiple',
