@@ -1,4 +1,5 @@
 import {
+  DragSortTable,
   DrawerForm,
   ProFormDatePicker,
   ProFormDigit,
@@ -29,6 +30,7 @@ import {
   FieldTypeTimeZone,
   FieldTypeUser,
 } from '../variable';
+import styles from './FieldPreview.less';
 
 // 定义一个接口来描述组件的 props 类型
 interface FieldPreviewProps {
@@ -377,7 +379,23 @@ const FieldPreview = forwardRef<{ showDrawer: () => void }, FieldPreviewProps>(
                               />
                             </Col>
                           ) : fieldItem?.type === FieldTypeTable ? (
-                            <Col span={fieldItem.span}></Col>
+                            <Col span={fieldItem.span}>
+                              <div className={styles.fieldPreviewTable}>
+                                <div style={{ marginBottom: '8px' }}>{fieldItem.name}</div>
+                                <DragSortTable
+                                  columns={fieldItem?.options?.columns?.map((column: any) => ({
+                                    title: column.label,
+                                    dataIndex: column.value,
+                                  }))}
+                                  bordered
+                                  rowKey="key"
+                                  search={false}
+                                  pagination={false}
+                                  dragSortKey="sort"
+                                  toolBarRender={false}
+                                />
+                              </div>
+                            </Col>
                           ) : null}
                         </Fragment>
                       ))}
