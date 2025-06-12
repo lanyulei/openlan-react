@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { FC, useEffect, useState } from 'react';
+import { FC, Fragment, useEffect, useState } from 'react';
 import { PageContainer } from '@ant-design/pro-components';
 import { CaretDownOutlined, SearchOutlined } from '@ant-design/icons';
 import styles from '../common.less';
@@ -65,9 +65,9 @@ const Models: FC = () => {
         }}
       >
         {data.list.map((item) => (
-          <>
+          <Fragment key={item.id}>
             {item.models && item.models.length > 0 && (
-              <div key={item.id} style={{ marginBottom: '15px' }}>
+              <div style={{ marginBottom: '15px' }}>
                 <div className={styles.modelGroup}>
                   <CaretDownOutlined />
                   <span className={styles.modelGroupName}>
@@ -100,7 +100,7 @@ const Models: FC = () => {
                 </div>
               </div>
             )}
-          </>
+          </Fragment>
         ))}
       </PageContainer>
     </>

@@ -145,12 +145,28 @@ const FieldPreview = forwardRef<{ showDrawer: () => void }, FieldPreviewProps>(
                                     message: `${fieldItem.name} 为必填项`,
                                   },
                                   fieldItem?.options?.min !== undefined && {
-                                    min: fieldItem.options.min,
-                                    message: `${fieldItem.name} 不能小于 ${fieldItem.options.min}`,
+                                    validator: (_: any, value: number) => {
+                                      if (value < fieldItem.options.min) {
+                                        return Promise.reject(
+                                          new Error(
+                                            `${fieldItem.name} 不能小于 ${fieldItem.options.min}`,
+                                          ),
+                                        );
+                                      }
+                                      return Promise.resolve();
+                                    },
                                   },
                                   fieldItem?.options?.max !== undefined && {
-                                    max: fieldItem.options.max,
-                                    message: `${fieldItem.name} 不能大于 ${fieldItem.options.max}`,
+                                    validator: (_: any, value: number) => {
+                                      if (value > fieldItem.options.max) {
+                                        return Promise.reject(
+                                          new Error(
+                                            `${fieldItem.name} 不能大于 ${fieldItem.options.max}`,
+                                          ),
+                                        );
+                                      }
+                                      return Promise.resolve();
+                                    },
                                   },
                                 ].filter(Boolean)}
                                 initialValue={fieldItem?.options?.default}
@@ -169,12 +185,28 @@ const FieldPreview = forwardRef<{ showDrawer: () => void }, FieldPreviewProps>(
                                     message: `${fieldItem.name} 为必填项`,
                                   },
                                   fieldItem?.options?.min !== undefined && {
-                                    min: fieldItem.options.min,
-                                    message: `${fieldItem.name} 不能小于 ${fieldItem.options.min}`,
+                                    validator: (_: any, value: number) => {
+                                      if (value < fieldItem.options.min) {
+                                        return Promise.reject(
+                                          new Error(
+                                            `${fieldItem.name} 不能小于 ${fieldItem.options.min}`,
+                                          ),
+                                        );
+                                      }
+                                      return Promise.resolve();
+                                    },
                                   },
                                   fieldItem?.options?.max !== undefined && {
-                                    max: fieldItem.options.max,
-                                    message: `${fieldItem.name} 不能大于 ${fieldItem.options.max}`,
+                                    validator: (_: any, value: number) => {
+                                      if (value > fieldItem.options.max) {
+                                        return Promise.reject(
+                                          new Error(
+                                            `${fieldItem.name} 不能大于 ${fieldItem.options.max}`,
+                                          ),
+                                        );
+                                      }
+                                      return Promise.resolve();
+                                    },
                                   },
                                 ].filter(Boolean)}
                                 initialValue={fieldItem?.options?.default}
