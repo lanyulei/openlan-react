@@ -53,9 +53,10 @@ const FieldPreview = forwardRef<
   const [fieldPreviewStatus, setFieldPreviewStatus] = useState<string | undefined>(undefined); // create | edit | undefined
 
   const showDrawer = (resource: object | undefined, status: string | undefined) => {
+    form.resetFields();
     setFieldPreviewStatus(status);
-    setDrawerVisit(true);
     setResource(resource);
+    setDrawerVisit(true);
   };
 
   const getUsers = async () => {
@@ -64,6 +65,22 @@ const FieldPreview = forwardRef<
     });
     const { data } = res;
     setUserList(data?.list);
+  };
+
+  const normalizeMultiValue = (fields: any[], values: any) => {
+    const result = { ...values };
+    fields.forEach((group) => {
+      group.fields.forEach((field: any) => {
+        if (
+          (field.type === FieldTypeEnumMulti || field.type === FieldTypeUser) &&
+          result[field.key] !== undefined &&
+          !Array.isArray(result[field.key])
+        ) {
+          result[field.key] = result[field.key] === null ? [] : [result[field.key]];
+        }
+      });
+    });
+    return result;
   };
 
   useImperativeHandle<
@@ -80,7 +97,7 @@ const FieldPreview = forwardRef<
   );
 
   useEffect(() => {
-    if (fieldList.length > 0) {
+    if (fieldList.length > 0 && drawerVisit) {
       let _dataForm: any = {};
       for (let group of fieldList) {
         for (let field of group.fields) {
@@ -89,18 +106,22 @@ const FieldPreview = forwardRef<
           }
         }
       }
-      setResource(_dataForm);
+      setDataForm(_dataForm);
       form.setFieldsValue(_dataForm);
     }
-  }, [fieldList]);
+  }, [fieldList, drawerVisit]);
 
   useEffect(() => {
-    if (resource) {
-      form.setFieldsValue(resource);
-    } else {
-      form.resetFields();
+    if (drawerVisit && resource) {
+      let _data = {
+        ...dataForm,
+        ...resource?.data,
+      };
+      _data = normalizeMultiValue(fieldList, _data);
+      setDataForm(_data);
+      form.setFieldsValue(_data);
     }
-  }, [resource]);
+  }, [resource, drawerVisit]);
 
   useEffect(() => {
     (async () => {
@@ -138,7 +159,7 @@ const FieldPreview = forwardRef<
       onValuesChange={(_, values) => {
         setDataForm((prev: any) => ({
           ...prev,
-          ...values,
+          ...normalizeMultiValue(fieldList, values),
         }));
       }}
     >
