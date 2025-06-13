@@ -103,7 +103,7 @@ const Details: FC = () => {
                     </ProDescriptions.Item>
                   ) : (
                     <ProDescriptions.Item label={field.name}>
-                      {dataDetails.data?.[field.key]}
+                      {String(dataDetails.data?.[field.key])}
                     </ProDescriptions.Item>
                   )}
                 </Fragment>
