@@ -480,7 +480,7 @@ const ModelField: FC = () => {
               await updateModelField(_data.id, _data);
               await getModelFields();
               setFieldVisit(false);
-              messageApi.success('更新字段失败');
+              messageApi.success('更新字段成功');
             }
             form?.resetFields();
             form?.setFieldsValue({

@@ -2,93 +2,106 @@ import { PlusOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { FooterToolbar, PageContainer, ProTable } from '@ant-design/pro-components';
 import { FormattedMessage, useParams } from '@umijs/max';
-import { Button } from 'antd';
+import { Button, Modal } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import styles from './index.less';
 import { getModelFieldList } from '@/services/resource/field';
 import FieldPreview from '../Model/components/FieldPreview';
-
-/**
- *  Delete node
- * @zh-CN 删除节点
- *
- * @param selectedRows
- */
-const handleRemove = async () => {};
+import { batchDeleteData, getDataList } from '@/services/resource/data';
 
 const TableList: React.FC = () => {
   const { id } = useParams();
   const actionRef = useRef<ActionType>();
-  const [selectedRowsState, setSelectedRows] = useState([]);
+  const [selectedRowsState, setSelectedRows] = useState<string[]>([]);
 
   const [fieldList, setFieldList] = useState<any[]>([]);
   const [fieldGroupList, setFieldGroupList] = useState<any[]>([]);
+  const [list, setList] = useState<any[]>([]);
+  // const [total, setTotal] = useState<number>(0);
+  const [modal, modalContextHolder] = Modal.useModal();
 
   interface FieldPreview {
-    showDrawer: () => void;
+    showDrawer: (modelId: string | undefined, status: string | undefined) => void;
   }
 
   const fieldPreviewRef = useRef<FieldPreview>(null);
 
   const columns: ProColumns[] = [
+    {
+      title: 'ID',
+      dataIndex: 'id',
+    },
     ...fieldList,
+    {
+      title: '创建时间',
+      dataIndex: 'create_time',
+      valueType: 'dateTime',
+    },
+    {
+      title: '更新时间',
+      dataIndex: 'update_time',
+      valueType: 'dateTime',
+    },
     {
       title: '操作',
       dataIndex: 'option',
       valueType: 'option',
       render: () => [
-        <a key="config" onClick={() => {}}>
-          {/* 配置 */}
-          <FormattedMessage id="pages.searchTable.config" defaultMessage="Configuration" />
+        <a key="details" onClick={() => {}}>
+          详情
         </a>,
-        <a key="subscribeAlert" href="https://procomponents.ant.design/">
-          {/* 订阅警报 */}
-          <FormattedMessage
-            id="pages.searchTable.subscribeAlert"
-            defaultMessage="Subscribe to alerts"
-          />
+        <a style={{ marginLeft: '12px' }} key="edit" onClick={() => {}}>
+          编辑
         </a>,
       ],
     },
   ];
 
-  useEffect(() => {
-    (async () => {
-      const _res = await getModelFieldList(id, {});
-      const { data } = _res;
-      setFieldGroupList(data);
-      let fl = [];
-      for (const item of data) {
-        for (const field of item.fields) {
-          if (field.is_list) {
-            fl.push({
-              title: field.name,
-              dataIndex: field.key,
-            });
-          }
+  const getList = async () => {
+    const _res = await getModelFieldList(id, {});
+    const { data } = _res;
+    setFieldGroupList(data);
+    let fl = [];
+    for (const item of data) {
+      for (const field of item.fields) {
+        if (field.is_list) {
+          fl.push({
+            title: field.name,
+            dataIndex: field.key,
+          });
         }
       }
-      setFieldList(fl);
+    }
+    setFieldList(fl);
+    // 获取数据列表
+    const dataRes = await getDataList(id, {}, {});
+    setList(dataRes.data?.list || []);
+    // setTotal(dataRes.data?.total || 0);
+  };
+
+  useEffect(() => {
+    (async () => {
+      await getList();
     })();
   }, []);
 
   return (
     <>
+      {modalContextHolder}
       <PageContainer>
         <ProTable
           className={styles.tableList}
           bordered
           actionRef={actionRef}
-          rowKey="key"
-          search={{
-            labelWidth: 120,
-          }}
+          rowKey="id"
+          search={false}
+          dataSource={list}
           toolBarRender={() => [
             <Button
               type="primary"
               key="primary"
               onClick={() => {
-                fieldPreviewRef.current?.showDrawer();
+                fieldPreviewRef.current?.showDrawer(id, 'create');
               }}
             >
               <PlusOutlined />
@@ -98,8 +111,8 @@ const TableList: React.FC = () => {
           ]}
           columns={columns}
           rowSelection={{
-            onChange: () => {
-              console.log(123);
+            onChange: (value) => {
+              setSelectedRows(value as string[]);
             },
           }}
         />
@@ -107,45 +120,30 @@ const TableList: React.FC = () => {
           <FooterToolbar
             extra={
               <div>
-                {/* 已选择 */}
                 <FormattedMessage id="pages.searchTable.chosen" defaultMessage="Chosen" />{' '}
-                <a style={{ fontWeight: 600 }}>{selectedRowsState.length}</a> {/* 项 */}
+                <a style={{ fontWeight: 600 }}>{selectedRowsState.length}</a>
                 <FormattedMessage id="pages.searchTable.item" defaultMessage="项" />
-                &nbsp;&nbsp;
-                <span>
-                  {/* 服务调用次数总计 */}
-                  <FormattedMessage
-                    id="pages.searchTable.totalServiceCalls"
-                    defaultMessage="Total number of service calls"
-                  />{' '}
-                  {selectedRowsState.reduce(
-                    (pre: number, item: { callNo?: number }) => pre + (item.callNo || 0),
-                    0,
-                  )}{' '}
-                  {/* 万 */}
-                  <FormattedMessage id="pages.searchTable.tenThousand" defaultMessage="万" />
-                </span>
               </div>
             }
           >
             <Button
               onClick={async () => {
-                await handleRemove();
-                setSelectedRows([]);
-                actionRef.current?.reloadAndRest?.();
+                modal.confirm({
+                  title: '删除资源',
+                  content: '请确认是否删除这些资源？',
+                  okText: '确认',
+                  cancelText: '取消',
+                  onOk: async () => {
+                    await batchDeleteData(selectedRowsState, {});
+                    setSelectedRows([]);
+                    await getList();
+                  },
+                });
               }}
             >
-              {/* 批量删除 */}
               <FormattedMessage
                 id="pages.searchTable.batchDeletion"
                 defaultMessage="Batch deletion"
-              />
-            </Button>
-            <Button type="primary">
-              {/* 批量审批 */}
-              <FormattedMessage
-                id="pages.searchTable.batchApproval"
-                defaultMessage="Batch approval"
               />
             </Button>
           </FooterToolbar>
