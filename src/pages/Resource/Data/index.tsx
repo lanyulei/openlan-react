@@ -155,7 +155,7 @@ const TableList: React.FC = () => {
           </FooterToolbar>
         )}
       </PageContainer>
-      <FieldPreview ref={fieldPreviewRef} fieldList={fieldGroupList} />
+      <FieldPreview ref={fieldPreviewRef} fieldList={fieldGroupList} getList={getList} />
     </>
   );
 };

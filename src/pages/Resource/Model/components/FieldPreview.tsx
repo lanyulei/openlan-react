@@ -31,22 +31,23 @@ import {
   FieldTypeUser,
 } from '../variable';
 import styles from './FieldPreview.less';
-import { createData } from '@/services/resource/data';
+import { createData, updateData } from '@/services/resource/data';
 
 // 定义一个接口来描述组件的 props 类型
 interface FieldPreviewProps {
-  fieldList: any; // 这里使用 any 类型，可根据实际情况替换为更具体的类型
+  fieldList: any;
+  getList: () => void;
 }
 
 const FieldPreview = forwardRef<
   { showDrawer: (resource: object | undefined, status: string | undefined) => void },
   FieldPreviewProps
->(({ fieldList }, ref) => {
+>(({ fieldList, getList }, ref) => {
   const [form] = Form.useForm();
   const [drawerVisit, setDrawerVisit] = useState(false);
   const [dataForm, setDataForm] = useState<any>();
   const [resource, setResource] = useState<
-    { model_id?: string; status?: string; data?: object } | undefined
+    { id: string | undefined; model_id?: string; status?: string; data?: object } | undefined
   >(undefined);
 
   const [userList, setUserList] = useState<any[]>([]);
@@ -55,7 +56,11 @@ const FieldPreview = forwardRef<
   const showDrawer = (resource: object | undefined, status: string | undefined) => {
     form.resetFields();
     setFieldPreviewStatus(status);
-    setResource(resource);
+    setResource(
+      resource as
+        | { id: string | undefined; model_id?: string; status?: string; data?: object }
+        | undefined,
+    );
     setDrawerVisit(true);
   };
 
@@ -149,8 +154,18 @@ const FieldPreview = forwardRef<
             },
           };
           await createData(_data, {});
+          getList();
         } else if (fieldPreviewStatus === 'edit') {
-          console.log('Editing field with values:', values);
+          let _data = {
+            status: resource?.status,
+            model_id: resource?.model_id,
+            data: {
+              ...dataForm,
+              ...values,
+            },
+          };
+          await updateData(resource?.id as string, _data, {});
+          getList();
         }
         return true;
       }}
