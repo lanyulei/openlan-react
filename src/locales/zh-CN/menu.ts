@@ -11,6 +11,7 @@ export default {
   'menu.resource.model': '模型管理',
   'menu.resource.modelDetails': '模型详情',
   'menu.resource.data': '资源列表',
+  'menu.resource.dataDetails': '资源详情',
 
   'menu.login': '登录',
   'menu.register': '注册',

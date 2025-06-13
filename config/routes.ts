@@ -64,6 +64,12 @@ export default [
         component: './Resource/Data',
         hideInMenu: true,
       },
+      {
+        path: '/resource/data/details/:modelId/:id',
+        name: 'dataDetails',
+        component: './Resource/Data/details',
+        hideInMenu: true,
+      },
     ],
   },
   // {

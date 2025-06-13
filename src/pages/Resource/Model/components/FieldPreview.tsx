@@ -36,7 +36,7 @@ import { createData, updateData } from '@/services/resource/data';
 // 定义一个接口来描述组件的 props 类型
 interface FieldPreviewProps {
   fieldList: any;
-  getList: () => void;
+  getList?: () => void;
 }
 
 const FieldPreview = forwardRef<
@@ -154,7 +154,7 @@ const FieldPreview = forwardRef<
             },
           };
           await createData(_data, {});
-          getList();
+          getList?.();
         } else if (fieldPreviewStatus === 'edit') {
           let _data = {
             status: resource?.status,
@@ -165,7 +165,7 @@ const FieldPreview = forwardRef<
             },
           };
           await updateData(resource?.id as string, _data, {});
-          getList();
+          getList?.();
         }
         return true;
       }}

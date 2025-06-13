@@ -41,3 +41,11 @@ export async function batchDeleteData(data: object, options: { [key: string]: an
     ...(options || {}),
   });
 }
+
+/** get data details GET /api/v1/resource/data/:modelId/:id */
+export async function getDataDetails(id: string | undefined, options: { [key: string]: any }) {
+  return request(`/api/v1/resource/data/detail/${id}`, {
+    method: 'GET',
+    ...(options || {}),
+  });
+}

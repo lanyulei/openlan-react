@@ -8,8 +8,10 @@ import styles from './index.less';
 import { getModelFieldList } from '@/services/resource/field';
 import FieldPreview from '../Model/components/FieldPreview';
 import { batchDeleteData, getDataList } from '@/services/resource/data';
+import { useNavigate } from 'react-router-dom';
 
 const TableList: React.FC = () => {
+  const navigate = useNavigate();
   const { id } = useParams();
   const [selectedRowsState, setSelectedRows] = useState<string[]>([]);
 
@@ -46,7 +48,12 @@ const TableList: React.FC = () => {
       dataIndex: 'option',
       valueType: 'option',
       render: (_, record) => [
-        <a key="details" onClick={() => {}}>
+        <a
+          key="details"
+          onClick={() => {
+            navigate(`/resource/data/details/${record.model_id}/${record.id}`, {});
+          }}
+        >
           详情
         </a>,
         <a
@@ -81,7 +88,7 @@ const TableList: React.FC = () => {
     // 获取数据列表
     const dataRes = await getDataList(id, {}, {});
     setList(dataRes.data?.list || []);
-    // setTotal(dataRes.data?.total || 0);
+    // setTotal(dataRes.data?.total || 0); // todo 列表总数统计待完善
   };
 
   useEffect(() => {
