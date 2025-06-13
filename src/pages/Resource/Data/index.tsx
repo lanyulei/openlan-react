@@ -1,5 +1,5 @@
 import { PlusOutlined } from '@ant-design/icons';
-import type { ActionType, ProColumns } from '@ant-design/pro-components';
+import type { ProColumns } from '@ant-design/pro-components';
 import { FooterToolbar, PageContainer, ProTable } from '@ant-design/pro-components';
 import { FormattedMessage, useParams } from '@umijs/max';
 import { Button, Modal } from 'antd';
@@ -11,7 +11,6 @@ import { batchDeleteData, getDataList } from '@/services/resource/data';
 
 const TableList: React.FC = () => {
   const { id } = useParams();
-  const actionRef = useRef<ActionType>();
   const [selectedRowsState, setSelectedRows] = useState<string[]>([]);
 
   const [fieldList, setFieldList] = useState<any[]>([]);
@@ -21,7 +20,7 @@ const TableList: React.FC = () => {
   const [modal, modalContextHolder] = Modal.useModal();
 
   interface FieldPreview {
-    showDrawer: (modelId: string | undefined, status: string | undefined) => void;
+    showDrawer: (resource: object | undefined, status: string | undefined) => void;
   }
 
   const fieldPreviewRef = useRef<FieldPreview>(null);
@@ -46,11 +45,17 @@ const TableList: React.FC = () => {
       title: '操作',
       dataIndex: 'option',
       valueType: 'option',
-      render: () => [
+      render: (_, record) => [
         <a key="details" onClick={() => {}}>
           详情
         </a>,
-        <a style={{ marginLeft: '12px' }} key="edit" onClick={() => {}}>
+        <a
+          style={{ marginLeft: '12px' }}
+          key="edit"
+          onClick={() => {
+            fieldPreviewRef.current?.showDrawer(record, 'edit');
+          }}
+        >
           编辑
         </a>,
       ],
@@ -67,7 +72,7 @@ const TableList: React.FC = () => {
         if (field.is_list) {
           fl.push({
             title: field.name,
-            dataIndex: field.key,
+            dataIndex: ['data', field.key],
           });
         }
       }
@@ -92,7 +97,6 @@ const TableList: React.FC = () => {
         <ProTable
           className={styles.tableList}
           bordered
-          actionRef={actionRef}
           rowKey="id"
           search={false}
           dataSource={list}
@@ -101,11 +105,10 @@ const TableList: React.FC = () => {
               type="primary"
               key="primary"
               onClick={() => {
-                fieldPreviewRef.current?.showDrawer(id, 'create');
+                fieldPreviewRef.current?.showDrawer({ model_id: id }, 'create');
               }}
             >
               <PlusOutlined />
-              {/* 新建 */}
               <FormattedMessage id="pages.searchTable.new" defaultMessage="New" />
             </Button>,
           ]}
@@ -114,6 +117,9 @@ const TableList: React.FC = () => {
             onChange: (value) => {
               setSelectedRows(value as string[]);
             },
+          }}
+          options={{
+            reload: false,
           }}
         />
         {selectedRowsState?.length > 0 && (

@@ -39,21 +39,23 @@ interface FieldPreviewProps {
 }
 
 const FieldPreview = forwardRef<
-  { showDrawer: (modelId: string | undefined, status: string | undefined) => void },
+  { showDrawer: (resource: object | undefined, status: string | undefined) => void },
   FieldPreviewProps
 >(({ fieldList }, ref) => {
   const [form] = Form.useForm();
   const [drawerVisit, setDrawerVisit] = useState(false);
   const [dataForm, setDataForm] = useState<any>();
-  const [modelId, setModelId] = useState<string | undefined>(undefined);
+  const [resource, setResource] = useState<
+    { model_id?: string; status?: string; data?: object } | undefined
+  >(undefined);
 
   const [userList, setUserList] = useState<any[]>([]);
   const [fieldPreviewStatus, setFieldPreviewStatus] = useState<string | undefined>(undefined); // create | edit | undefined
 
-  const showDrawer = (modelId: string | undefined, status: string | undefined) => {
+  const showDrawer = (resource: object | undefined, status: string | undefined) => {
     setFieldPreviewStatus(status);
     setDrawerVisit(true);
-    setModelId(modelId);
+    setResource(resource);
   };
 
   const getUsers = async () => {
@@ -65,17 +67,40 @@ const FieldPreview = forwardRef<
   };
 
   useImperativeHandle<
-    { showDrawer: (modelId: string | undefined, status: string | undefined) => void },
-    { showDrawer: (modelId: string | undefined, status: string | undefined) => void }
+    { showDrawer: (resource: object | undefined, status: string | undefined) => void },
+    { showDrawer: (resource: object | undefined, status: string | undefined) => void }
   >(
     ref as React.MutableRefObject<{
-      showDrawer: (modelId: string | undefined, status: string | undefined) => void;
+      showDrawer: (resource: object | undefined, status: string | undefined) => void;
     }> | null,
     () => ({
-      showDrawer: (modelId: string | undefined, status: string | undefined) =>
-        showDrawer(modelId, status),
+      showDrawer: (resource: object | undefined, status: string | undefined) =>
+        showDrawer(resource, status),
     }),
   );
+
+  useEffect(() => {
+    if (fieldList.length > 0) {
+      let _dataForm: any = {};
+      for (let group of fieldList) {
+        for (let field of group.fields) {
+          if (field?.options?.default) {
+            _dataForm[field.key] = field.options.default;
+          }
+        }
+      }
+      setResource(_dataForm);
+      form.setFieldsValue(_dataForm);
+    }
+  }, [fieldList]);
+
+  useEffect(() => {
+    if (resource) {
+      form.setFieldsValue(resource);
+    } else {
+      form.resetFields();
+    }
+  }, [resource]);
 
   useEffect(() => {
     (async () => {
@@ -96,7 +121,7 @@ const FieldPreview = forwardRef<
         if (fieldPreviewStatus === 'create') {
           let _data = {
             status: 'default',
-            model_id: modelId,
+            model_id: resource?.model_id,
             data: {
               ...dataForm,
               ...values,
@@ -155,7 +180,6 @@ const FieldPreview = forwardRef<
                                   },
                                 },
                               ].filter(Boolean)}
-                              initialValue={fieldItem?.options?.default}
                             />
                           </Col>
                         ) : fieldItem?.type === FieldTypeNumber ? (
@@ -170,32 +194,25 @@ const FieldPreview = forwardRef<
                                   required: true,
                                   message: `${fieldItem.name} 为必填项`,
                                 },
-                                fieldItem?.options?.min !== undefined && {
-                                  validator: (_: any, value: number) => {
-                                    if (value < fieldItem.options.min) {
-                                      return Promise.reject(
-                                        new Error(
-                                          `${fieldItem.name} 不能小于 ${fieldItem.options.min}`,
-                                        ),
-                                      );
-                                    }
-                                    return Promise.resolve();
-                                  },
-                                },
-                                fieldItem?.options?.max !== undefined && {
-                                  validator: (_: any, value: number) => {
-                                    if (value > fieldItem.options.max) {
-                                      return Promise.reject(
-                                        new Error(
-                                          `${fieldItem.name} 不能大于 ${fieldItem.options.max}`,
-                                        ),
-                                      );
-                                    }
-                                    return Promise.resolve();
-                                  },
-                                },
+                                ...(fieldItem?.options?.min !== undefined
+                                  ? [
+                                      {
+                                        type: 'number',
+                                        min: fieldItem.options.min,
+                                        message: `${fieldItem.name} 不能小于 ${fieldItem.options.min}`,
+                                      },
+                                    ]
+                                  : []),
+                                ...(fieldItem?.options?.max !== undefined
+                                  ? [
+                                      {
+                                        type: 'number',
+                                        max: fieldItem.options.max,
+                                        message: `${fieldItem.name} 不能大于 ${fieldItem.options.max}`,
+                                      },
+                                    ]
+                                  : []),
                               ].filter(Boolean)}
-                              initialValue={fieldItem?.options?.default}
                             />
                           </Col>
                         ) : fieldItem?.type === FieldTypeFloat ? (
@@ -235,7 +252,6 @@ const FieldPreview = forwardRef<
                                   },
                                 },
                               ].filter(Boolean)}
-                              initialValue={fieldItem?.options?.default}
                               fieldProps={{ step: 0.01 }}
                             />
                           </Col>
@@ -258,7 +274,6 @@ const FieldPreview = forwardRef<
                                   message: `${fieldItem.name} 为必选项`,
                                 },
                               ].filter(Boolean)}
-                              initialValue={fieldItem?.options?.default}
                             />
                           </Col>
                         ) : fieldItem?.type === FieldTypeEnumMulti ? (
@@ -280,7 +295,6 @@ const FieldPreview = forwardRef<
                                   message: `${fieldItem.name} 为必选项`,
                                 },
                               ].filter(Boolean)}
-                              initialValue={fieldItem?.options?.default}
                               mode="multiple"
                             />
                           </Col>
@@ -298,7 +312,6 @@ const FieldPreview = forwardRef<
                                   message: `${fieldItem.name} 为必选项`,
                                 },
                               ].filter(Boolean)}
-                              initialValue={fieldItem?.options?.default}
                             />
                           </Col>
                         ) : fieldItem?.type === FieldTypeTime ? (
@@ -316,7 +329,6 @@ const FieldPreview = forwardRef<
                                   message: `${fieldItem.name} 为必选项`,
                                 },
                               ].filter(Boolean)}
-                              initialValue={fieldItem?.options?.default}
                             />
                           </Col>
                         ) : fieldItem?.type === FieldTypeDatetime ? (
@@ -333,7 +345,6 @@ const FieldPreview = forwardRef<
                                   message: `${fieldItem.name} 为必选项`,
                                 },
                               ].filter(Boolean)}
-                              initialValue={fieldItem?.options?.default}
                               showTime
                             />
                           </Col>
@@ -361,7 +372,6 @@ const FieldPreview = forwardRef<
                                   },
                                 },
                               ].filter(Boolean)}
-                              initialValue={fieldItem?.options?.default}
                             />
                           </Col>
                         ) : fieldItem?.type === FieldTypeUser ? (
@@ -382,7 +392,6 @@ const FieldPreview = forwardRef<
                                   message: `${fieldItem.name} 为必选项`,
                                 },
                               ].filter(Boolean)}
-                              initialValue={fieldItem?.options?.default}
                               fieldProps={{
                                 loading: !userList.length,
                               }}
@@ -401,7 +410,6 @@ const FieldPreview = forwardRef<
                                   message: `${fieldItem.name} 为必填项`,
                                 },
                               ].filter(Boolean)}
-                              initialValue={fieldItem?.options?.default}
                             />
                           </Col>
                         ) : fieldItem?.type === FieldTypeBoolean ? (
@@ -416,7 +424,6 @@ const FieldPreview = forwardRef<
                                   message: `${fieldItem.name} 为必填项`,
                                 },
                               ].filter(Boolean)}
-                              initialValue={fieldItem?.options?.default === true}
                             />
                           </Col>
                         ) : fieldItem?.type === FieldTypeList ? (
@@ -433,7 +440,6 @@ const FieldPreview = forwardRef<
                                   message: `${fieldItem.name} 为必填项`,
                                 },
                               ].filter(Boolean)}
-                              initialValue={fieldItem?.options?.default}
                             />
                           </Col>
                         ) : fieldItem?.type === FieldTypeTable ? (
