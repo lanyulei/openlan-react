@@ -152,8 +152,8 @@ const Models: FC = () => {
               onChange={(e) => {
                 setModelName(e.target.value);
               }}
-              onPressEnter={() => {
-                getList();
+              onPressEnter={async () => {
+                await getList();
               }}
             />,
           ],

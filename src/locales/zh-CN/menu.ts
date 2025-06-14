@@ -13,6 +13,7 @@ export default {
   'menu.resource.data': '资源列表',
   'menu.resource.dataDetails': '资源详情',
   'menu.resource.plugins': '插件管理',
+  'menu.resource.cloudAccount': '云商账号',
 
   'menu.login': '登录',
   'menu.register': '注册',

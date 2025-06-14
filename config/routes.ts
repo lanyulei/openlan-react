@@ -55,6 +55,11 @@ export default [
         component: './Resource/Model',
       },
       {
+        path: '/resource/cloud/account',
+        name: 'cloudAccount',
+        component: './Resource/Cloud/Account',
+      },
+      {
         path: '/resource/plugins',
         name: 'plugins',
         component: './Resource/Plugins',
