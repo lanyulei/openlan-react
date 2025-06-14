@@ -124,6 +124,7 @@ const Models: FC = () => {
       {modalContextHolder}
       {messageContextHolder}
       <PageContainer
+        content="模型管理负责维护各类资源模型的基本信息、字段定义及元数据，确保模型结构规范统一，支持灵活扩展和高效管理。"
         header={{
           extra: [
             <Button

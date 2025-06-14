@@ -47,6 +47,7 @@ const Models: FC = () => {
   return (
     <>
       <PageContainer
+        content="资源目录集中管理各类IT资产，包括服务器、网络设备、应用服务、存储资源和配置项等，提供统一的数据视图和高效的资源追踪能力。"
         header={{
           extra: [
             <Input
