@@ -1,64 +1,240 @@
-import React, { FC, useRef } from 'react';
-import { ProTable, ActionType, PageContainer } from '@ant-design/pro-components';
-import { Button, Input } from 'antd';
-import { PlusOutlined, SearchOutlined } from '@ant-design/icons';
+import React, { FC, useEffect, useRef } from 'react';
+import {
+  ProTable,
+  ActionType,
+  PageContainer,
+  ModalForm,
+  ProFormSelect,
+  ProFormRadio,
+  ProFormText,
+  ProFormTextArea,
+  ProFormGroup,
+  ProColumns,
+} from '@ant-design/pro-components';
+import { Button, Dropdown, Input, MenuProps, message, Modal, Space, Tag } from 'antd';
+import {
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  EllipsisOutlined,
+  PlusOutlined,
+  SearchOutlined,
+  SyncOutlined,
+} from '@ant-design/icons';
 import styles from './index.less';
+import {
+  createCloudAccount,
+  deleteCloudAccount,
+  getAccountList,
+  syncCloudResource,
+  updateCloudAccount,
+} from '@/services/resource/cloudAccount';
+import { Form } from '@ant-design/pro-editor';
+import { getPlugins } from '@/services/resource/plugin';
 
 const Account: FC = () => {
+  const [form] = Form.useForm();
   const actionRef = useRef<ActionType>();
   const searchInputRef = useRef(null);
+  const [messageApi, messageContextHolder] = message.useMessage();
+  const [modal, modalContextHolder] = Modal.useModal();
 
-  const handleCreate = () => {};
+  const [modalVisible, setModalVisible] = React.useState(false);
+  const [query, setQuery] = React.useState({
+    name: '',
+  });
+  const [accountForm, setAccountForm] = React.useState<any>({
+    id: undefined,
+    name: '',
+    provider: 'AliCloud',
+    available: true,
+    access_key: '',
+    secret_key: '',
+    plugin_name: undefined,
+    remarks: '',
+  });
+  const [modalStatus, setModalStatus] = React.useState('create');
+  const [pluginList, setPluginList] = React.useState<any[]>([]);
 
-  const columns = [
+  const handleCreate = () => {
+    setModalStatus('create');
+    setModalVisible(true);
+  };
+
+  const getMenuItems = (record: any): MenuProps['items'] => [
+    {
+      label: (
+        <a
+          onClick={() => {
+            modal.confirm({
+              title: '提示',
+              content: '请确定是否进行资源同步？',
+              okText: '确认',
+              cancelText: '取消',
+              onOk: async () => {
+                await syncCloudResource(
+                  {
+                    cloud_account_id: record.id,
+                  },
+                  {},
+                );
+                actionRef.current?.reload();
+                return true;
+              },
+            });
+          }}
+        >
+          <SyncOutlined />
+          &nbsp; 同步
+        </a>
+      ),
+      key: 'sync',
+    },
+    {
+      label: (
+        <a
+          onClick={() => {
+            const _data = {
+              ...record,
+            };
+            form.setFieldsValue(_data);
+            setAccountForm(_data);
+            setModalStatus('edit');
+            setModalVisible(true);
+          }}
+        >
+          <EditOutlined />
+          &nbsp; 编辑
+        </a>
+      ),
+      key: 'edit',
+    },
+    {
+      label: (
+        <a
+          onClick={() => {
+            modal.confirm({
+              title: '提示',
+              content: '确定要删除此云账号吗？',
+              okText: '确认',
+              cancelText: '取消',
+              onOk: async () => {
+                await deleteCloudAccount(record.id, {});
+                actionRef.current?.reload();
+                messageApi.success('云账号删除成功');
+                return true;
+              },
+            });
+          }}
+        >
+          <DeleteOutlined />
+          &nbsp; 删除
+        </a>
+      ),
+      key: 'delete',
+    },
+  ];
+
+  const columns: ProColumns[] = [
     {
       title: '名称',
       dataIndex: 'name',
-      key: 'name',
-      search: false,
     },
     {
-      title: '描述',
-      dataIndex: 'description',
-      key: 'description',
-      search: false,
+      title: '云厂商',
+      dataIndex: 'provider_name',
+    },
+    {
+      title: '是否可用',
+      dataIndex: 'available',
+      render: (_: any, record: any) => (
+        <Tag color={record.available ? 'blue' : 'red'}>{record.available ? '启用' : '停用'}</Tag>
+      ),
+    },
+    {
+      title: '同步状态',
+      dataIndex: 'sync_status',
+      render: (_: any, record: any) => {
+        const statusMap: Record<string, React.ReactNode> = {
+          running: (
+            <div style={{ display: 'flex' }}>
+              <SyncOutlined style={{ marginRight: 5 }} />
+              同步中
+            </div>
+          ),
+          success: (
+            <div style={{ display: 'flex' }}>
+              <CheckCircleOutlined style={{ color: 'green', marginRight: 5 }} />
+              同步成功
+            </div>
+          ),
+          failed: (
+            <div style={{ display: 'flex' }}>
+              <CloseCircleOutlined style={{ color: 'red', marginRight: 5 }} />
+              同步失败
+            </div>
+          ),
+        };
+        return statusMap[record.sync_status];
+      },
+    },
+    {
+      title: '最近同步时间',
+      dataIndex: 'last_sync_time',
+      valueType: 'dateTime',
+    },
+    {
+      title: '创建时间',
+      dataIndex: 'create_time',
+      valueType: 'dateTime',
     },
     {
       title: '操作',
       dataIndex: 'option',
       valueType: 'option',
-      render: () => [
-        <a key="details" onClick={() => {}}>
-          详情
-        </a>,
-        <a style={{ marginLeft: '12px' }} key="edit" onClick={() => {}}>
-          编辑
-        </a>,
-      ],
+      align: 'center' as const,
+      render: (_: any, record: any) => (
+        <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+          <Dropdown menu={{ items: getMenuItems(record) }} trigger={['click']}>
+            <a onClick={(e) => e.preventDefault()}>
+              <Space>
+                <EllipsisOutlined />
+              </Space>
+            </a>
+          </Dropdown>
+        </div>
+      ),
     },
   ];
 
   // 搜索功能（可根据实际接口调整）
-  const handleSearch = () => {
+  const handleReload = () => {
     actionRef.current?.reload();
   };
 
+  useEffect(() => {
+    (async () => {
+      const _res = await getPlugins({}, {});
+      setPluginList(_res.data || []);
+    })();
+  }, []);
+
   return (
     <>
+      {modalContextHolder}
+      {messageContextHolder}
       <PageContainer content="云账号管理用于集中管理各类云服务账号，提供统一的视图和操作界面，支持账号的创建、编辑、删除和查询等功能。">
         <ProTable
           className={styles.tableList}
           columns={columns}
           actionRef={actionRef}
           request={async () => {
-            // 模拟请求数据，实际可根据 params 传递搜索参数
+            const _res = await getAccountList(query, {});
             return {
-              data: [
-                { id: 1, name: '示例1', description: '描述1' },
-                { id: 2, name: '示例2', description: '描述2' },
-              ],
+              data: _res.data?.list || [],
               success: true,
-              total: 2,
+              total: _res.data?.total || 0,
             };
           }}
           rowKey="id"
@@ -76,7 +252,9 @@ const Account: FC = () => {
               allowClear
               style={{ width: 260, marginLeft: 3 }}
               ref={searchInputRef}
-              onPressEnter={handleSearch}
+              value={query.name}
+              onChange={(e) => setQuery({ ...query, name: e.target.value })}
+              onPressEnter={handleReload}
               suffix={<SearchOutlined />}
             />,
           ]}
@@ -86,6 +264,95 @@ const Account: FC = () => {
           }}
         />
       </PageContainer>
+      <ModalForm
+        form={form}
+        title="云账号管理"
+        width={600}
+        onFinish={async (values) => {
+          const _data = {
+            ...accountForm,
+            ...values,
+          };
+          if (modalStatus === 'create') {
+            await createCloudAccount(_data, {});
+            handleReload();
+            setModalVisible(false);
+            messageApi.success('云账号创建成功');
+          } else if (modalStatus === 'edit') {
+            await updateCloudAccount(_data.id, _data, {});
+            handleReload();
+            setModalVisible(false);
+            messageApi.success('云账号更新成功');
+          }
+        }}
+        onOpenChange={setModalVisible}
+        open={modalVisible}
+        modalProps={{
+          destroyOnHidden: true,
+          onCancel: () => {
+            setAccountForm({
+              id: undefined,
+              name: '',
+              provider: 'AliCloud',
+              available: true,
+              access_key: '',
+              secret_key: '',
+              plugin_name: '',
+              remarks: '',
+            });
+          },
+        }}
+        initialValues={accountForm}
+        onValuesChange={(_, values) => {
+          setAccountForm((prev: any) => ({ ...prev, ...values }));
+        }}
+      >
+        <ProFormGroup>
+          <ProFormSelect
+            name="provider"
+            label="云厂商"
+            width="sm"
+            rules={[{ required: true, message: '请选择云厂商' }]}
+            options={[
+              { value: 'AliCloud', label: '阿里云' },
+              { value: 'TencentCloud', label: '腾讯云' },
+            ]}
+          />
+          <ProFormRadio.Group
+            name="available"
+            label="是否可用"
+            options={[
+              { label: '启用', value: true },
+              { label: '停用', value: false },
+            ]}
+            rules={[{ required: true, message: '请选择是否可用' }]}
+          />
+        </ProFormGroup>
+        <ProFormText
+          name="name"
+          label="名称"
+          placeholder="请输入名称"
+          rules={[{ required: true, message: '请输入名称' }]}
+        />
+        <ProFormText.Password
+          name="access_key"
+          label="访问密钥ID（Access Key ID）"
+          placeholder="请输入访问密钥ID"
+        />
+        <ProFormText.Password
+          name="secret_key"
+          label="秘密访问密钥（Secret Access Key）"
+          placeholder="请输入秘密访问密钥"
+        />
+        <ProFormSelect
+          name="plugin_name"
+          label="插件名称"
+          placeholder="请选择插件名称"
+          rules={[{ required: true, message: '请选择插件名称' }]}
+          options={pluginList.map((item) => ({ label: item, value: item }))}
+        />
+        <ProFormTextArea name="remarks" label="备注" placeholder="请输入备注" />
+      </ModalForm>
     </>
   );
 };
