@@ -60,6 +60,17 @@ export default [
         component: './Resource/Cloud/Account',
       },
       {
+        path: '/resource/cloud/logic-resource',
+        name: 'logicResource',
+        component: './Resource/Cloud/LogicResource',
+      },
+      {
+        path: '/resource/cloud/logic-resource-details/:id',
+        name: 'logicResourceDetails',
+        component: './Resource/Cloud/LogicResource/details',
+        hideInMenu: true,
+      },
+      {
         path: '/resource/plugins',
         name: 'plugins',
         component: './Resource/Plugins',

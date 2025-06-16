@@ -140,14 +140,17 @@ const Account: FC = () => {
     {
       title: '名称',
       dataIndex: 'name',
+      key: 'name',
     },
     {
       title: '云厂商',
       dataIndex: 'provider_name',
+      key: 'provider_name',
     },
     {
       title: '是否可用',
       dataIndex: 'available',
+      key: 'available',
       render: (_: any, record: any) => (
         <Tag color={record.available ? 'blue' : 'red'}>{record.available ? '启用' : '停用'}</Tag>
       ),
@@ -155,6 +158,7 @@ const Account: FC = () => {
     {
       title: '同步状态',
       dataIndex: 'sync_status',
+      key: 'sync_status',
       render: (_: any, record: any) => {
         const statusMap: Record<string, React.ReactNode> = {
           running: (
@@ -183,16 +187,19 @@ const Account: FC = () => {
       title: '最近同步时间',
       dataIndex: 'last_sync_time',
       valueType: 'dateTime',
+      key: 'last_sync_time',
     },
     {
       title: '创建时间',
       dataIndex: 'create_time',
       valueType: 'dateTime',
+      key: 'create_time',
     },
     {
       title: '操作',
       dataIndex: 'option',
       valueType: 'option',
+      key: 'option',
       align: 'center' as const,
       render: (_: any, record: any) => (
         <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>

@@ -12,6 +12,8 @@ export default {
   'menu.resource.modelDetails': '模型详情',
   'menu.resource.data': '资源列表',
   'menu.resource.dataDetails': '资源详情',
+  'menu.resource.logicResourceDetails': '逻辑资源详情',
+  'menu.resource.logicResource': '逻辑资源',
   'menu.resource.plugins': '插件管理',
   'menu.resource.cloudAccount': '云商账号',
 

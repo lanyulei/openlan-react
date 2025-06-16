@@ -31,22 +31,26 @@ const TableList: React.FC = () => {
     {
       title: 'ID',
       dataIndex: 'id',
+      key: 'id',
     },
     ...fieldList,
     {
       title: '创建时间',
       dataIndex: 'create_time',
       valueType: 'dateTime',
+      key: 'create_time',
     },
     {
       title: '更新时间',
       dataIndex: 'update_time',
       valueType: 'dateTime',
+      key: 'update_time',
     },
     {
       title: '操作',
       dataIndex: 'option',
       valueType: 'option',
+      key: 'option',
       render: (_, record) => [
         <a
           key="details"
