@@ -60,6 +60,7 @@ const Account: FC = () => {
   const [modalStatus, setModalStatus] = React.useState('create');
   const [pluginList, setPluginList] = React.useState<any[]>([]);
   const [modelList, setModelList] = React.useState<any[]>([]);
+  const [syncResourceForm, setSyncResourceForm] = React.useState<any>();
   const [logicResourceList, setLogicResourceList] = React.useState<any[]>([]);
   const [logicHandleList, setLogicHandleList] = React.useState<any[]>([]);
 
@@ -379,6 +380,13 @@ const Account: FC = () => {
         onOpenChange={setSyncModal}
         open={syncModal}
         width={600}
+        onValuesChange={(_, values) => {
+          setSyncResourceForm((prev: any) => ({
+            ...prev,
+            ...values,
+          }));
+        }}
+        initialValues={syncResourceForm}
       >
         <ProFormSelect
           tooltip="Region 是云服务提供商在全球不同地理位置设立的数据中心区域，用于就近提供云服务。阿里云示例：cn-hangzhou（杭州区域）。"
@@ -406,18 +414,35 @@ const Account: FC = () => {
             })),
           }))}
           placeholder="请选择目标模型"
-          onChange={(_, option: any) => {
+          onChange={async (_, option: any) => {
             if (option?.value) {
               for (let group of modelList) {
                 for (let model of group.models || []) {
                   if (option?.value === model.id) {
                     // 自动填充 logic_resource_id 字段
                     if (model?.logic_resource_id && model?.logic_resource_id !== '') {
+                      setSyncResourceForm((prev: any) => ({
+                        ...prev,
+                        logic_resource_id: model?.logic_resource_id,
+                      }));
                       syncForm.setFieldsValue({
                         ...syncForm.getFieldsValue(),
                         logic_resource_id: model?.logic_resource_id,
                       });
+
+                      const _res = await getLogicHandleList(
+                        model?.logic_resource_id,
+                        {
+                          not_page: true,
+                        },
+                        {},
+                      );
+                      setLogicHandleList(_res.data?.list || []);
                     } else {
+                      setSyncResourceForm((prev: any) => ({
+                        ...prev,
+                        logic_resource_id: undefined,
+                      }));
                       syncForm.setFieldsValue({
                         ...syncForm.getFieldsValue(),
                         logic_resource_id: undefined,
@@ -435,7 +460,14 @@ const Account: FC = () => {
           label="逻辑资源"
           style={{ width: '100%' }}
           options={logicResourceList?.map((item: any) => ({
-            label: item.name,
+            label: (
+              <div
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+              >
+                <div>{item.name}</div>
+                <div style={{ color: '#909399' }}>{item.title}</div>
+              </div>
+            ),
             value: item.id,
           }))}
           placeholder="请选择逻辑资源"
