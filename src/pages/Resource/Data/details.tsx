@@ -120,7 +120,12 @@ const Details: FC = () => {
                             dataIndex: col.value,
                             key: col.id,
                           }))}
-                          dataSource={dataDetails.data?.[field.key] || []}
+                          dataSource={
+                            dataDetails.data?.[field.key] &&
+                            Array.isArray(dataDetails.data[field.key])
+                              ? dataDetails.data?.[field.key]
+                              : []
+                          }
                           rowKey="id"
                           search={false}
                           pagination={false}
