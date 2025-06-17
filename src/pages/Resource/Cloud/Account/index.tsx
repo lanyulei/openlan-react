@@ -32,6 +32,8 @@ import {
 import { Form } from '@ant-design/pro-editor';
 import { getPlugins } from '@/services/resource/plugin';
 import { getModels } from '@/services/resource/model';
+import { getLogicResourceList } from '@/services/resource/logicResource';
+import { getLogicHandleList } from '@/services/resource/logicHandle';
 
 const Account: FC = () => {
   const [form] = Form.useForm();
@@ -58,6 +60,8 @@ const Account: FC = () => {
   const [modalStatus, setModalStatus] = React.useState('create');
   const [pluginList, setPluginList] = React.useState<any[]>([]);
   const [modelList, setModelList] = React.useState<any[]>([]);
+  const [logicResourceList, setLogicResourceList] = React.useState<any[]>([]);
+  const [logicHandleList, setLogicHandleList] = React.useState<any[]>([]);
 
   const handleCreate = () => {
     setModalStatus('create');
@@ -207,6 +211,14 @@ const Account: FC = () => {
 
   useEffect(() => {
     (async () => {
+      const res = await getLogicResourceList(
+        {
+          not_page: true,
+        },
+        {},
+      );
+      setLogicResourceList(res.data?.list || []);
+
       const _modelRes = await getModels({});
       setModelList(_modelRes.data);
 
@@ -378,9 +390,10 @@ const Account: FC = () => {
             tokenSeparators: [','],
           }}
           options={options}
+          placeholder="请输入区域 ID"
         />
         <ProFormSelect
-          tooltip="目标模型，即将数据导入到哪个模型中。"
+          tooltip="目标模型，将数据导入到哪个模型中。"
           name="model_id"
           label="模型"
           style={{ width: '100%' }}
@@ -392,24 +405,83 @@ const Account: FC = () => {
               value: field.id,
             })),
           }))}
-          // options={[
-          //   {
-          //     label: <span>manager</span>,
-          //     title: 'manager',
-          //     options: [
-          //       { label: <span>Jack</span>, value: 'Jack' },
-          //       { label: <span>Lucy</span>, value: 'Lucy' },
-          //     ],
-          //   },
-          //   {
-          //     label: <span>engineer</span>,
-          //     title: 'engineer',
-          //     options: [
-          //       { label: <span>Chloe</span>, value: 'Chloe' },
-          //       { label: <span>Lucas</span>, value: 'Lucas' },
-          //     ],
-          //   },
-          // ]}
+          placeholder="请选择目标模型"
+          onChange={(_, option: any) => {
+            if (option?.value) {
+              for (let group of modelList) {
+                for (let model of group.models || []) {
+                  if (option?.value === model.id) {
+                    // 自动填充 logic_resource_id 字段
+                    if (model?.logic_resource_id && model?.logic_resource_id !== '') {
+                      syncForm.setFieldsValue({
+                        ...syncForm.getFieldsValue(),
+                        logic_resource_id: model?.logic_resource_id,
+                      });
+                    } else {
+                      syncForm.setFieldsValue({
+                        ...syncForm.getFieldsValue(),
+                        logic_resource_id: undefined,
+                      });
+                    }
+                  }
+                }
+              }
+            }
+          }}
+        />
+        <ProFormSelect
+          tooltip="逻辑资源对应云产品资源。"
+          name="logic_resource_id"
+          label="逻辑资源"
+          style={{ width: '100%' }}
+          options={logicResourceList?.map((item: any) => ({
+            label: item.name,
+            value: item.id,
+          }))}
+          placeholder="请选择逻辑资源"
+          onChange={async (_, option: any) => {
+            // 这里 option.value 即为选中的逻辑资源 id
+            if (option?.value) {
+              const _res = await getLogicHandleList(
+                option?.value,
+                {
+                  not_page: true,
+                },
+                {},
+              );
+              setLogicHandleList(_res.data?.list || []);
+              // 同步表单字段
+              syncForm.setFieldsValue({
+                ...syncForm.getFieldsValue(),
+                logic_handle_id: undefined, // 选择逻辑资源后重置逻辑操作
+              });
+            } else {
+              setLogicHandleList([]);
+              syncForm.setFieldsValue({
+                ...syncForm.getFieldsValue(),
+                logic_handle_id: undefined,
+              });
+            }
+          }}
+        />
+        <ProFormSelect
+          key={logicHandleList.length}
+          tooltip="逻辑操作对应云产品 API 操作。"
+          name="logic_handle_id"
+          label="逻辑操作"
+          style={{ width: '100%' }}
+          options={logicHandleList?.map((item: any) => ({
+            label: (
+              <div
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+              >
+                <div>{item.name}</div>
+                <div style={{ color: '#909399' }}>{item.title}</div>
+              </div>
+            ),
+            value: item.id,
+          }))}
+          placeholder="请选择逻辑操作"
         />
       </ModalForm>
     </>
