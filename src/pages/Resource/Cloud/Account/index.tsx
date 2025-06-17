@@ -27,6 +27,7 @@ import {
   createCloudAccount,
   deleteCloudAccount,
   getAccountList,
+  syncCloudResource,
   updateCloudAccount,
 } from '@/services/resource/cloudAccount';
 import { Form } from '@ant-design/pro-editor';
@@ -60,7 +61,6 @@ const Account: FC = () => {
   const [modalStatus, setModalStatus] = React.useState('create');
   const [pluginList, setPluginList] = React.useState<any[]>([]);
   const [modelList, setModelList] = React.useState<any[]>([]);
-  const [syncResourceForm, setSyncResourceForm] = React.useState<any>();
   const [logicResourceList, setLogicResourceList] = React.useState<any[]>([]);
   const [logicHandleList, setLogicHandleList] = React.useState<any[]>([]);
 
@@ -73,6 +73,7 @@ const Account: FC = () => {
       label: (
         <a
           onClick={() => {
+            setAccountForm(record);
             setSyncModal(true);
           }}
         >
@@ -86,11 +87,8 @@ const Account: FC = () => {
       label: (
         <a
           onClick={() => {
-            const _data = {
-              ...record,
-            };
-            form.setFieldsValue(_data);
-            setAccountForm(_data);
+            form.setFieldsValue(record);
+            setAccountForm(record);
             setModalStatus('edit');
             setModalVisible(true);
           }}
@@ -209,6 +207,17 @@ const Account: FC = () => {
       ),
     },
   ];
+
+  useEffect(() => {
+    if (syncModal) {
+      syncForm.setFieldsValue({
+        region: undefined,
+        model_id: undefined,
+        logic_resource_id: undefined,
+        logic_handle_id: undefined,
+      });
+    }
+  }, [syncModal]);
 
   useEffect(() => {
     (async () => {
@@ -369,24 +378,18 @@ const Account: FC = () => {
         autoFocusFirstInput
         modalProps={{
           destroyOnHidden: true,
-          onCancel: () => {
-            syncForm?.resetFields();
-          },
         }}
         onFinish={async (values) => {
-          console.log(values);
+          const _data = {
+            ...values,
+            cloud_account_id: accountForm.id,
+          };
+          await syncCloudResource(_data, {});
           return true;
         }}
         onOpenChange={setSyncModal}
         open={syncModal}
         width={600}
-        onValuesChange={(_, values) => {
-          setSyncResourceForm((prev: any) => ({
-            ...prev,
-            ...values,
-          }));
-        }}
-        initialValues={syncResourceForm}
       >
         <ProFormSelect
           tooltip="Region 是云服务提供商在全球不同地理位置设立的数据中心区域，用于就近提供云服务。阿里云示例：cn-hangzhou（杭州区域）。"
@@ -421,10 +424,6 @@ const Account: FC = () => {
                   if (option?.value === model.id) {
                     // 自动填充 logic_resource_id 字段
                     if (model?.logic_resource_id && model?.logic_resource_id !== '') {
-                      setSyncResourceForm((prev: any) => ({
-                        ...prev,
-                        logic_resource_id: model?.logic_resource_id,
-                      }));
                       syncForm.setFieldsValue({
                         ...syncForm.getFieldsValue(),
                         logic_resource_id: model?.logic_resource_id,
@@ -439,10 +438,6 @@ const Account: FC = () => {
                       );
                       setLogicHandleList(_res.data?.list || []);
                     } else {
-                      setSyncResourceForm((prev: any) => ({
-                        ...prev,
-                        logic_resource_id: undefined,
-                      }));
                       syncForm.setFieldsValue({
                         ...syncForm.getFieldsValue(),
                         logic_resource_id: undefined,
