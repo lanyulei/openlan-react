@@ -11,7 +11,7 @@ import {
   ProFormGroup,
   ProColumns,
 } from '@ant-design/pro-components';
-import { Button, Dropdown, Input, MenuProps, message, Modal, Space, Tag } from 'antd';
+import { Button, Dropdown, Input, MenuProps, message, Modal, SelectProps, Space, Tag } from 'antd';
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,
@@ -27,19 +27,20 @@ import {
   createCloudAccount,
   deleteCloudAccount,
   getAccountList,
-  syncCloudResource,
   updateCloudAccount,
 } from '@/services/resource/cloudAccount';
 import { Form } from '@ant-design/pro-editor';
 import { getPlugins } from '@/services/resource/plugin';
+import { getModels } from '@/services/resource/model';
 
 const Account: FC = () => {
   const [form] = Form.useForm();
+  const [syncForm] = Form.useForm();
   const actionRef = useRef<ActionType>();
   const searchInputRef = useRef(null);
   const [messageApi, messageContextHolder] = message.useMessage();
   const [modal, modalContextHolder] = Modal.useModal();
-
+  const [syncModal, setSyncModal] = React.useState(false);
   const [modalVisible, setModalVisible] = React.useState(false);
   const [query, setQuery] = React.useState({
     name: '',
@@ -56,33 +57,18 @@ const Account: FC = () => {
   });
   const [modalStatus, setModalStatus] = React.useState('create');
   const [pluginList, setPluginList] = React.useState<any[]>([]);
+  const [modelList, setModelList] = React.useState<any[]>([]);
 
   const handleCreate = () => {
     setModalStatus('create');
     setModalVisible(true);
   };
-
   const getMenuItems = (record: any): MenuProps['items'] => [
     {
       label: (
         <a
           onClick={() => {
-            modal.confirm({
-              title: '提示',
-              content: '请确定是否进行资源同步？',
-              okText: '确认',
-              cancelText: '取消',
-              onOk: async () => {
-                await syncCloudResource(
-                  {
-                    cloud_account_id: record.id,
-                  },
-                  {},
-                );
-                actionRef.current?.reload();
-                return true;
-              },
-            });
+            setSyncModal(true);
           }}
         >
           <SyncOutlined />
@@ -135,7 +121,11 @@ const Account: FC = () => {
       key: 'delete',
     },
   ];
+  const handleReload = () => {
+    actionRef.current?.reload();
+  };
 
+  const options: SelectProps['options'] = [];
   const columns: ProColumns[] = [
     {
       title: '名称',
@@ -215,13 +205,11 @@ const Account: FC = () => {
     },
   ];
 
-  // 搜索功能（可根据实际接口调整）
-  const handleReload = () => {
-    actionRef.current?.reload();
-  };
-
   useEffect(() => {
     (async () => {
+      const _modelRes = await getModels({});
+      setModelList(_modelRes.data);
+
       const _res = await getPlugins({}, {});
       setPluginList(_res.data || []);
     })();
@@ -271,6 +259,7 @@ const Account: FC = () => {
           }}
         />
       </PageContainer>
+
       <ModalForm
         form={form}
         title="云账号管理"
@@ -359,6 +348,69 @@ const Account: FC = () => {
           options={pluginList.map((item) => ({ label: item, value: item }))}
         />
         <ProFormTextArea name="remarks" label="备注" placeholder="请输入备注" />
+      </ModalForm>
+
+      <ModalForm
+        title="资源同步"
+        form={syncForm}
+        autoFocusFirstInput
+        modalProps={{
+          destroyOnHidden: true,
+          onCancel: () => {
+            syncForm?.resetFields();
+          },
+        }}
+        onFinish={async (values) => {
+          console.log(values);
+          return true;
+        }}
+        onOpenChange={setSyncModal}
+        open={syncModal}
+        width={600}
+      >
+        <ProFormSelect
+          tooltip="Region 是云服务提供商在全球不同地理位置设立的数据中心区域，用于就近提供云服务。阿里云示例：cn-hangzhou（杭州区域）。"
+          name="region"
+          label="区域 ID"
+          mode="tags"
+          style={{ width: '100%' }}
+          fieldProps={{
+            tokenSeparators: [','],
+          }}
+          options={options}
+        />
+        <ProFormSelect
+          tooltip="目标模型，即将数据导入到哪个模型中。"
+          name="model_id"
+          label="模型"
+          style={{ width: '100%' }}
+          options={modelList?.map((item) => ({
+            label: item.name,
+            value: item.id,
+            options: item.models?.map((field: any) => ({
+              label: field.name,
+              value: field.id,
+            })),
+          }))}
+          // options={[
+          //   {
+          //     label: <span>manager</span>,
+          //     title: 'manager',
+          //     options: [
+          //       { label: <span>Jack</span>, value: 'Jack' },
+          //       { label: <span>Lucy</span>, value: 'Lucy' },
+          //     ],
+          //   },
+          //   {
+          //     label: <span>engineer</span>,
+          //     title: 'engineer',
+          //     options: [
+          //       { label: <span>Chloe</span>, value: 'Chloe' },
+          //       { label: <span>Lucas</span>, value: 'Lucas' },
+          //     ],
+          //   },
+          // ]}
+        />
       </ModalForm>
     </>
   );

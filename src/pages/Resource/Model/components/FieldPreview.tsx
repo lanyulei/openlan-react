@@ -191,7 +191,7 @@ const FieldPreview = forwardRef<
                     {item.fields?.map((fieldItem: any) => (
                       <Fragment key={fieldItem.id}>
                         {fieldItem?.type === FieldTypeShortString ? (
-                          <Col span={fieldItem.span}>
+                          <Col span={fieldItem.span * 12}>
                             <ProFormText
                               name={fieldItem.key}
                               label={fieldItem.name}
@@ -219,7 +219,7 @@ const FieldPreview = forwardRef<
                             />
                           </Col>
                         ) : fieldItem?.type === FieldTypeNumber ? (
-                          <Col span={fieldItem.span}>
+                          <Col span={fieldItem.span * 12}>
                             <ProFormDigit
                               name={fieldItem.key}
                               label={fieldItem.name}
@@ -252,7 +252,7 @@ const FieldPreview = forwardRef<
                             />
                           </Col>
                         ) : fieldItem?.type === FieldTypeFloat ? (
-                          <Col span={fieldItem.span}>
+                          <Col span={fieldItem.span * 12}>
                             <ProFormDigit
                               name={fieldItem.key}
                               label={fieldItem.name}
@@ -292,7 +292,7 @@ const FieldPreview = forwardRef<
                             />
                           </Col>
                         ) : fieldItem?.type === FieldTypeEnum ? (
-                          <Col span={fieldItem.span}>
+                          <Col span={fieldItem.span * 12}>
                             <ProFormSelect
                               name={fieldItem.key}
                               label={fieldItem.name}
@@ -313,7 +313,7 @@ const FieldPreview = forwardRef<
                             />
                           </Col>
                         ) : fieldItem?.type === FieldTypeEnumMulti ? (
-                          <Col span={fieldItem.span}>
+                          <Col span={fieldItem.span * 12}>
                             <ProFormSelect
                               name={fieldItem.key}
                               label={fieldItem.name}
@@ -335,7 +335,7 @@ const FieldPreview = forwardRef<
                             />
                           </Col>
                         ) : fieldItem?.type === FieldTypeDate ? (
-                          <Col span={fieldItem.span}>
+                          <Col span={fieldItem.span * 12}>
                             <ProFormDatePicker
                               name={fieldItem.key}
                               label={fieldItem.name}
@@ -351,7 +351,7 @@ const FieldPreview = forwardRef<
                             />
                           </Col>
                         ) : fieldItem?.type === FieldTypeTime ? (
-                          <Col span={fieldItem.span}>
+                          <Col span={fieldItem.span * 12}>
                             <ProFormTimePicker
                               name={fieldItem.key}
                               label={fieldItem.name}
@@ -368,7 +368,7 @@ const FieldPreview = forwardRef<
                             />
                           </Col>
                         ) : fieldItem?.type === FieldTypeDatetime ? (
-                          <Col span={fieldItem.span}>
+                          <Col span={fieldItem.span * 12}>
                             <ProFormDatePicker
                               name={fieldItem.key}
                               label={fieldItem.name}
@@ -385,7 +385,7 @@ const FieldPreview = forwardRef<
                             />
                           </Col>
                         ) : fieldItem?.type === FieldTypeLongString ? (
-                          <Col span={fieldItem.span}>
+                          <Col span={fieldItem.span * 12}>
                             <ProFormTextArea
                               name={fieldItem.key}
                               label={fieldItem.name}
@@ -411,7 +411,7 @@ const FieldPreview = forwardRef<
                             />
                           </Col>
                         ) : fieldItem?.type === FieldTypeUser ? (
-                          <Col span={fieldItem.span}>
+                          <Col span={fieldItem.span * 12}>
                             <ProFormSelect
                               name={fieldItem.key}
                               label={fieldItem.name}
@@ -434,7 +434,7 @@ const FieldPreview = forwardRef<
                             />
                           </Col>
                         ) : fieldItem?.type === FieldTypeTimeZone ? (
-                          <Col span={fieldItem.span}>
+                          <Col span={fieldItem.span * 12}>
                             <ProFormText
                               name={fieldItem.key}
                               label={fieldItem.name}
@@ -449,7 +449,7 @@ const FieldPreview = forwardRef<
                             />
                           </Col>
                         ) : fieldItem?.type === FieldTypeBoolean ? (
-                          <Col span={fieldItem.span}>
+                          <Col span={fieldItem.span * 12}>
                             <ProFormSwitch
                               name={fieldItem.key}
                               label={fieldItem.name}
@@ -463,7 +463,7 @@ const FieldPreview = forwardRef<
                             />
                           </Col>
                         ) : fieldItem?.type === FieldTypeList ? (
-                          <Col span={fieldItem.span}>
+                          <Col span={fieldItem.span * 12}>
                             <ProFormSelect
                               name={fieldItem.key}
                               label={fieldItem.name}
@@ -479,8 +479,11 @@ const FieldPreview = forwardRef<
                             />
                           </Col>
                         ) : fieldItem?.type === FieldTypeTable ? (
-                          <Col span={fieldItem.span}>
-                            <div className={styles.fieldPreviewTable}>
+                          <Col span={fieldItem.span * 12}>
+                            <div
+                              className={styles.fieldPreviewTable}
+                              style={{ marginBottom: '24px' }}
+                            >
                               <div style={{ marginBottom: '8px' }}>{fieldItem.name}</div>
                               <DragSortTable
                                 columns={fieldItem?.options?.columns?.map((column: any) => ({

@@ -149,7 +149,7 @@ const ModelField: FC = () => {
     placeholder: '',
     desc: '',
     order: 1,
-    span: 12,
+    span: 1,
     model_id: id,
   });
   const [fieldVisit, setFieldVisit] = useState(false);
@@ -188,7 +188,7 @@ const ModelField: FC = () => {
       placeholder: '',
       desc: '',
       order: 1,
-      span: 12,
+      span: 1,
       model_id: id,
     };
     setFieldForm(_data);
@@ -882,13 +882,16 @@ const ModelField: FC = () => {
               />
             </Col>
             <Col span={12}>
-              <ProFormDigit
+              <ProFormSelect
                 name="span"
-                label="跨度"
-                min={4}
-                max={24}
-                rules={[{ required: true, message: '请输入宽度' }]}
-              />
+                label="宽度"
+                placeholder="请选择宽度"
+                rules={[{ required: true, message: '请选择宽度' }]}
+                options={[
+                  { label: '50%', value: 1 },
+                  { label: '100%', value: 2 },
+                ]}
+              ></ProFormSelect>
             </Col>
           </Row>
           <ProFormTextArea name="desc" label="字段描述" placeholder="请输入字段描述" />

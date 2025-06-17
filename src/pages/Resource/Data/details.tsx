@@ -20,6 +20,30 @@ const Details: FC = () => {
     setDataDetails(_dataRes.data);
   };
 
+  const groupFieldsBySpan = (fields: any[], column: number) => {
+    const groupedFields: any[][] = [];
+    let currentRow: any[] = [];
+    let currentSpan = 0;
+
+    fields.forEach((field) => {
+      const span = field.span || 1;
+      if (currentSpan + span > column) {
+        groupedFields.push(currentRow);
+        currentRow = [field];
+        currentSpan = span;
+      } else {
+        currentRow.push(field);
+        currentSpan += span;
+      }
+    });
+
+    if (currentRow.length > 0) {
+      groupedFields.push(currentRow);
+    }
+
+    return groupedFields;
+  };
+
   const getUsers = async () => {
     const res = await getUserList({
       not_page: true,
@@ -58,57 +82,63 @@ const Details: FC = () => {
             >
               {group.name}
             </h3>
-            <ProDescriptions column={2}>
-              {group.fields.map((field: any) => (
-                <Fragment key={field.id}>
-                  {field.type === 'enum' || field.type === 'enumMulti' ? (
-                    <ProDescriptions.Item
-                      label={field.name}
-                      request={async () =>
-                        field.options?.options?.map((opt: any) => ({
-                          label: opt.value,
-                          value: opt.id,
-                        })) || []
-                      }
-                    >
-                      {dataDetails.data?.[field.key]}
-                    </ProDescriptions.Item>
-                  ) : field.type === 'user' ? (
-                    <ProDescriptions.Item
-                      label={field.name}
-                      request={async () =>
-                        userList.map((user) => ({
-                          label: user.username,
-                          value: user.id,
-                        })) || []
-                      }
-                    >
-                      {dataDetails.data?.[field.key]}
-                    </ProDescriptions.Item>
-                  ) : field.type === 'table' ? (
-                    <ProDescriptions.Item label={field.name}>
-                      <ProTable
-                        columns={(field.options?.columns || []).map((col: any) => ({
-                          title: col.label,
-                          dataIndex: col.value,
-                          key: col.id,
-                        }))}
-                        dataSource={dataDetails.data?.[field.key] || []}
-                        rowKey="id"
-                        search={false}
-                        pagination={false}
-                        options={false}
-                        style={{ width: '100%' }}
-                      />
-                    </ProDescriptions.Item>
-                  ) : (
-                    <ProDescriptions.Item label={field.name}>
-                      {String(dataDetails.data?.[field.key])}
-                    </ProDescriptions.Item>
-                  )}
-                </Fragment>
-              ))}
-            </ProDescriptions>
+            {groupFieldsBySpan(group.fields, 2).map((row, rowIndex) => (
+              <ProDescriptions key={rowIndex} column={2} style={{ marginBottom: '16px' }}>
+                {row.map((field: any) => (
+                  <Fragment key={field.id}>
+                    {field.type === 'enum' || field.type === 'enumMulti' ? (
+                      <ProDescriptions.Item
+                        span={field.span || 1}
+                        label={field.name}
+                        request={async () =>
+                          field.options?.options?.map((opt: any) => ({
+                            label: opt.value,
+                            value: opt.id,
+                          })) || []
+                        }
+                      >
+                        {!dataDetails.data?.[field.key] ? '' : dataDetails.data?.[field.key]}
+                      </ProDescriptions.Item>
+                    ) : field.type === 'user' ? (
+                      <ProDescriptions.Item
+                        span={field.span || 1}
+                        label={field.name}
+                        request={async () =>
+                          userList.map((user) => ({
+                            label: user.username,
+                            value: user.id,
+                          })) || []
+                        }
+                      >
+                        {!dataDetails.data?.[field.key] ? '' : dataDetails.data?.[field.key]}
+                      </ProDescriptions.Item>
+                    ) : field.type === 'table' ? (
+                      <ProDescriptions.Item span={field.span || 12} label={field.name}>
+                        <ProTable
+                          columns={(field.options?.columns || []).map((col: any) => ({
+                            title: col.label,
+                            dataIndex: col.value,
+                            key: col.id,
+                          }))}
+                          dataSource={dataDetails.data?.[field.key] || []}
+                          rowKey="id"
+                          search={false}
+                          pagination={false}
+                          options={false}
+                          style={{ width: '100%' }}
+                        />
+                      </ProDescriptions.Item>
+                    ) : (
+                      <ProDescriptions.Item span={field.span || 1} label={field.name}>
+                        {!dataDetails.data?.[field.key]
+                          ? ''
+                          : String(dataDetails.data?.[field.key])}
+                      </ProDescriptions.Item>
+                    )}
+                  </Fragment>
+                ))}
+              </ProDescriptions>
+            ))}
           </Fragment>
         ))}
       </PageContainer>
