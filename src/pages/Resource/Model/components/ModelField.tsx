@@ -69,6 +69,7 @@ import {
 
 interface FieldForm {
   id?: string | undefined;
+  key: string;
   name?: string;
   group_id?: string | undefined;
   type?: FieldType;
@@ -107,6 +108,7 @@ const baseFieldTypeMap: LabelValue[] = [
 
 const initOptions = {
   options: [],
+  columns: [],
   regexp: undefined,
   min: undefined,
   max: undefined,
@@ -133,6 +135,7 @@ const ModelField: FC = () => {
   const [mgForm] = Form.useForm();
   const [fieldForm, setFieldForm] = useState<FieldForm>({
     id: undefined,
+    key: '',
     name: '',
     group_id: undefined,
     type: FieldTypeShortString,
@@ -146,7 +149,7 @@ const ModelField: FC = () => {
     placeholder: '',
     desc: '',
     order: 1,
-    span: 4,
+    span: 12,
     model_id: id,
   });
   const [fieldVisit, setFieldVisit] = useState(false);
@@ -171,6 +174,7 @@ const ModelField: FC = () => {
   const handleRestFieldForm = async (groupId: string | undefined) => {
     const _data = {
       id: undefined,
+      key: '',
       name: '',
       group_id: groupId,
       type: FieldTypeShortString,
@@ -184,7 +188,7 @@ const ModelField: FC = () => {
       placeholder: '',
       desc: '',
       order: 1,
-      span: 4,
+      span: 12,
       model_id: id,
     };
     setFieldForm(_data);
@@ -276,7 +280,7 @@ const ModelField: FC = () => {
           <Button
             type="primary"
             onClick={async () => {
-              getUsers();
+              await getUsers();
               await handleRestFieldForm(undefined);
               setDrawerStatus('create');
               setFieldVisit(true);
@@ -535,6 +539,7 @@ const ModelField: FC = () => {
             rules={[{ required: true, message: '请选择字段类型' }]}
             placeholder="请选择字段类型"
             onChange={() => {
+              setDataSource([]);
               form.setFieldsValue({
                 options: initOptions,
               });
@@ -788,7 +793,7 @@ const ModelField: FC = () => {
               </>
             ) : fieldForm?.type === FieldTypeTable ? (
               <>
-                <div className={styles.defaultSection}>
+                <div className={styles.modelFieldTable}>
                   <h4>表格设置</h4>
                   <EditableProTable<DataSourceType>
                     rowKey="id"
