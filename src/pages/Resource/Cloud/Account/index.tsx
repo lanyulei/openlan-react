@@ -234,7 +234,6 @@ const Account: FC = () => {
       setModelList(_modelRes.data);
 
       const _res = await getPlugins({}, {});
-      console.log(_res.data);
       setPluginList(_res.data || []);
     })();
   }, []);

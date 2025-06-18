@@ -10,3 +10,12 @@ export async function getPlugins(params: object, options: { [key: string]: any }
     ...(options || {}),
   });
 }
+
+/** update plugin PUT /api/v1/resource/plugin/:name */
+export async function updatePlugin(name: string, body: object, options: { [key: string]: any }) {
+  return request(`/api/v1/resource/plugin/${name}`, {
+    method: 'POST',
+    data: body,
+    ...(options || {}),
+  });
+}
