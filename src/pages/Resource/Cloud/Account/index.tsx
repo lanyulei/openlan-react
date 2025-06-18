@@ -56,6 +56,7 @@ const Account: FC = () => {
     access_key: '',
     secret_key: '',
     plugin_name: undefined,
+    regions: [],
     remarks: '',
   });
   const [modalStatus, setModalStatus] = React.useState('create');
@@ -233,6 +234,7 @@ const Account: FC = () => {
       setModelList(_modelRes.data);
 
       const _res = await getPlugins({}, {});
+      console.log(_res.data);
       setPluginList(_res.data || []);
     })();
   }, []);
@@ -316,6 +318,7 @@ const Account: FC = () => {
               access_key: '',
               secret_key: '',
               plugin_name: '',
+              regions: [],
               remarks: '',
             });
           },
@@ -363,11 +366,26 @@ const Account: FC = () => {
           placeholder="请输入秘密访问密钥"
         />
         <ProFormSelect
+          tooltip="可用区域 ID，支持在操作云产品时候，指定在哪个区域进行操作。"
+          name="regions"
+          label="可用区域 ID"
+          mode="tags"
+          style={{ width: '100%' }}
+          fieldProps={{
+            tokenSeparators: [','],
+          }}
+          options={options}
+          placeholder="请输入区域 ID"
+        />
+        <ProFormSelect
           name="plugin_name"
           label="插件名称"
           placeholder="请选择插件名称"
           rules={[{ required: true, message: '请选择插件名称' }]}
-          options={pluginList.map((item) => ({ label: item, value: item }))}
+          options={pluginList.map((item) => ({
+            label: item.name,
+            value: item.name,
+          }))}
         />
         <ProFormTextArea name="remarks" label="备注" placeholder="请输入备注" />
       </ModalForm>
@@ -392,16 +410,16 @@ const Account: FC = () => {
         width={600}
       >
         <ProFormSelect
+          mode="multiple"
           tooltip="Region 是云服务提供商在全球不同地理位置设立的数据中心区域，用于就近提供云服务。阿里云示例：cn-hangzhou（杭州区域）。"
           name="region"
           label="区域 ID"
-          mode="tags"
           style={{ width: '100%' }}
-          fieldProps={{
-            tokenSeparators: [','],
-          }}
-          options={options}
-          placeholder="请输入区域 ID"
+          options={accountForm.regions?.map((region: string) => ({
+            label: region,
+            value: region,
+          }))}
+          placeholder="请选择区域 ID"
         />
         <ProFormSelect
           tooltip="目标模型，将数据导入到哪个模型中。"
