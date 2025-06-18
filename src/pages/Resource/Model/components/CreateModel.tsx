@@ -11,6 +11,7 @@ import styles from './CreateModel.less';
 import { getModelGroupList } from '@/services/resource/modelGroup';
 import { createModel, updateModel } from '@/services/resource/model';
 import { message } from 'antd';
+import { getLogicResourceList } from '@/services/resource/logicResource';
 
 type modelGroup = {
   id: string;
@@ -50,6 +51,7 @@ const CreateModel = forwardRef<CreateModelRef, CreateModelProps>(({ getList }, r
     order: 1,
   });
   const [modelStatus, setModelStatus] = useState<string>('create');
+  const [logicResourceList, setLogicResourceList] = useState<any[]>([]);
 
   const showModal = async (status: string, groupId: string, data: object | undefined) => {
     setModelStatus(status);
@@ -62,6 +64,7 @@ const CreateModel = forwardRef<CreateModelRef, CreateModelProps>(({ getList }, r
         desc: '',
         group_id: groupId,
         order: 1,
+        logic_resource_id: undefined,
       };
       setModelIcon(undefined);
       setModelForm(_data);
@@ -97,6 +100,14 @@ const CreateModel = forwardRef<CreateModelRef, CreateModelProps>(({ getList }, r
         not_page: true,
       });
       setModelGroupList(res?.data?.list || []);
+
+      const _res = await getLogicResourceList(
+        {
+          not_page: true,
+        },
+        {},
+      );
+      setLogicResourceList(_res.data?.list || []);
     })();
   }, []);
 
@@ -180,6 +191,17 @@ const CreateModel = forwardRef<CreateModelRef, CreateModelProps>(({ getList }, r
           min={1}
           placeholder="请输入顺序"
           rules={[{ required: true, message: '请输入顺序' }]}
+        />
+        <ProFormSelect
+          name="logic_resource_id"
+          label="逻辑资源："
+          showSearch
+          options={logicResourceList.map((item) => ({
+            value: item.id,
+            label: item.name,
+          }))}
+          placeholder="请选择逻辑资源"
+          rules={[{ required: true, message: '请选择逻辑资源' }]}
         />
         {modelStatus === 'edit' && (
           <ProFormSelect
