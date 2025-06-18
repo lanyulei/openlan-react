@@ -49,12 +49,14 @@ const LogicResource: FC = () => {
               dataIndex: 'create_time',
               key: 'create_time',
               valueType: 'dateTime',
+              width: '160px',
             },
             {
               title: '更新时间',
               dataIndex: 'update_time',
               key: 'update_time',
               valueType: 'dateTime',
+              width: '160px',
             },
             {
               title: '操作',
