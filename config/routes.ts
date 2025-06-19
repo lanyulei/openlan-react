@@ -95,6 +95,27 @@ export default [
       },
     ],
   },
+  {
+    path: '/deploy',
+    name: 'deploy',
+    icon: 'database',
+    routes: [
+      {
+        path: '/deploy',
+        redirect: '/deploy/overview',
+      },
+      {
+        path: '/deploy/overview',
+        name: 'overview',
+        component: './Deploy/Overview',
+      },
+      {
+        path: '/deploy/pipeline',
+        name: 'pipeline',
+        component: './Deploy/Pipeline',
+      },
+    ],
+  },
   // {
   //   name: 'list.table-list',
   //   icon: 'table',

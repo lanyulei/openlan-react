@@ -16,6 +16,9 @@ export default {
   'menu.resource.logicResource': '逻辑资源',
   'menu.resource.plugins': '插件管理',
   'menu.resource.cloudAccount': '云商账号',
+  'menu.deploy': '应用部署',
+  'menu.deploy.overview': '概览',
+  'menu.deploy.pipeline': '流水线',
 
   'menu.login': '登录',
   'menu.register': '注册',
