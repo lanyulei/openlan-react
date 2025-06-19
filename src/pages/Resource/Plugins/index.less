@@ -27,3 +27,30 @@
     margin-top: 8px;
   }
 }
+
+.pluginTitle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  .pluginStatus {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #52c41a;
+    box-shadow: 0 0 0 3px fade(#52c41a, 20%);
+    display: inline-block;
+    margin-right: 3px;
+  }
+  .pluginStatusUnavailable {
+    background: #ff4d4f;
+    box-shadow: 0 0 0 3px fade(#ff4d4f, 20%);
+  }
+  .pluginStatusDisabled {
+    background: #faad14;
+    box-shadow: 0 0 0 3px fade(#faad14, 20%);
+  }
+  .pluginStatusEnabled {
+    background: #52c41a;
+    box-shadow: 0 0 0 3px fade(#52c41a, 20%);
+  }
+}

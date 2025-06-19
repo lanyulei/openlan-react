@@ -65,7 +65,24 @@ const App: React.FC = () => {
                   <IconPicker icon={plugin.icon} />
                 </div>
               }
-              title={plugin.title || plugin.name || '未知'}
+              title={
+                <div className={pluginStyles.pluginTitle}>
+                  <div>{plugin.title || plugin.name || '未知'}</div>
+                  {plugin.status === PluginStatus.ENABLED ? (
+                    <div
+                      className={`${pluginStyles.pluginStatusEnabled} ${pluginStyles.pluginStatus}`}
+                    ></div>
+                  ) : plugin.status === PluginStatus.DISABLED ? (
+                    <div
+                      className={`${pluginStyles.pluginStatusDisabled} ${pluginStyles.pluginStatus}`}
+                    ></div>
+                  ) : plugin.status === PluginStatus.UNAVAILABLE ? (
+                    <div
+                      className={`${pluginStyles.pluginStatusUnavailable} ${pluginStyles.pluginStatus}`}
+                    ></div>
+                  ) : null}
+                </div>
+              }
               description={plugin.remarks || '暂无描述'}
             />
           </Card>

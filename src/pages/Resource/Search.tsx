@@ -17,6 +17,7 @@ const Search: React.FC = () => {
 
   const SearchHandler = async (searchText: string) => {
     if (!searchText || searchText === '') {
+      setDataList([]);
       return;
     }
     setCountStatus(true);
@@ -29,6 +30,7 @@ const Search: React.FC = () => {
       <div style={{ width: '50%', marginLeft: '25%', marginTop: '100px' }}>
         <AntdSearch
           value={searchText}
+          allowClear
           onChange={(e) => setSearchText(e.target.value)}
           onSearch={async () => {
             await SearchHandler(searchText);
