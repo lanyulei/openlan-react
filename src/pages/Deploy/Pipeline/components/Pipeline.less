@@ -26,5 +26,69 @@
 }
 
 .pipelineContent {
-  padding: 20px;
+  .pipelineSidebar {
+    display: inline-block;
+    max-height: calc(100vh - 56px);
+    max-width: 300px;
+    min-width: 300px;
+    overflow-y: auto;
+    vertical-align: top;
+    padding: 19px 35px 19px 19px;
+    .pipelineSource {
+      height: auto;
+      margin-top: 46px;
+      width: 100%;
+    }
+  }
+  .pipelineContentList {
+    display: flex;
+    .pipelineGroup {
+      display: flex;
+      height: 100%;
+      position: relative;
+      white-space: nowrap;
+      .pipelineSplitline {
+        margin-left: -16px;
+        display: inline-block;
+        height: 100%;
+        padding: 0 1px;
+        position: relative;
+        text-align: center;
+        transform: rotate(0);
+        vertical-align: top;
+        width: 32px;
+        .pipelineButton {
+          color: #8b8b8b;
+          cursor: pointer;
+          height: 100vh;
+          position: relative;
+          z-index: 1;
+          &:before {
+            border-left: 1px solid #dbdbdb;
+            content: '';
+            height: 100%;
+            position: absolute;
+          }
+        }
+      }
+      .pipelineEditable {
+        display: inline-block;
+        height: 100%;
+        overflow-y: auto;
+        padding-top: 19px;
+        vertical-align: top;
+        .pipelineGroupHeader {
+          margin-bottom: 38px;
+          padding: 0 20px;
+        }
+      }
+    }
+  }
+  .pipelineTitle {
+    display: flex;
+    font-size: 14px;
+    align-items: center;
+    color: #8b8b8b;
+    -webkit-box-align: center;
+  }
 }
