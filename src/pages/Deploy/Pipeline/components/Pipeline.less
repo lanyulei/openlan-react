@@ -63,11 +63,28 @@
           height: 100vh;
           position: relative;
           z-index: 1;
+          .pipelineButtonPlus {
+            color: #595959;
+            margin-left: -8.5px;
+            position: absolute;
+            top: 96px;
+            z-index: 2;
+            width: 18px;
+            height: 18px;
+          }
           &:before {
             border-left: 1px solid #dbdbdb;
             content: '';
             height: 100%;
             position: absolute;
+          }
+          &:after {
+            margin-left: 0;
+            width: 24px !important;
+            position: absolute;
+            top: 104.5px;
+            border-top: 1px solid #dbdbdb;
+            content: '';
           }
         }
       }
@@ -80,6 +97,32 @@
         .pipelineGroupHeader {
           margin-bottom: 38px;
           padding: 0 20px;
+        }
+        .pipelineStages {
+          font-size: 14px;
+          line-height: 1.5;
+          color: #6e6e6e;
+          text-align: left;
+          .pipelineStagesContainer {
+            position: relative;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #6e6e6e;
+            .pipelineTasksContainer {
+              display: flex;
+              margin: 0 14px;
+            }
+            &:before {
+              content: '';
+              height: 100%;
+              left: 0;
+              position: absolute;
+              top: -50%;
+              border-bottom: 1px solid #dae0e5;
+              transition: border 0.2s ease-in;
+              width: 100%;
+            }
+          }
         }
       }
     }

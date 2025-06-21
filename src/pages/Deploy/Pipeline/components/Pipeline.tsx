@@ -1,7 +1,8 @@
 import { FC, useState } from 'react';
 import styles from './Pipeline.less';
 import { Button } from 'antd';
-import { PlusCircleOutlined, PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined } from '@ant-design/icons';
+import { ReactComponent as PlusFill } from '@/assets/svg/plusFill.svg';
 
 const Pipeline: FC = () => {
   const [active, setActive] = useState('process');
@@ -70,11 +71,24 @@ const Pipeline: FC = () => {
               <div className={styles.pipelineGroup}>
                 <div className={styles.pipelineSplitline}>
                   <div className={styles.pipelineButton}>
-                    <PlusCircleOutlined />
+                    <PlusFill className={styles.pipelineButtonPlus} />
                   </div>
                 </div>
                 <div className={`${styles.pipelineEditable} ${styles.pipelineTitle}`}>
                   <div className={styles.pipelineGroupHeader}>暂无流程</div>
+                  <div className={styles.pipelineStages}>
+                    <div className={styles.pipelineStagesContainer}>
+                      <div className={styles.pipelineTasksContainer}>
+                        <div className={styles.pipelineJob}></div>
+                        <div className={styles.pipelineJobCapsule}>
+                          <div className={styles.pipelineJobExtraPre}></div>
+                          <div className={styles.pipelineJobContent}></div>
+                          <div className={styles.pipelineJobExtraNext}></div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className={styles.pipelineAddStageContainer}></div>
+                  </div>
                 </div>
               </div>
             </div>
