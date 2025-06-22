@@ -79,26 +79,28 @@ const Pipeline: FC = () => {
                 </div>
                 <div className={`${styles.pipelineEditable} ${styles.pipelineTitle}`}>
                   <div className={styles.pipelineGroupHeader}>暂无流程</div>
-                  <div className={`${styles.pipelineStages} ${styles.pipelineStagesFirst}`}>
-                    <div className={styles.pipelineStagesContainer}>
-                      <div className={styles.pipelineJobType}>
-                        <AutomaticTrigger className={styles.pipelineAddStage} />
-                      </div>
-                      <div className={styles.pipelineJob}>
-                        <div className={styles.pipelineJobExtraPre}>
-                          <PlusFill className={styles.pipelineAddStage} />
+                  <div className={`${styles.pipelineStages}`}>
+                    <div className={`${styles.pipelineTaskContainer}`}>
+                      <div className={styles.pipelineStagesContainer}>
+                        <div className={styles.pipelineJobType}>
+                          <AutomaticTrigger className={styles.pipelineAddStage} />
                         </div>
-                        <div className={styles.pipelineJobContent}>
-                          <Button
-                            shape="round"
-                            style={{ width: '100%', color: '#595c62', fontSize: '14px' }}
-                            size="large"
-                          >
-                            新建阶段
-                          </Button>
-                        </div>
-                        <div className={styles.pipelineJobExtraNext}>
-                          <PlusFill className={styles.pipelineAddStage} />
+                        <div className={styles.pipelineJob}>
+                          <div className={styles.pipelineJobExtra} style={{ marginRight: 14 }}>
+                            <PlusFill className={styles.pipelineAddStage} />
+                          </div>
+                          <div className={styles.pipelineJobContent}>
+                            <Button
+                              shape="round"
+                              style={{ width: '100%', color: '#595c62', fontSize: '14px' }}
+                              size="large"
+                            >
+                              新建阶段
+                            </Button>
+                          </div>
+                          <div className={styles.pipelineJobExtra} style={{ marginLeft: 14 }}>
+                            <PlusFill className={styles.pipelineAddStage} />
+                          </div>
                         </div>
                       </div>
                     </div>
