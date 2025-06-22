@@ -1,12 +1,12 @@
 import React, { FC, useRef } from 'react';
 import { ActionType, PageContainer, ProTable } from '@ant-design/pro-components';
+import { Button, Input } from 'antd';
+import { EditOutlined, EyeOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import styles from '@/pages/Resource/Cloud/Account/index.less';
-import { Input } from 'antd';
-import { EyeOutlined, SearchOutlined } from '@ant-design/icons';
 import { getLogicResourceList } from '@/services/resource/logicResource';
 import { useNavigate } from 'react-router-dom';
 
-const LogicResource: FC = () => {
+const Task: FC = () => {
   const navigate = useNavigate();
   const actionRef = useRef<ActionType>();
   const [query, setQuery] = React.useState({
@@ -16,47 +16,34 @@ const LogicResource: FC = () => {
   const handleReload = async () => {
     await actionRef?.current?.reload();
   };
+
   return (
     <>
-      <PageContainer content="运管平台通过将逻辑资源映射到不同云厂商的具体产品，实现了多云环境的统一抽象和标准化操作，有效屏蔽底层差异，简化资源管理和调度流程。">
+      <PageContainer content="Task 是一个定义单次容器化操作（如构建、测试或部署）的可复用工作单元，包含一个或多个按顺序执行的步骤">
         <ProTable
           className={styles.tableList}
           columns={[
             {
-              title: 'ID',
-              dataIndex: 'id',
-              key: 'id',
-              ellipsis: true,
-            },
-            {
-              title: '标题',
-              dataIndex: 'title',
-              key: 'title',
-            },
-            {
               title: '名称',
               dataIndex: 'name',
               key: 'name',
-            },
-            {
-              title: '描述',
-              dataIndex: 'remarks',
-              key: 'remarks',
               ellipsis: true,
             },
             {
-              title: '创建时间',
-              dataIndex: 'create_time',
-              key: 'create_time',
-              valueType: 'dateTime',
-              width: '160px',
+              title: '命名空间',
+              dataIndex: 'namespace',
+              key: 'namespace',
             },
             {
-              title: '更新时间',
-              dataIndex: 'update_time',
-              key: 'update_time',
-              valueType: 'dateTime',
-              width: '160px',
+              title: '步骤数量',
+              dataIndex: 'stepCount',
+              key: 'stepCount',
+            },
+            {
+              title: '参数数量',
+              dataIndex: 'paramCount',
+              key: 'paramCount',
+              ellipsis: true,
             },
             {
               title: '操作',
@@ -64,8 +51,8 @@ const LogicResource: FC = () => {
               valueType: 'option',
               key: 'option',
               align: 'center' as const,
-              width: 120,
-              render: (_: any, record: any) => (
+              width: 150,
+              render: (_: any, record: any) => [
                 <a
                   key="details"
                   onClick={() => {
@@ -73,8 +60,17 @@ const LogicResource: FC = () => {
                   }}
                 >
                   <EyeOutlined /> 详情
-                </a>
-              ),
+                </a>,
+                <a
+                  style={{ marginLeft: 10 }}
+                  key="edit"
+                  onClick={() => {
+                    navigate(`/resource/cloud/logic-resource-details/${record.id}`);
+                  }}
+                >
+                  <EditOutlined /> 编辑
+                </a>,
+              ],
             },
           ]}
           actionRef={actionRef}
@@ -95,6 +91,16 @@ const LogicResource: FC = () => {
           pagination={false}
           bordered
           toolBarRender={() => [
+            <Button
+              onClick={() => {
+                navigate('/deploy/task/create');
+              }}
+              key="addTask"
+              type="primary"
+              icon={<PlusOutlined />}
+            >
+              新建任务
+            </Button>,
             <Input
               key="search"
               placeholder="请输入名称"
@@ -116,4 +122,4 @@ const LogicResource: FC = () => {
   );
 };
 
-export default LogicResource;
+export default Task;
