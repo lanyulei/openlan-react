@@ -16,27 +16,13 @@ import MonacoEditor from '@/components/MonacoEditor';
 
 const initialScript = `#!/bin/bash
 
-# 打印欢迎信息
-echo "Hello, Shell Editor!"
-echo "Hello, Shell Editor!"
-echo "Hello, Shell Editor!"
-echo "Hello, Shell Editor!"
-echo "Hello, Shell Editor!"
-echo "Hello, Shell Editor!"
-echo "Hello, Shell Editor!"
-echo "Hello, Shell Editor!"
-echo "Hello, Shell Editor!"
-echo "Hello, Shell Editor!"
-echo "Hello, Shell Editor!"
-echo "Hello, Shell Editor!"
-echo "Hello, Shell Editor!"
-echo "Hello, Shell Editor!"
-echo "Hello, Shell Editor!"
-echo "Hello, Shell Editor!"
-echo "Hello, Shell Editor!"
+#############################################
+#                                           #
+#          Welcome to the task script.      #
+#                                           #
+#############################################
 
-# 列出文件
-ls -l`;
+`;
 
 const TaskForm: FC = () => {
   const [messageApi, messageContextHolder] = message.useMessage();
@@ -127,6 +113,9 @@ const TaskForm: FC = () => {
               initialValues={taskForm}
               onValuesChange={(_, allValues) => {
                 function deepMerge(target: any, source: any): any {
+                  if (Array.isArray(source)) {
+                    return source; // 数组直接覆盖
+                  }
                   if (
                     typeof target !== 'object' ||
                     typeof source !== 'object' ||
@@ -384,10 +373,10 @@ const TaskForm: FC = () => {
                 <h3>步骤定义</h3>
               </div>
               <>
-                {taskForm.spec.steps.map((step, idx) => (
-                  <>
+                {taskForm.spec.steps?.map((step, idx) => (
+                  <div key={idx}>
                     <div style={{ marginBottom: 8 }}>步骤 {idx + 1}</div>
-                    <div key={idx} className={styles.stepItem}>
+                    <div className={styles.stepItem}>
                       <ProFormText
                         name={['spec', 'steps', idx, 'name']}
                         label="步骤名称"
@@ -401,12 +390,7 @@ const TaskForm: FC = () => {
                         rules={[{ required: true, message: '请输入容器镜像' }]}
                       />
                       <ProForm.Item label="脚本" name={['spec', 'steps', idx, 'script']}>
-                        <MonacoEditor
-                          value={initialScript}
-                          onChange={(code: string) => {
-                            console.log('当前代码:', code);
-                          }}
-                        />
+                        <MonacoEditor value={initialScript} />
                       </ProForm.Item>
                       <ProFormList
                         name={['spec', 'steps', idx, 'env']}
@@ -508,7 +492,7 @@ const TaskForm: FC = () => {
                         </Col>
                       </Row>
                     </div>
-                  </>
+                  </div>
                 ))}
                 <Button
                   icon={<PlusOutlined />}
