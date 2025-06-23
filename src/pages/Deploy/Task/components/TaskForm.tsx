@@ -375,7 +375,9 @@ const TaskForm: FC = () => {
               <>
                 {taskForm.spec.steps?.map((step, idx) => (
                   <div key={idx}>
-                    <div style={{ marginBottom: 8 }}>步骤 {idx + 1}</div>
+                    <div style={{ marginBottom: 8, ...(idx > 0 ? { marginTop: 15 } : {}) }}>
+                      步骤 {idx + 1}
+                    </div>
                     <div className={styles.stepItem}>
                       <ProFormText
                         name={['spec', 'steps', idx, 'name']}
@@ -448,21 +450,21 @@ const TaskForm: FC = () => {
                           <ProFormText
                             name={['spec', 'steps', idx, 'workingDir']}
                             label="工作目录"
-                            placeholder="请输入工作目录（可选）"
+                            placeholder="请输入工作目录"
                           />
                         </Col>
                         <Col span={12}>
                           <ProFormText
                             name={['spec', 'steps', idx, 'securityContext', 'runAsUser']}
                             label="运行用户ID"
-                            placeholder="请输入用户ID（可选）"
+                            placeholder="请输入用户ID"
                           />
                         </Col>
                         <Col span={12}>
                           <ProFormText
                             name={['spec', 'steps', idx, 'timeout']}
                             label="超时时间"
-                            placeholder="如 5m，10s（可选）"
+                            placeholder="如 5m，10s"
                           />
                         </Col>
                         <Col span={12}>
@@ -480,14 +482,14 @@ const TaskForm: FC = () => {
                           <ProFormText
                             name={['spec', 'steps', idx, 'stdoutConfig', 'path']}
                             label="标准输出路径"
-                            placeholder="如 /logs/stdout.log（可选）"
+                            placeholder="如 /logs/stdout.log"
                           />
                         </Col>
                         <Col span={12}>
                           <ProFormText
                             name={['spec', 'steps', idx, 'stderrConfig', 'path']}
                             label="标准错误路径"
-                            placeholder="如 /logs/stderr.log（可选）"
+                            placeholder="如 /logs/stderr.log"
                           />
                         </Col>
                       </Row>
@@ -496,15 +498,289 @@ const TaskForm: FC = () => {
                 ))}
                 <Button
                   icon={<PlusOutlined />}
-                  style={{ width: '100%', marginTop: 10 }}
+                  style={{ width: '100%', marginTop: 10, marginBottom: 24 }}
                   type="dashed"
                   onClick={() => {
-                    console.log(123);
+                    setTaskForm((prev: any) => ({
+                      ...prev,
+                      spec: {
+                        ...prev.spec,
+                        steps: [
+                          ...prev.spec.steps,
+                          {
+                            name: '',
+                            image: '',
+                            script: initialScript,
+                            env: [],
+                            volumeMounts: [],
+                            workingDir: '',
+                            securityContext: { runAsUser: '' },
+                            timeout: '',
+                            onError: '',
+                            stdoutConfig: { path: '' },
+                            stderrConfig: { path: '' },
+                          },
+                        ],
+                      },
+                    }));
                   }}
                 >
                   添加步骤
                 </Button>
               </>
+              <div className={styles.taskFormHeader}>
+                <span className={styles.verticalDivider} />
+                <h3>参数声明</h3>
+              </div>
+              <ProFormList
+                name={['spec', 'params']}
+                creatorButtonProps={{ position: 'bottom', creatorButtonText: '添加参数' }}
+                itemRender={({ listDom, action }) => (
+                  <Flex align="center" gap={8}>
+                    {listDom}
+                    {action}
+                  </Flex>
+                )}
+              >
+                <ProFormGroup key="param-group">
+                  <ProFormText
+                    name="name"
+                    label="参数名"
+                    placeholder="请输入参数名"
+                    rules={[{ required: true, message: '请输入参数名' }]}
+                  />
+                  <ProFormSelect
+                    name="type"
+                    label="类型"
+                    placeholder="请选择类型"
+                    options={[
+                      { label: 'string', value: 'string' },
+                      { label: 'array', value: 'array' },
+                    ]}
+                    rules={[{ required: true, message: '请选择类型' }]}
+                  />
+                  <ProFormText name="description" label="描述" placeholder="请输入参数描述" />
+                  <ProFormText name="default" label="默认值" placeholder="请输入默认值" />
+                </ProFormGroup>
+              </ProFormList>
+              <div className={styles.taskFormHeader}>
+                <span className={styles.verticalDivider} />
+                <h3>结果配置</h3>
+              </div>
+              <ProFormList
+                name={['spec', 'results']}
+                creatorButtonProps={{ position: 'bottom', creatorButtonText: '添加结果' }}
+                itemRender={({ listDom, action }) => (
+                  <Flex align="center" gap={8}>
+                    {listDom}
+                    {action}
+                  </Flex>
+                )}
+              >
+                <ProFormGroup key="result-group">
+                  <ProFormText
+                    name="name"
+                    label="结果名"
+                    placeholder="请输入结果名"
+                    rules={[{ required: true, message: '请输入结果名' }]}
+                  />
+                  <ProFormText name="description" label="描述" placeholder="请输入结果描述" />
+                  <ProFormSelect
+                    name="type"
+                    label="类型"
+                    placeholder="请选择类型"
+                    options={[
+                      { label: 'string', value: 'string' },
+                      { label: 'array', value: 'array' },
+                    ]}
+                    rules={[{ required: true, message: '请选择类型' }]}
+                  />
+                  <ProFormText
+                    name="value"
+                    label="值"
+                    placeholder="请输入结果值，如 $(steps.step-name.results.result-name)"
+                  />
+                </ProFormGroup>
+              </ProFormList>
+              <div className={styles.taskFormHeader}>
+                <span className={styles.verticalDivider} />
+                <h3>工作空间</h3>
+              </div>
+              <ProFormList
+                name={['spec', 'workspaces']}
+                creatorButtonProps={{ position: 'bottom', creatorButtonText: '添加工作空间' }}
+                itemRender={({ listDom, action }) => (
+                  <Flex align="center" gap={8}>
+                    {listDom}
+                    {action}
+                  </Flex>
+                )}
+              >
+                <ProFormGroup key="workspace-group">
+                  <ProFormText
+                    name="name"
+                    label="名称"
+                    placeholder="请输入工作空间名称"
+                    rules={[{ required: true, message: '请输入名称' }]}
+                  />
+                  <ProFormText name="description" label="描述" placeholder="请输入描述" />
+                  <ProFormText
+                    name="mountPath"
+                    label="挂载路径"
+                    placeholder="如 /workspace/source"
+                    rules={[{ required: true, message: '请输入挂载路径' }]}
+                  />
+                  <ProFormSelect
+                    name="readOnly"
+                    label="只读"
+                    placeholder="请选择"
+                    options={[
+                      { label: '是', value: true },
+                      { label: '否', value: false },
+                    ]}
+                    rules={[{ required: true, message: '请选择是否只读' }]}
+                  />
+                </ProFormGroup>
+              </ProFormList>
+              <div className={styles.taskFormHeader}>
+                <span className={styles.verticalDivider} />
+                <h3>存储卷</h3>
+              </div>
+              <ProFormList
+                name={['spec', 'volumes']}
+                creatorButtonProps={{ position: 'bottom', creatorButtonText: '添加存储卷' }}
+                itemRender={({ listDom, action }) => (
+                  <Flex align="center" gap={8}>
+                    {listDom}
+                    {action}
+                  </Flex>
+                )}
+              >
+                <ProFormGroup key="volume-group">
+                  <ProFormText
+                    name="name"
+                    label="卷名"
+                    placeholder="请输入卷名"
+                    rules={[{ required: true, message: '请输入卷名' }]}
+                  />
+                  <ProFormSelect
+                    name="type"
+                    label="卷类型"
+                    placeholder="请选择卷类型"
+                    options={[
+                      { label: 'emptyDir', value: 'emptyDir' },
+                      // 可根据需要扩展更多类型
+                    ]}
+                    rules={[{ required: true, message: '请选择卷类型' }]}
+                  />
+                  {/* 仅当类型为 emptyDir 时显示 */}
+                  <ProForm.Item
+                    noStyle
+                    shouldUpdate={(prev: { type: any }, curr: { type: any }) =>
+                      prev?.type !== curr?.type
+                    }
+                  >
+                    {({ type }: { type?: string }) =>
+                      type === 'emptyDir' ? (
+                        <ProFormText
+                          name={['emptyDir', 'medium']}
+                          label="介质类型"
+                          placeholder="可选，留空为默认"
+                        />
+                      ) : null
+                    }
+                  </ProForm.Item>
+                </ProFormGroup>
+              </ProFormList>
+              <div className={styles.taskFormHeader}>
+                <span className={styles.verticalDivider} />
+                <h3>步骤模版</h3>
+              </div>
+              <ProFormList
+                name={['spec', 'stepTemplate', 'env']}
+                label="环境变量"
+                creatorButtonProps={{ position: 'bottom', creatorButtonText: '添加环境变量' }}
+                itemRender={({ listDom, action }) => (
+                  <Flex align="center" gap={8}>
+                    {listDom}
+                    {action}
+                  </Flex>
+                )}
+              >
+                <ProFormGroup key="step-template-env-group">
+                  <ProFormText
+                    name="name"
+                    label="变量名"
+                    placeholder="请输入变量名"
+                    rules={[{ required: true, message: '请输入变量名' }]}
+                  />
+                  <ProFormText
+                    name="value"
+                    label="变量值"
+                    placeholder="请输入变量值"
+                    rules={[{ required: true, message: '请输入变量值' }]}
+                  />
+                </ProFormGroup>
+              </ProFormList>
+              <ProFormGroup title="安全上下文">
+                <ProFormSelect
+                  name={['spec', 'stepTemplate', 'securityContext', 'runAsNonRoot']}
+                  label="以非 root 用户运行"
+                  placeholder="请选择"
+                  options={[
+                    { label: '是', value: true },
+                    { label: '否', value: false },
+                  ]}
+                  rules={[{ required: true, message: '请选择是否以非 root 用户运行' }]}
+                />
+              </ProFormGroup>
+              <div className={styles.taskFormHeader}>
+                <span className={styles.verticalDivider} />
+                <h3>辅助容器</h3>
+              </div>
+              <ProFormList
+                name={['spec', 'sidecars']}
+                creatorButtonProps={{ position: 'bottom', creatorButtonText: '添加辅助容器' }}
+                itemRender={({ listDom, action }) => (
+                  <Flex align="center" gap={8}>
+                    {listDom}
+                    {action}
+                  </Flex>
+                )}
+              >
+                <ProFormGroup key="sidecar-group">
+                  <ProFormText
+                    name="name"
+                    label="名称"
+                    placeholder="请输入辅助容器名称"
+                    rules={[{ required: true, message: '请输入名称' }]}
+                  />
+                  <ProFormText
+                    name="image"
+                    label="镜像"
+                    placeholder="请输入镜像"
+                    rules={[{ required: true, message: '请输入镜像' }]}
+                  />
+                  <ProFormText
+                    name="command"
+                    label="命令"
+                    placeholder='如 ["tail"]，多个用英文逗号分隔'
+                    tooltip="可填写多个命令，如 tail"
+                    transform={(value) =>
+                      value ? value.split(',').map((v: string) => v.trim()) : undefined
+                    }
+                  />
+                  <ProFormText
+                    name="args"
+                    label="参数"
+                    placeholder='如 ["-f", "/dev/null"]，多个用英文逗号分隔'
+                    tooltip="可填写多个参数，如 -f,/dev/null"
+                    transform={(value) =>
+                      value ? value.split(',').map((v: string) => v.trim()) : undefined
+                    }
+                  />
+                </ProFormGroup>
+              </ProFormList>
             </ProForm>
           </div>
         </div>
