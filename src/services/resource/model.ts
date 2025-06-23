@@ -1,47 +1,48 @@
 // @ts-ignore
 /* eslint-disable */
 import { request } from '@umijs/max';
+import { V1 } from '@/services/version';
 
-/** Get model GET /api/v1/resource/model/list */
+/** Get model GET ${V1}/resource/model/list */
 export async function getModels(params: object, options?: { [key: string]: any }) {
-  return request('/api/v1/resource/model/list', {
+  return request(`${V1}/resource/model/list`, {
     method: 'GET',
     params,
   });
 }
 
-/** create model POST /api/v1/resource/model */
+/** create model POST ${V1}/resource/model */
 export async function createModel(data: object, options?: { [key: string]: any }) {
-  return request('/api/v1/resource/model', {
+  return request(`${V1}/resource/model`, {
     method: 'POST',
     data,
     ...(options || {}),
   });
 }
 
-/** get details GET /api/v1/resource/model/:id */
+/** get details GET ${V1}/resource/model/:id */
 export async function getModelDetails(id: string | undefined, options?: { [key: string]: any }) {
-  return request(`/api/v1/resource/model/${id}`, {
+  return request(`${V1}/resource/model/${id}`, {
     method: 'GET',
     ...(options || {}),
   });
 }
 
-/** delete model DELETE /api/v1/resource/model/:id */
+/** delete model DELETE ${V1}/resource/model/:id */
 export async function deleteModel(id: string | undefined, options?: { [key: string]: any }) {
-  return request(`/api/v1/resource/model/${id}`, {
+  return request(`${V1}/resource/model/${id}`, {
     method: 'DELETE',
     ...(options || {}),
   });
 }
 
-/** update model PUT /api/v1/resource/model/:id */
+/** update model PUT ${V1}/resource/model/:id */
 export async function updateModel(
   id: string | undefined,
   data: object,
   options?: { [key: string]: any },
 ) {
-  return request(`/api/v1/resource/model/${id}`, {
+  return request(`${V1}/resource/model/${id}`, {
     method: 'PUT',
     data,
     ...(options || {}),

@@ -11,7 +11,7 @@ export async function createUser(body: API.User, options?: { [key: string]: any 
   });
 }
 
-/** Get user by user name GET /user/${param0} */
+/** Get user by username GET /user/${param0} */
 export async function getUserByName(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.getUserByNameParams,
