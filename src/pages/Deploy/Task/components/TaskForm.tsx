@@ -43,11 +43,7 @@ const TaskForm: FC = () => {
       annotations: {},
     },
     spec: {
-      steps: [
-        {
-          name: 'example-step',
-        },
-      ],
+      steps: [],
     },
   });
 
@@ -109,10 +105,25 @@ const TaskForm: FC = () => {
           <div className={styles.taskFormContainer}>
             <ProForm
               onFinish={async (values: any) => {
-                console.log({
+                // @ts-ignore
+                for (let param of taskForm.spec?.params || []) {
+                  if (param.type === 'object' && param.properties) {
+                    let properties = JSON.parse(JSON.stringify(param.properties));
+                    param.properties = {};
+
+                    for (let prop of properties) {
+                      param.properties[prop.key] = prop.value;
+                    }
+                  }
+                }
+
+                const _data = {
                   ...values,
                   ...taskForm,
-                });
+                };
+
+                console.log(_data);
+
                 messageApi.success('提交成功');
               }}
               initialValues={taskForm}
@@ -408,18 +419,24 @@ const TaskForm: FC = () => {
                       </div>
                     </div>
                     <div className={styles.commonBackgroundColor}>
-                      <ProFormText
-                        name={['spec', 'steps', idx, 'name']}
-                        label="步骤名称"
-                        placeholder="请输入步骤名称"
-                        rules={[{ required: true, message: '请输入步骤名称' }]}
-                      />
-                      <ProFormText
-                        name={['spec', 'steps', idx, 'image']}
-                        label="容器镜像"
-                        placeholder="请输入容器镜像"
-                        rules={[{ required: true, message: '请输入容器镜像' }]}
-                      />
+                      <Row gutter={16}>
+                        <Col span={12}>
+                          <ProFormText
+                            name={['spec', 'steps', idx, 'name']}
+                            label="步骤名称"
+                            placeholder="请输入步骤名称"
+                            rules={[{ required: true, message: '请输入步骤名称' }]}
+                          />
+                        </Col>
+                        <Col span={12}>
+                          <ProFormText
+                            name={['spec', 'steps', idx, 'image']}
+                            label="容器镜像"
+                            placeholder="请输入容器镜像"
+                            rules={[{ required: true, message: '请输入容器镜像' }]}
+                          />
+                        </Col>
+                      </Row>
                       <ProForm.Item label="脚本" name={['spec', 'steps', idx, 'script']}>
                         <MonacoEditor value={initialScript} />
                       </ProForm.Item>
@@ -509,6 +526,34 @@ const TaskForm: FC = () => {
                         </Col>
                         <Col span={12}>
                           <ProFormText
+                            name={['spec', 'steps', idx, 'computeResources', 'requests', 'cpu']}
+                            label="请求 CPU"
+                            placeholder="如 500m"
+                          />
+                        </Col>
+                        <Col span={12}>
+                          <ProFormText
+                            name={['spec', 'steps', idx, 'computeResources', 'requests', 'memory']}
+                            label="请求 内存"
+                            placeholder="如 1Gi"
+                          />
+                        </Col>
+                        <Col span={12}>
+                          <ProFormText
+                            name={['spec', 'steps', idx, 'computeResources', 'limits', 'cpu']}
+                            label="限制 CPU"
+                            placeholder="如 800m"
+                          />
+                        </Col>
+                        <Col span={12}>
+                          <ProFormText
+                            name={['spec', 'steps', idx, 'computeResources', 'limits', 'memory']}
+                            label="限制 内存"
+                            placeholder="如 2Gi"
+                          />
+                        </Col>
+                        <Col span={12}>
+                          <ProFormText
                             name={['spec', 'steps', idx, 'stdoutConfig', 'path']}
                             label="标准输出路径"
                             placeholder="如 /logs/stdout.log"
@@ -582,29 +627,100 @@ const TaskForm: FC = () => {
                     >
                       <ProFormGroup key="param-group">
                         <ProFormText
-                          width={230}
+                          width={241}
                           name="name"
                           label="参数名"
                           placeholder="请输入参数名"
                           rules={[{ required: true, message: '请输入参数名' }]}
                         />
                         <ProFormSelect
-                          width={230}
+                          width={241}
                           name="type"
                           label="类型"
                           placeholder="请选择类型"
                           options={[
-                            { label: 'string', value: 'string' },
-                            { label: 'array', value: 'array' },
+                            { label: '字符串', value: 'string' },
+                            { label: '数组', value: 'array' },
+                            { label: '对象', value: 'object' },
                           ]}
                           rules={[{ required: true, message: '请选择类型' }]}
                         />
-                        <ProFormText
-                          width={230}
-                          name="default"
-                          label="默认值"
-                          placeholder="请输入默认值"
-                        />
+                        {(() => {
+                          const params = (taskForm as any)?.spec?.params;
+                          const type = Array.isArray(params) ? params[idx]?.type : undefined;
+                          if (type === 'string') {
+                            return (
+                              <>
+                                <ProFormText
+                                  width={241}
+                                  name="default"
+                                  label="默认值"
+                                  placeholder="请输入默认值"
+                                />
+                                <ProFormSelect
+                                  width={756}
+                                  name="enum"
+                                  label="枚举值"
+                                  placeholder="请输入枚举值"
+                                  mode="tags"
+                                />
+                              </>
+                            );
+                          }
+                          if (type === 'array') {
+                            return (
+                              <ProFormSelect
+                                width={756}
+                                name="default"
+                                label="默认值"
+                                placeholder="请输入默认值"
+                                mode="tags"
+                              />
+                            );
+                          }
+                          if (type === 'object') {
+                            return (
+                              <ProFormList
+                                name="properties"
+                                creatorButtonProps={{
+                                  position: 'bottom',
+                                  creatorButtonText: '添加属性',
+                                  style: { width: 550 },
+                                }}
+                                itemRender={({ listDom, action }) => (
+                                  <Flex align="center" gap={8}>
+                                    {listDom}
+                                    {action}
+                                  </Flex>
+                                )}
+                              >
+                                {(_, propIdx) => (
+                                  <ProFormGroup key={`object-prop-group-${propIdx}`}>
+                                    <ProFormText
+                                      width={241}
+                                      name="key"
+                                      label="属性名"
+                                      placeholder="请输入属性名"
+                                      rules={[{ required: true, message: '请输入属性名' }]}
+                                    />
+                                    <ProFormSelect
+                                      width={241}
+                                      name={['value', 'type']}
+                                      label="类型"
+                                      placeholder="请选择类型"
+                                      options={[
+                                        { label: '字符串', value: 'string' },
+                                        // 可扩展更多类型
+                                      ]}
+                                      rules={[{ required: true, message: '请选择类型' }]}
+                                    />
+                                  </ProFormGroup>
+                                )}
+                              </ProFormList>
+                            );
+                          }
+                          return null;
+                        })()}
                         <ProFormTextArea
                           width={756}
                           name="description"
@@ -641,14 +757,14 @@ const TaskForm: FC = () => {
                     >
                       <ProFormGroup key="result-group">
                         <ProFormText
-                          width={230}
+                          width={241}
                           name="name"
                           label="结果名"
                           placeholder="请输入结果名"
                           rules={[{ required: true, message: '请输入结果名' }]}
                         />
                         <ProFormSelect
-                          width={230}
+                          width={241}
                           name="type"
                           label="类型"
                           placeholder="请选择类型"
@@ -659,7 +775,7 @@ const TaskForm: FC = () => {
                           rules={[{ required: true, message: '请选择类型' }]}
                         />
                         <ProFormText
-                          width={230}
+                          width={241}
                           name="value"
                           label="值"
                           placeholder="请输入结果值，如 $(steps.step-name.results.result-name)"
@@ -700,29 +816,40 @@ const TaskForm: FC = () => {
                     >
                       <ProFormGroup key="workspace-group">
                         <ProFormText
-                          width={230}
+                          width={370}
                           name="name"
                           label="名称"
                           placeholder="请输入工作空间名称"
                           rules={[{ required: true, message: '请输入名称' }]}
                         />
                         <ProFormText
-                          width={230}
+                          width={370}
                           name="mountPath"
                           label="挂载路径"
                           placeholder="如 /workspace/source"
                           rules={[{ required: true, message: '请输入挂载路径' }]}
                         />
                         <ProFormSelect
-                          width={230}
+                          width={370}
                           name="readOnly"
-                          label="只读"
+                          label="是否只读"
                           placeholder="请选择"
                           options={[
                             { label: '是', value: true },
                             { label: '否', value: false },
                           ]}
                           rules={[{ required: true, message: '请选择是否只读' }]}
+                        />
+                        <ProFormSelect
+                          width={370}
+                          name="optional"
+                          label="是否省略工作区"
+                          placeholder="请选择"
+                          options={[
+                            { label: '是', value: true },
+                            { label: '否', value: false },
+                          ]}
+                          rules={[{ required: true, message: '请选择是否省略工作区' }]}
                         />
                         <ProFormTextArea
                           width={756}
@@ -851,7 +978,6 @@ const TaskForm: FC = () => {
                   { label: '是', value: true },
                   { label: '否', value: false },
                 ]}
-                rules={[{ required: true, message: '请选择是否以非 root 用户运行' }]}
               />
               <div className={styles.taskFormHeader}>
                 <span className={styles.verticalDivider} />
