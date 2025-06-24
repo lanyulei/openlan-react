@@ -10,7 +10,12 @@ import {
 } from '@ant-design/pro-components';
 import { Button, Col, Flex, Input, message, Row } from 'antd';
 import styles from './TaskForm.less';
-import { MinusCircleOutlined, PlusCircleOutlined, PlusOutlined } from '@ant-design/icons';
+import {
+  DeleteOutlined,
+  MinusCircleOutlined,
+  PlusCircleOutlined,
+  PlusOutlined,
+} from '@ant-design/icons';
 import { getNamespaces } from '@/services/deploy/namespace';
 import MonacoEditor from '@/components/MonacoEditor';
 
@@ -375,10 +380,34 @@ const TaskForm: FC = () => {
               <>
                 {taskForm.spec.steps?.map((step, idx) => (
                   <div key={idx}>
-                    <div style={{ marginBottom: 8, ...(idx > 0 ? { marginTop: 15 } : {}) }}>
-                      步骤 {idx + 1}
+                    <div
+                      className={styles.stepHeader}
+                      style={{
+                        marginBottom: 8,
+                        ...(idx > 0 ? { marginTop: 15 } : {}),
+                      }}
+                    >
+                      <div>步骤 {idx + 1}</div>
+                      <div>
+                        <DeleteOutlined
+                          className={styles.stepDeleteIcon}
+                          onClick={() => {
+                            setTaskForm((prev: any) => {
+                              const steps = [...prev.spec.steps];
+                              steps.splice(idx, 1);
+                              return {
+                                ...prev,
+                                spec: {
+                                  ...prev.spec,
+                                  steps,
+                                },
+                              };
+                            });
+                          }}
+                        />
+                      </div>
                     </div>
-                    <div className={styles.stepItem}>
+                    <div className={styles.commonBackgroundColor}>
                       <ProFormText
                         name={['spec', 'steps', idx, 'name']}
                         label="步骤名称"
@@ -542,26 +571,50 @@ const TaskForm: FC = () => {
                   </Flex>
                 )}
               >
-                <ProFormGroup key="param-group">
-                  <ProFormText
-                    name="name"
-                    label="参数名"
-                    placeholder="请输入参数名"
-                    rules={[{ required: true, message: '请输入参数名' }]}
-                  />
-                  <ProFormSelect
-                    name="type"
-                    label="类型"
-                    placeholder="请选择类型"
-                    options={[
-                      { label: 'string', value: 'string' },
-                      { label: 'array', value: 'array' },
-                    ]}
-                    rules={[{ required: true, message: '请选择类型' }]}
-                  />
-                  <ProFormText name="description" label="描述" placeholder="请输入参数描述" />
-                  <ProFormText name="default" label="默认值" placeholder="请输入默认值" />
-                </ProFormGroup>
+                {(_, idx) => (
+                  <div>
+                    <div style={{ marginBottom: 8, ...(idx > 0 ? { marginTop: 15 } : {}) }}>
+                      参数 {idx + 1}
+                    </div>
+                    <div
+                      className={styles.commonBackgroundColor}
+                      style={{ paddingBottom: 0, marginBottom: 10 }}
+                    >
+                      <ProFormGroup key="param-group">
+                        <ProFormText
+                          width={230}
+                          name="name"
+                          label="参数名"
+                          placeholder="请输入参数名"
+                          rules={[{ required: true, message: '请输入参数名' }]}
+                        />
+                        <ProFormSelect
+                          width={230}
+                          name="type"
+                          label="类型"
+                          placeholder="请选择类型"
+                          options={[
+                            { label: 'string', value: 'string' },
+                            { label: 'array', value: 'array' },
+                          ]}
+                          rules={[{ required: true, message: '请选择类型' }]}
+                        />
+                        <ProFormText
+                          width={230}
+                          name="default"
+                          label="默认值"
+                          placeholder="请输入默认值"
+                        />
+                        <ProFormTextArea
+                          width={756}
+                          name="description"
+                          label="描述"
+                          placeholder="请输入参数描述"
+                        />
+                      </ProFormGroup>
+                    </div>
+                  </div>
+                )}
               </ProFormList>
               <div className={styles.taskFormHeader}>
                 <span className={styles.verticalDivider} />
@@ -577,30 +630,50 @@ const TaskForm: FC = () => {
                   </Flex>
                 )}
               >
-                <ProFormGroup key="result-group">
-                  <ProFormText
-                    name="name"
-                    label="结果名"
-                    placeholder="请输入结果名"
-                    rules={[{ required: true, message: '请输入结果名' }]}
-                  />
-                  <ProFormText name="description" label="描述" placeholder="请输入结果描述" />
-                  <ProFormSelect
-                    name="type"
-                    label="类型"
-                    placeholder="请选择类型"
-                    options={[
-                      { label: 'string', value: 'string' },
-                      { label: 'array', value: 'array' },
-                    ]}
-                    rules={[{ required: true, message: '请选择类型' }]}
-                  />
-                  <ProFormText
-                    name="value"
-                    label="值"
-                    placeholder="请输入结果值，如 $(steps.step-name.results.result-name)"
-                  />
-                </ProFormGroup>
+                {(_, idx) => (
+                  <div>
+                    <div style={{ marginBottom: 8, ...(idx > 0 ? { marginTop: 15 } : {}) }}>
+                      结果 {idx + 1}
+                    </div>
+                    <div
+                      className={styles.commonBackgroundColor}
+                      style={{ paddingBottom: 0, marginBottom: 10 }}
+                    >
+                      <ProFormGroup key="result-group">
+                        <ProFormText
+                          width={230}
+                          name="name"
+                          label="结果名"
+                          placeholder="请输入结果名"
+                          rules={[{ required: true, message: '请输入结果名' }]}
+                        />
+                        <ProFormSelect
+                          width={230}
+                          name="type"
+                          label="类型"
+                          placeholder="请选择类型"
+                          options={[
+                            { label: 'string', value: 'string' },
+                            { label: 'array', value: 'array' },
+                          ]}
+                          rules={[{ required: true, message: '请选择类型' }]}
+                        />
+                        <ProFormText
+                          width={230}
+                          name="value"
+                          label="值"
+                          placeholder="请输入结果值，如 $(steps.step-name.results.result-name)"
+                        />
+                        <ProFormTextArea
+                          name="description"
+                          label="描述"
+                          width={756}
+                          placeholder="请输入结果描述"
+                        />
+                      </ProFormGroup>
+                    </div>
+                  </div>
+                )}
               </ProFormList>
               <div className={styles.taskFormHeader}>
                 <span className={styles.verticalDivider} />
@@ -616,31 +689,51 @@ const TaskForm: FC = () => {
                   </Flex>
                 )}
               >
-                <ProFormGroup key="workspace-group">
-                  <ProFormText
-                    name="name"
-                    label="名称"
-                    placeholder="请输入工作空间名称"
-                    rules={[{ required: true, message: '请输入名称' }]}
-                  />
-                  <ProFormText name="description" label="描述" placeholder="请输入描述" />
-                  <ProFormText
-                    name="mountPath"
-                    label="挂载路径"
-                    placeholder="如 /workspace/source"
-                    rules={[{ required: true, message: '请输入挂载路径' }]}
-                  />
-                  <ProFormSelect
-                    name="readOnly"
-                    label="只读"
-                    placeholder="请选择"
-                    options={[
-                      { label: '是', value: true },
-                      { label: '否', value: false },
-                    ]}
-                    rules={[{ required: true, message: '请选择是否只读' }]}
-                  />
-                </ProFormGroup>
+                {(_, idx) => (
+                  <div>
+                    <div style={{ marginBottom: 8, ...(idx > 0 ? { marginTop: 15 } : {}) }}>
+                      工作空间 {idx + 1}
+                    </div>
+                    <div
+                      className={styles.commonBackgroundColor}
+                      style={{ paddingBottom: 0, marginBottom: 10 }}
+                    >
+                      <ProFormGroup key="workspace-group">
+                        <ProFormText
+                          width={230}
+                          name="name"
+                          label="名称"
+                          placeholder="请输入工作空间名称"
+                          rules={[{ required: true, message: '请输入名称' }]}
+                        />
+                        <ProFormText
+                          width={230}
+                          name="mountPath"
+                          label="挂载路径"
+                          placeholder="如 /workspace/source"
+                          rules={[{ required: true, message: '请输入挂载路径' }]}
+                        />
+                        <ProFormSelect
+                          width={230}
+                          name="readOnly"
+                          label="只读"
+                          placeholder="请选择"
+                          options={[
+                            { label: '是', value: true },
+                            { label: '否', value: false },
+                          ]}
+                          rules={[{ required: true, message: '请选择是否只读' }]}
+                        />
+                        <ProFormTextArea
+                          width={756}
+                          name="description"
+                          label="描述"
+                          placeholder="请输入描述"
+                        />
+                      </ProFormGroup>
+                    </div>
+                  </div>
+                )}
               </ProFormList>
               <div className={styles.taskFormHeader}>
                 <span className={styles.verticalDivider} />
@@ -656,41 +749,55 @@ const TaskForm: FC = () => {
                   </Flex>
                 )}
               >
-                <ProFormGroup key="volume-group">
-                  <ProFormText
-                    name="name"
-                    label="卷名"
-                    placeholder="请输入卷名"
-                    rules={[{ required: true, message: '请输入卷名' }]}
-                  />
-                  <ProFormSelect
-                    name="type"
-                    label="卷类型"
-                    placeholder="请选择卷类型"
-                    options={[
-                      { label: 'emptyDir', value: 'emptyDir' },
-                      // 可根据需要扩展更多类型
-                    ]}
-                    rules={[{ required: true, message: '请选择卷类型' }]}
-                  />
-                  {/* 仅当类型为 emptyDir 时显示 */}
-                  <ProForm.Item
-                    noStyle
-                    shouldUpdate={(prev: { type: any }, curr: { type: any }) =>
-                      prev?.type !== curr?.type
-                    }
-                  >
-                    {({ type }: { type?: string }) =>
-                      type === 'emptyDir' ? (
+                {(_, idx) => (
+                  <div>
+                    <div style={{ marginBottom: 8, ...(idx > 0 ? { marginTop: 15 } : {}) }}>
+                      存储卷 {idx + 1}
+                    </div>
+                    <div
+                      className={styles.commonBackgroundColor}
+                      style={{ paddingBottom: 0, marginBottom: 10 }}
+                    >
+                      <ProFormGroup key="volume-group">
                         <ProFormText
-                          name={['emptyDir', 'medium']}
-                          label="介质类型"
-                          placeholder="可选，留空为默认"
+                          width={362}
+                          name="name"
+                          label="卷名"
+                          placeholder="请输入卷名"
+                          rules={[{ required: true, message: '请输入卷名' }]}
                         />
-                      ) : null
-                    }
-                  </ProForm.Item>
-                </ProFormGroup>
+                        <ProFormSelect
+                          width={362}
+                          name="type"
+                          label="卷类型"
+                          placeholder="请选择卷类型"
+                          options={[
+                            { label: 'emptyDir', value: 'emptyDir' },
+                            // 可根据需要扩展更多类型
+                          ]}
+                          rules={[{ required: true, message: '请选择卷类型' }]}
+                        />
+                        {/* 仅当类型为 emptyDir 时显示 */}
+                        <ProForm.Item
+                          noStyle
+                          shouldUpdate={(prev: { type: any }, curr: { type: any }) =>
+                            prev?.type !== curr?.type
+                          }
+                        >
+                          {({ type }: { type?: string }) =>
+                            type === 'emptyDir' ? (
+                              <ProFormText
+                                name={['emptyDir', 'medium']}
+                                label="介质类型"
+                                placeholder="可选，留空为默认"
+                              />
+                            ) : null
+                          }
+                        </ProForm.Item>
+                      </ProFormGroup>
+                    </div>
+                  </div>
+                )}
               </ProFormList>
               <div className={styles.taskFormHeader}>
                 <span className={styles.verticalDivider} />
@@ -707,33 +814,45 @@ const TaskForm: FC = () => {
                   </Flex>
                 )}
               >
-                <ProFormGroup key="step-template-env-group">
-                  <ProFormText
-                    name="name"
-                    label="变量名"
-                    placeholder="请输入变量名"
-                    rules={[{ required: true, message: '请输入变量名' }]}
-                  />
-                  <ProFormText
-                    name="value"
-                    label="变量值"
-                    placeholder="请输入变量值"
-                    rules={[{ required: true, message: '请输入变量值' }]}
-                  />
-                </ProFormGroup>
+                {(_, idx) => (
+                  <div>
+                    <div style={{ marginBottom: 8, ...(idx > 0 ? { marginTop: 15 } : {}) }}>
+                      环境变量 {idx + 1}
+                    </div>
+                    <div
+                      className={styles.commonBackgroundColor}
+                      style={{ paddingBottom: 0, marginBottom: 10 }}
+                    >
+                      <ProFormGroup key="step-template-env-group">
+                        <ProFormText
+                          width={362}
+                          name="name"
+                          label="变量名"
+                          placeholder="请输入变量名"
+                          rules={[{ required: true, message: '请输入变量名' }]}
+                        />
+                        <ProFormText
+                          width={362}
+                          name="value"
+                          label="变量值"
+                          placeholder="请输入变量值"
+                          rules={[{ required: true, message: '请输入变量值' }]}
+                        />
+                      </ProFormGroup>
+                    </div>
+                  </div>
+                )}
               </ProFormList>
-              <ProFormGroup title="安全上下文">
-                <ProFormSelect
-                  name={['spec', 'stepTemplate', 'securityContext', 'runAsNonRoot']}
-                  label="以非 root 用户运行"
-                  placeholder="请选择"
-                  options={[
-                    { label: '是', value: true },
-                    { label: '否', value: false },
-                  ]}
-                  rules={[{ required: true, message: '请选择是否以非 root 用户运行' }]}
-                />
-              </ProFormGroup>
+              <ProFormSelect
+                name={['spec', 'stepTemplate', 'securityContext', 'runAsNonRoot']}
+                label="以非 root 用户运行"
+                placeholder="请选择"
+                options={[
+                  { label: '是', value: true },
+                  { label: '否', value: false },
+                ]}
+                rules={[{ required: true, message: '请选择是否以非 root 用户运行' }]}
+              />
               <div className={styles.taskFormHeader}>
                 <span className={styles.verticalDivider} />
                 <h3>辅助容器</h3>
@@ -748,38 +867,54 @@ const TaskForm: FC = () => {
                   </Flex>
                 )}
               >
-                <ProFormGroup key="sidecar-group">
-                  <ProFormText
-                    name="name"
-                    label="名称"
-                    placeholder="请输入辅助容器名称"
-                    rules={[{ required: true, message: '请输入名称' }]}
-                  />
-                  <ProFormText
-                    name="image"
-                    label="镜像"
-                    placeholder="请输入镜像"
-                    rules={[{ required: true, message: '请输入镜像' }]}
-                  />
-                  <ProFormText
-                    name="command"
-                    label="命令"
-                    placeholder='如 ["tail"]，多个用英文逗号分隔'
-                    tooltip="可填写多个命令，如 tail"
-                    transform={(value) =>
-                      value ? value.split(',').map((v: string) => v.trim()) : undefined
-                    }
-                  />
-                  <ProFormText
-                    name="args"
-                    label="参数"
-                    placeholder='如 ["-f", "/dev/null"]，多个用英文逗号分隔'
-                    tooltip="可填写多个参数，如 -f,/dev/null"
-                    transform={(value) =>
-                      value ? value.split(',').map((v: string) => v.trim()) : undefined
-                    }
-                  />
-                </ProFormGroup>
+                {(_, idx) => (
+                  <div>
+                    <div style={{ marginBottom: 8, ...(idx > 0 ? { marginTop: 15 } : {}) }}>
+                      辅助容器 {idx + 1}
+                    </div>
+                    <div
+                      className={styles.commonBackgroundColor}
+                      style={{ paddingBottom: 0, marginBottom: 10 }}
+                    >
+                      <ProFormGroup key="sidecar-group">
+                        <ProFormText
+                          width={362}
+                          name="name"
+                          label="名称"
+                          placeholder="请输入辅助容器名称"
+                          rules={[{ required: true, message: '请输入名称' }]}
+                        />
+                        <ProFormText
+                          width={362}
+                          name="image"
+                          label="镜像"
+                          placeholder="请输入镜像"
+                          rules={[{ required: true, message: '请输入镜像' }]}
+                        />
+                        <ProFormText
+                          width={362}
+                          name="command"
+                          label="命令"
+                          placeholder='如 ["tail"]，多个用英文逗号分隔'
+                          tooltip="可填写多个命令，如 tail"
+                          transform={(value) =>
+                            value ? value.split(',').map((v: string) => v.trim()) : undefined
+                          }
+                        />
+                        <ProFormText
+                          width={362}
+                          name="args"
+                          label="参数"
+                          placeholder='如 ["-f", "/dev/null"]，多个用英文逗号分隔'
+                          tooltip="可填写多个参数，如 -f,/dev/null"
+                          transform={(value) =>
+                            value ? value.split(',').map((v: string) => v.trim()) : undefined
+                          }
+                        />
+                      </ProFormGroup>
+                    </div>
+                  </div>
+                )}
               </ProFormList>
             </ProForm>
           </div>
