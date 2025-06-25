@@ -6,6 +6,7 @@ interface MonacoEditorProps {
   value?: string;
   onChange?: (value: string) => void;
   height?: string | number;
+  width?: string | number;
   codeType?: string;
 }
 
@@ -13,6 +14,7 @@ const MonacoEditor: FC<MonacoEditorProps> = ({
   value = '',
   onChange,
   height = '200px',
+  width = '100%',
   codeType = 'shell',
 }) => {
   const [editorCode, setEditorCode] = useState(value);
@@ -24,7 +26,7 @@ const MonacoEditor: FC<MonacoEditorProps> = ({
   };
 
   return (
-    <div className={styles.editorContainer}>
+    <div className={styles.editorContainer} style={{ width: width }}>
       <Editor
         height={height}
         language={codeType} // 关键：设置为Shell语言
