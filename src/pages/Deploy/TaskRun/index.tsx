@@ -60,11 +60,15 @@ const TaskRun: FC = () => {
                 <div>
                   <a>
                     <div className="commonEllipsis">
-                      {record.metadata?.name ? <a>{record.metadata.name}</a> : '-'}
+                      <Tooltip placement="top" title={record.metadata?.name}>
+                        {record.metadata?.name ? record.metadata.name : '-'}
+                      </Tooltip>
                     </div>
                   </a>
                   <div className="commonEllipsis" style={{ color: '#888', fontSize: 12 }}>
-                    {record.status?.taskSpec?.description || '-'}
+                    <Tooltip placement="top" title={record.status?.taskSpec?.description}>
+                      {record.status?.taskSpec?.description || '-'}
+                    </Tooltip>
                   </div>
                 </div>
               ),
