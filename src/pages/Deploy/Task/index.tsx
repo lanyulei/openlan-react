@@ -34,7 +34,7 @@ const Task: FC = () => {
     }
 
     // @ts-ignore
-    return res.data?.items || [];
+    return (res.data?.items || []).reverse();
   };
 
   useEffect(() => {

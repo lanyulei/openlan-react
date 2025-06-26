@@ -14,6 +14,7 @@ import { formatDate } from '@/utils/tools/tools';
 import commonStyles from '@/pages/Resource/Cloud/Account/index.less';
 
 const taskRunsName = 'taskruns';
+const tasksName = 'tasks';
 
 const TaskRun: FC = () => {
   const actionRef = useRef<ActionType>();
@@ -22,6 +23,7 @@ const TaskRun: FC = () => {
     namespace: undefined,
   });
   const [namespaceList, setNamespaceList] = React.useState<string[]>([]);
+  const [taskList, setTaskList] = React.useState<any[]>([]);
 
   const handleReload = async () => {
     await actionRef?.current?.reload();
@@ -36,13 +38,20 @@ const TaskRun: FC = () => {
     }
 
     // @ts-ignore
-    return res.data?.items || [];
+    return (res.data?.items || []).reverse();
+  };
+
+  const getTaskList = async () => {
+    const taskRes = await resourceList(tasksName, {}, {});
+    setTaskList(taskRes.data?.items);
   };
 
   useEffect(() => {
     (async () => {
       const nsRes = await getNamespaces({}, {});
       setNamespaceList(nsRes.data?.items || []);
+
+      await getTaskList();
     })();
   }, []);
   // @ts-ignore
@@ -287,7 +296,7 @@ const TaskRun: FC = () => {
               key="search"
               placeholder="请输入名称"
               allowClear
-              style={{ width: 300 }}
+              style={{ width: 260 }}
               onChange={(e) => {
                 if (e.target.value === '') {
                   setQuery({ ...query, fieldSelector: undefined });
@@ -300,7 +309,7 @@ const TaskRun: FC = () => {
             />,
             <Select
               key="namespace"
-              style={{ width: 220 }}
+              style={{ width: 200 }}
               allowClear
               value={query.namespace}
               options={namespaceList.map((ns) => ({
@@ -310,11 +319,31 @@ const TaskRun: FC = () => {
                 value: ns.metadata.name,
               }))}
               placeholder="请选择命名空间"
-              onChange={(value) => {
+              onChange={async (value) => {
                 setQuery({ ...query, namespace: value });
-                setTimeout(async () => {
-                  await handleReload();
-                });
+                await handleReload();
+              }}
+            />,
+            <Select
+              key="task"
+              style={{ width: 200 }}
+              allowClear
+              options={taskList.map((task) => ({
+                // @ts-ignore
+                label: task.metadata.name,
+                // @ts-ignore
+                value: task.metadata.name,
+              }))}
+              placeholder="请选择任务"
+              onChange={async (value) => {
+                const _data = { ...query };
+                if (value && value !== '') {
+                  _data.labelSelector = 'tekton.dev/task=' + value;
+                } else {
+                  delete _data.labelSelector;
+                }
+                setQuery(_data);
+                await handleReload();
               }}
             />,
           ]}
