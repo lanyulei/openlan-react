@@ -920,34 +920,29 @@ const TaskForm: FC<TaskFormProps> = ({
                   </Flex>
                 )}
               >
-                {(_, idx) => (
-                  <div>
-                    <div style={{ marginBottom: 8, ...(idx > 0 ? { marginTop: 15 } : {}) }}>
-                      环境变量 {idx + 1}
-                    </div>
-                    <div
-                      className={styles.commonBackgroundColor}
-                      style={{ paddingBottom: 0, marginBottom: 10 }}
-                    >
-                      <ProFormGroup key="step-template-env-group">
-                        <ProFormText
-                          width={362}
-                          name="name"
-                          label="变量名"
-                          placeholder="请输入变量名"
-                          rules={[{ required: true, message: '请输入变量名' }]}
-                        />
-                        <ProFormText
-                          width={362}
-                          name="value"
-                          label="变量值"
-                          placeholder="请输入变量值"
-                          rules={[{ required: true, message: '请输入变量值' }]}
-                        />
-                      </ProFormGroup>
-                    </div>
+                <div>
+                  <div
+                    className={styles.commonBackgroundColor}
+                    style={{ paddingBottom: 0, marginBottom: 10 }}
+                  >
+                    <ProFormGroup key="step-template-env-group">
+                      <ProFormText
+                        width={362}
+                        name="name"
+                        label="变量名"
+                        placeholder="请输入变量名"
+                        rules={[{ required: true, message: '请输入变量名' }]}
+                      />
+                      <ProFormText
+                        width={362}
+                        name="value"
+                        label="变量值"
+                        placeholder="请输入变量值"
+                        rules={[{ required: true, message: '请输入变量值' }]}
+                      />
+                    </ProFormGroup>
                   </div>
-                )}
+                </div>
               </ProFormList>
               <ProFormSelect
                 name={['spec', 'stepTemplate', 'securityContext', 'runAsNonRoot']}
