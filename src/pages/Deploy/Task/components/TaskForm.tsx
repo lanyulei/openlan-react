@@ -18,6 +18,11 @@ import {
 } from '@ant-design/icons';
 import { getNamespaces } from '@/services/deploy/namespace';
 import MonacoEditor from '@/components/MonacoEditor';
+import { createTask, updateTask } from '@/services/deploy/tasks';
+
+interface TaskFormProps {
+  status: 'create' | 'edit';
+}
 
 const initialScript = `#!/bin/bash
 
@@ -29,7 +34,8 @@ const initialScript = `#!/bin/bash
 
 `;
 
-const TaskForm: FC = () => {
+const TaskForm: FC<TaskFormProps> = ({ status = 'create' }) => {
+  const [form] = ProForm.useForm();
   const [messageApi, messageContextHolder] = message.useMessage();
   const [namespaceList, setNamespaceList] = useState<string[]>([]);
 
@@ -104,6 +110,7 @@ const TaskForm: FC = () => {
         <div className={styles.taskForm}>
           <div className={styles.taskFormContainer}>
             <ProForm
+              form={form}
               onFinish={async (values: any) => {
                 // @ts-ignore
                 for (let param of taskForm.spec?.params || []) {
@@ -117,14 +124,31 @@ const TaskForm: FC = () => {
                   }
                 }
 
+                // @ts-ignore
+                for (let result of taskForm.spec?.results || []) {
+                  if (result.type === 'object' && result.properties) {
+                    let properties = JSON.parse(JSON.stringify(result.properties));
+                    result.properties = {};
+
+                    for (let prop of properties) {
+                      result.properties[prop.key] = prop.value;
+                    }
+                  }
+                }
+
                 const _data = {
                   ...values,
                   ...taskForm,
                 };
 
-                console.log(_data);
-
-                messageApi.success('提交成功');
+                if (status === 'create') {
+                  console.log(_data);
+                  await createTask(_data.metadata.namespace, _data, {});
+                  messageApi.success('任务创建成功');
+                } else {
+                  await updateTask(_data.metadata.name, _data.metadata.namespace, _data, {});
+                  messageApi.success('任务更新成功');
+                }
               }}
               initialValues={taskForm}
               onValuesChange={(_, allValues) => {

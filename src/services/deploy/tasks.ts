@@ -30,3 +30,16 @@ export async function createTask(namespace: string, data: object, options: { [ke
     ...(options || {}),
   });
 }
+
+export async function updateTask(
+  name: string,
+  namespace: string,
+  data: object,
+  options: { [key: string]: any },
+) {
+  return request(`${KubeApi}/apis/tekton.dev/v1/namespaces/${namespace}/tasks/${name}`, {
+    method: 'PUT',
+    data,
+    ...(options || {}),
+  });
+}

@@ -1,21 +1,46 @@
-import React, { FC, useRef } from 'react';
+import React, { FC, useEffect, useRef } from 'react';
 import { ActionType, PageContainer, ProTable } from '@ant-design/pro-components';
-import { Button, Input } from 'antd';
+import { Button, Input, Select } from 'antd';
 import { EditOutlined, EyeOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import styles from '@/pages/Resource/Cloud/Account/index.less';
-import { getLogicResourceList } from '@/services/resource/logicResource';
 import { useNavigate } from 'react-router-dom';
+import { getNamespaces } from '@/services/deploy/namespace';
+import { taskList, taskListByNamespace } from '@/services/deploy/tasks';
 
 const Task: FC = () => {
   const navigate = useNavigate();
   const actionRef = useRef<ActionType>();
-  const [query, setQuery] = React.useState({
-    name: '',
+  const [query, setQuery] = React.useState<any>({
+    name: undefined,
+    namespace: undefined,
   });
+  const [namespaceList, setNamespaceList] = React.useState<string[]>([]);
 
   const handleReload = async () => {
+    console.log(query);
     await actionRef?.current?.reload();
   };
+
+  const getList = async () => {
+    let res = {};
+    if (query.namespace && query.namespace !== '') {
+      res = await taskListByNamespace(query.namespace, query, {});
+    } else {
+      res = await taskList(query, {});
+    }
+
+    // @ts-ignore
+    return res.data?.items || [];
+  };
+
+  useEffect(() => {
+    (async () => {
+      const nsRes = await getNamespaces({}, {});
+      setNamespaceList(nsRes.data?.items || []);
+
+      await getList();
+    })();
+  }, []);
 
   return (
     <>
@@ -25,25 +50,14 @@ const Task: FC = () => {
           columns={[
             {
               title: '名称',
-              dataIndex: 'name',
+              dataIndex: ['metadata', 'name'],
               key: 'name',
               ellipsis: true,
             },
             {
               title: '命名空间',
-              dataIndex: 'namespace',
+              dataIndex: ['metadata', 'namespace'],
               key: 'namespace',
-            },
-            {
-              title: '步骤数量',
-              dataIndex: 'stepCount',
-              key: 'stepCount',
-            },
-            {
-              title: '参数数量',
-              dataIndex: 'paramCount',
-              key: 'paramCount',
-              ellipsis: true,
             },
             {
               title: '操作',
@@ -75,16 +89,11 @@ const Task: FC = () => {
           ]}
           actionRef={actionRef}
           request={async () => {
-            const _res = await getLogicResourceList(
-              {
-                not_page: true,
-              },
-              {},
-            );
+            const _res = await getList();
             return {
-              data: _res.data?.list || [],
+              data: _res || [],
               success: true,
-              total: _res.data?.total || 0,
+              total: _res?.length || 0,
             };
           }}
           rowKey="id"
@@ -101,13 +110,37 @@ const Task: FC = () => {
             >
               新建任务
             </Button>,
+            <Select
+              key="namespace"
+              style={{ width: 220 }}
+              allowClear
+              value={query.namespace}
+              options={namespaceList.map((ns) => ({
+                // @ts-ignore
+                label: ns.metadata.name,
+                // @ts-ignore
+                value: ns.metadata.name,
+              }))}
+              placeholder="请选择命名空间"
+              onChange={(value) => {
+                setQuery({ ...query, namespace: value });
+                setTimeout(async () => {
+                  await handleReload();
+                });
+              }}
+            />,
             <Input
               key="search"
               placeholder="请输入名称"
               allowClear
               style={{ width: 300 }}
-              value={query.name}
-              onChange={(e) => setQuery({ ...query, name: e.target.value })}
+              onChange={(e) => {
+                if (e.target.value === '') {
+                  setQuery({ ...query, fieldSelector: undefined });
+                } else {
+                  setQuery({ ...query, fieldSelector: 'metadata.name=' + e.target.value });
+                }
+              }}
               onPressEnter={handleReload}
               suffix={<SearchOutlined />}
             />,
