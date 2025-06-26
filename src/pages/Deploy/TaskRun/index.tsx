@@ -3,6 +3,7 @@ import { ActionType, PageContainer, ProTable } from '@ant-design/pro-components'
 import { resourceList, resourceListByNamespace } from '@/services/deploy/tekton';
 import {
   CheckCircleOutlined,
+  ClockCircleOutlined,
   CloseCircleOutlined,
   ExclamationCircleOutlined,
   PlusOutlined,
@@ -71,108 +72,153 @@ const TaskRun: FC = () => {
             },
             {
               title: '任务名称',
+              tooltip: '鼠标滑过状态名称查看运行状态',
               key: 'spec.taskRef.name',
               render: (text, record) => {
-                let c = 0;
+                let trueCount = 0;
+                let falseCount = 0;
+                let unknownCount = 0;
                 for (const condition of record.status?.conditions || []) {
-                  if (condition.status === 'False') {
-                    c += 1;
+                  if (condition.status === 'True') {
+                    trueCount += 1;
+                  } else if (condition.status === 'False') {
+                    falseCount += 1;
+                  } else if (condition.status === 'Unknown') {
+                    unknownCount += 1;
                   }
                 }
-                if (c > 0) {
-                  return (
-                    <Tooltip
-                      color="white"
-                      placement="bottom"
-                      destroyOnHidden
-                      fresh
-                      styles={{
-                        root: {
-                          maxWidth: 800,
-                        },
-                      }}
-                      title={() => {
-                        const columns = [
-                          {
-                            title: '最后变更时间',
-                            dataIndex: 'lastTransitionTime',
-                            key: 'lastTransitionTime',
-                            ellipsis: true,
-                            render: (text: string) => {
-                              return formatDate(text) || '-';
-                            },
-                            width: 180,
-                          },
-                          {
-                            title: '状态',
-                            dataIndex: 'status',
-                            key: 'status',
-                            ellipsis: true,
-                            width: 100,
-                            render: (text: string) => {
-                              if (text === 'True') {
-                                return (
-                                  <CheckCircleOutlined style={{ color: 'green', fontSize: 15 }} />
-                                );
-                              } else if (text === 'False') {
-                                return (
-                                  <CloseCircleOutlined style={{ color: 'red', fontSize: 15 }} />
-                                );
-                              } else if (text === 'Unknown') {
-                                return (
-                                  <ExclamationCircleOutlined
-                                    style={{ color: 'orange', fontSize: 15 }}
-                                  />
-                                );
-                              }
-                              return '-';
-                            },
-                          },
-                          {
-                            title: '类型',
-                            dataIndex: 'type',
-                            key: 'type',
-                            ellipsis: true,
-                          },
-                          {
-                            title: '原因',
-                            dataIndex: 'reason',
-                            key: 'reason',
-                            ellipsis: true,
-                          },
-                          {
-                            title: '详情',
-                            dataIndex: 'message',
-                            key: 'message',
-                            ellipsis: true,
-                          },
-                        ];
-                        return (
-                          <div style={{ padding: 5 }}>
-                            <Table
-                              bordered
-                              dataSource={record.status?.conditions}
-                              columns={columns}
-                              pagination={false}
-                            />
-                          </div>
-                        );
-                      }}
-                    >
-                      <CloseCircleOutlined style={{ color: 'red', fontSize: 14, marginRight: 2 }} />{' '}
-                      运行失败
-                    </Tooltip>
+
+                let result = undefined as any;
+                if (unknownCount > 0) {
+                  result = (
+                    <>
+                      <ClockCircleOutlined style={{ color: 'red', fontSize: 14, marginRight: 5 }} />
+                      待处理
+                    </>
                   );
-                } else {
-                  return (
+                } else if (falseCount > 0) {
+                  result = (
+                    <>
+                      <CloseCircleOutlined style={{ color: 'red', fontSize: 14, marginRight: 5 }} />
+                      运行失败
+                    </>
+                  );
+                } else if (record.status?.conditions?.length === trueCount) {
+                  result = (
                     <>
                       <CheckCircleOutlined
-                        style={{ color: 'green', fontSize: 14, marginRight: 2 }}
-                      />{' '}
+                        style={{ color: 'green', fontSize: 14, marginRight: 5 }}
+                      />
                       运行成功
                     </>
                   );
                 }
+
+                return (
+                  <Tooltip
+                    color="white"
+                    placement="bottom"
+                    destroyOnHidden
+                    fresh
+                    styles={{
+                      root: {
+                        maxWidth: 800,
+                      },
+                    }}
+                    title={() => {
+                      const columns = [
+                        {
+                          title: '最后变更时间',
+                          dataIndex: 'lastTransitionTime',
+                          key: 'lastTransitionTime',
+                          ellipsis: true,
+                          render: (text: string) => {
+                            return formatDate(text) || '-';
+                          },
+                          width: 180,
+                        },
+                        {
+                          title: '状态',
+                          dataIndex: 'status',
+                          key: 'status',
+                          ellipsis: true,
+                          width: 100,
+                          render: (text: string) => {
+                            if (text === 'True') {
+                              return (
+                                <>
+                                  <CheckCircleOutlined
+                                    style={{ color: 'green', fontSize: 15, marginRight: 5 }}
+                                  />
+                                  成功
+                                </>
+                              );
+                            } else if (text === 'False') {
+                              return (
+                                <>
+                                  <CloseCircleOutlined
+                                    style={{ color: 'red', fontSize: 15, marginRight: 5 }}
+                                  />
+                                  失败
+                                </>
+                              );
+                            } else if (text === 'Unknown') {
+                              return (
+                                <>
+                                  <ExclamationCircleOutlined
+                                    style={{ color: 'orange', fontSize: 15, marginRight: 5 }}
+                                  />
+                                  未知
+                                </>
+                              );
+                            }
+                            return '-';
+                          },
+                        },
+                        {
+                          title: '类型',
+                          dataIndex: 'type',
+                          key: 'type',
+                          ellipsis: true,
+                        },
+                        {
+                          title: '原因',
+                          dataIndex: 'reason',
+                          key: 'reason',
+                          ellipsis: true,
+                        },
+                        {
+                          title: '详情',
+                          dataIndex: 'message',
+                          key: 'message',
+                          ellipsis: true,
+                        },
+                      ];
+
+                      let _conditions = [];
+                      if (record.status?.conditions) {
+                        _conditions = record.status.conditions.map((condition: any) => ({
+                          id: `${condition.type}-${Math.random().toString(36).substr(2, 9)}`,
+                          ...condition,
+                        }));
+                      }
+
+                      return (
+                        <div style={{ padding: 5 }}>
+                          <Table
+                            rowKey="id"
+                            bordered
+                            dataSource={_conditions}
+                            columns={columns}
+                            pagination={false}
+                          />
+                        </div>
+                      );
+                    }}
+                  >
+                    {result}
+                  </Tooltip>
+                );
               },
             },
             {
