@@ -5,7 +5,6 @@ import {
   CheckCircleOutlined,
   ClockCircleOutlined,
   CloseCircleOutlined,
-  ExclamationCircleOutlined,
   PlusOutlined,
   SearchOutlined,
 } from '@ant-design/icons';
@@ -46,6 +45,7 @@ const TaskRun: FC = () => {
       setNamespaceList(nsRes.data?.items || []);
     })();
   }, []);
+  // @ts-ignore
   return (
     <>
       <PageContainer content="任务运行（TaskRun）是 Tekton 中用于实例化并执行一个 Task 的具体运行实例，负责管理 Task 中定义步骤（Steps）的实际执行过程及资源。">
@@ -58,8 +58,12 @@ const TaskRun: FC = () => {
               ellipsis: true,
               render: (text, record) => (
                 <div>
-                  <div>{record.metadata?.name || '-'}</div>
-                  <div style={{ color: '#888', fontSize: 12 }}>
+                  <a>
+                    <div className="commonEllipsis">
+                      {record.metadata?.name ? <a>{record.metadata.name}</a> : '-'}
+                    </div>
+                  </a>
+                  <div className="commonEllipsis" style={{ color: '#888', fontSize: 12 }}>
                     {record.status?.taskSpec?.description || '-'}
                   </div>
                 </div>
@@ -69,47 +73,83 @@ const TaskRun: FC = () => {
               title: '命名空间',
               dataIndex: ['metadata', 'namespace'],
               key: 'metadata.namespace',
+              ellipsis: true,
             },
             {
-              title: '任务名称',
+              title: '状态',
               tooltip: '鼠标滑过状态名称查看运行状态',
               key: 'spec.taskRef.name',
               render: (text, record) => {
-                let trueCount = 0;
-                let falseCount = 0;
-                let unknownCount = 0;
+                let pendingCount = 0;
+                let successCount = 0;
+                let failedCount = 0;
+                let runningCount = 0;
+                let startedCount = 0;
                 for (const condition of record.status?.conditions || []) {
-                  if (condition.status === 'True') {
-                    trueCount += 1;
-                  } else if (condition.status === 'False') {
-                    falseCount += 1;
-                  } else if (condition.status === 'Unknown') {
-                    unknownCount += 1;
+                  if (condition.reason === 'Pending') {
+                    pendingCount += 1;
+                  } else if (condition.reason === 'Started') {
+                    startedCount += 1;
+                  } else if (condition.reason === 'Running') {
+                    runningCount += 1;
+                  } else if (condition.reason === 'Succeeded') {
+                    successCount += 1;
+                  } else {
+                    failedCount += 1;
                   }
                 }
 
                 let result = undefined as any;
-                if (unknownCount > 0) {
+                if (pendingCount > 0) {
                   result = (
                     <>
-                      <ClockCircleOutlined style={{ color: 'red', fontSize: 14, marginRight: 5 }} />
-                      待处理
+                      <ClockCircleOutlined
+                        style={{ color: 'orange', fontSize: 14, marginRight: 5 }}
+                      />
+                      等待中
                     </>
                   );
-                } else if (falseCount > 0) {
+                } else if (startedCount > 0) {
                   result = (
                     <>
-                      <CloseCircleOutlined style={{ color: 'red', fontSize: 14, marginRight: 5 }} />
-                      运行失败
+                      <ClockCircleOutlined
+                        style={{ color: 'orange', fontSize: 14, marginRight: 5 }}
+                      />
+                      启动中
                     </>
                   );
-                } else if (record.status?.conditions?.length === trueCount) {
+                } else if (runningCount > 0) {
+                  result = (
+                    <>
+                      <ClockCircleOutlined
+                        style={{ color: 'orange', fontSize: 14, marginRight: 5 }}
+                      />
+                      正在运行
+                    </>
+                  );
+                } else if (successCount > 0) {
                   result = (
                     <>
                       <CheckCircleOutlined
                         style={{ color: 'green', fontSize: 14, marginRight: 5 }}
                       />
-                      运行成功
+                      成功
+                    </>
+                  );
+                } else if (failedCount > 0) {
+                  result = (
+                    <>
+                      <CloseCircleOutlined style={{ color: 'red', fontSize: 14, marginRight: 5 }} />
+                      失败
+                    </>
+                  );
+                } else {
+                  result = (
+                    <>
+                      <ClockCircleOutlined
+                        style={{ color: 'orange', fontSize: 14, marginRight: 5 }}
+                      />
+                      未知
                     </>
                   );
                 }
@@ -143,43 +183,6 @@ const TaskRun: FC = () => {
                           key: 'status',
                           ellipsis: true,
                           width: 100,
-                          render: (text: string) => {
-                            if (text === 'True') {
-                              return (
-                                <>
-                                  <CheckCircleOutlined
-                                    style={{ color: 'green', fontSize: 15, marginRight: 5 }}
-                                  />
-                                  成功
-                                </>
-                              );
-                            } else if (text === 'False') {
-                              return (
-                                <>
-                                  <CloseCircleOutlined
-                                    style={{ color: 'red', fontSize: 15, marginRight: 5 }}
-                                  />
-                                  失败
-                                </>
-                              );
-                            } else if (text === 'Unknown') {
-                              return (
-                                <>
-                                  <ExclamationCircleOutlined
-                                    style={{ color: 'orange', fontSize: 15, marginRight: 5 }}
-                                  />
-                                  未知
-                                </>
-                              );
-                            }
-                            return '-';
-                          },
-                        },
-                        {
-                          title: '类型',
-                          dataIndex: 'type',
-                          key: 'type',
-                          ellipsis: true,
                         },
                         {
                           title: '原因',
@@ -222,12 +225,12 @@ const TaskRun: FC = () => {
               },
             },
             {
-              title: '状态',
+              title: '任务名称',
               key: 'spec.taskRef.name',
               render: (text, record) => (
                 <div>
-                  <div>{record.spec?.taskRef?.name || '-'}</div>
-                  <div style={{ color: '#888', fontSize: 12 }}>
+                  <div className="commonEllipsis">{record.spec?.taskRef?.name || '-'}</div>
+                  <div className="commonEllipsis" style={{ color: '#888', fontSize: 12 }}>
                     {record.status?.taskSpec?.displayName || '-'}
                   </div>
                 </div>
