@@ -113,6 +113,11 @@ export default [
         component: './Deploy/Task',
       },
       {
+        path: '/deploy/taskruns',
+        name: 'taskRuns',
+        component: './Deploy/TaskRun',
+      },
+      {
         path: '/deploy/task/create',
         name: 'createTask',
         component: './Deploy/Task/create',

@@ -13,7 +13,10 @@ import styles from './TaskForm.less';
 import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import { getNamespaces } from '@/services/deploy/namespace';
 import MonacoEditor from '@/components/MonacoEditor';
-import { createTask, taskDetails, updateTask } from '@/services/deploy/tasks';
+import { createResource, resourceDetails, updateResource } from '@/services/deploy/tekton';
+import { useNavigate } from 'react-router-dom';
+
+const tasksName = 'tasks';
 
 interface TaskFormProps {
   status: 'create' | 'edit';
@@ -39,6 +42,7 @@ const TaskForm: FC<TaskFormProps> = ({
   const [form] = ProForm.useForm();
   const [messageApi, messageContextHolder] = message.useMessage();
   const [namespaceList, setNamespaceList] = useState<string[]>([]);
+  const navigate = useNavigate();
 
   const [taskForm, setTaskForm] = useState({
     apiVersion: 'tekton.dev/v1',
@@ -58,7 +62,7 @@ const TaskForm: FC<TaskFormProps> = ({
       setNamespaceList(_res.data?.items || []);
 
       if (status === 'edit') {
-        const res = await taskDetails(name, namespace, {});
+        const res = await resourceDetails(tasksName, name, namespace, {});
         const _data = res.data || {};
 
         for (let param of _data.spec?.params || []) {
@@ -174,15 +178,21 @@ const TaskForm: FC<TaskFormProps> = ({
                   ...taskForm,
                 };
 
-                console.log(_data);
-
                 if (status === 'create') {
-                  await createTask(_data.metadata.namespace, _data, {});
+                  await createResource(tasksName, _data.metadata.namespace, _data, {});
                   messageApi.success('任务创建成功');
                 } else {
-                  await updateTask(_data.metadata.name, _data.metadata.namespace, _data, {});
+                  await updateResource(
+                    tasksName,
+                    _data.metadata.name,
+                    _data.metadata.namespace,
+                    _data,
+                    {},
+                  );
                   messageApi.success('任务更新成功');
                 }
+
+                navigate('/deploy/task');
               }}
               initialValues={taskForm}
               onValuesChange={(_, allValues) => {
@@ -374,7 +384,10 @@ const TaskForm: FC<TaskFormProps> = ({
                         </Col>
                       </Row>
                       <ProForm.Item label="脚本" name={['spec', 'steps', idx, 'script']}>
-                        <MonacoEditor value={initialScript} />
+                        <MonacoEditor
+                          // @ts-ignore
+                          value={taskForm.spec.steps?.[idx]?.script || initialScript}
+                        />
                       </ProForm.Item>
                       <ProFormList
                         name={['spec', 'steps', idx, 'env']}
@@ -992,7 +1005,11 @@ const TaskForm: FC<TaskFormProps> = ({
                           rules={[{ required: true, message: '请输入镜像' }]}
                         />
                         <ProForm.Item label="脚本" name="script">
-                          <MonacoEditor width={756} value={initialScript} />
+                          <MonacoEditor
+                            width={756}
+                            // @ts-ignore
+                            value={taskForm.spec.sidecars?.[idx]?.script || initialScript}
+                          />
                         </ProForm.Item>
                         <ProFormList
                           name="volumeMounts"

@@ -1,0 +1,275 @@
+import React, { FC, useEffect, useRef } from 'react';
+import { ActionType, PageContainer, ProTable } from '@ant-design/pro-components';
+import { resourceList, resourceListByNamespace } from '@/services/deploy/tekton';
+import {
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  ExclamationCircleOutlined,
+  PlusOutlined,
+  SearchOutlined,
+} from '@ant-design/icons';
+import { Button, Input, Select, Table, Tooltip } from 'antd';
+import { getNamespaces } from '@/services/deploy/namespace';
+import { formatDate } from '@/utils/tools/tools';
+import commonStyles from '@/pages/Resource/Cloud/Account/index.less';
+
+const taskRunsName = 'taskruns';
+
+const TaskRun: FC = () => {
+  const actionRef = useRef<ActionType>();
+  const [query, setQuery] = React.useState<any>({
+    name: undefined,
+    namespace: undefined,
+  });
+  const [namespaceList, setNamespaceList] = React.useState<string[]>([]);
+
+  const handleReload = async () => {
+    await actionRef?.current?.reload();
+  };
+
+  const getList = async () => {
+    let res = {};
+    if (query.namespace && query.namespace !== '') {
+      res = await resourceListByNamespace(taskRunsName, query.namespace, query, {});
+    } else {
+      res = await resourceList(taskRunsName, query, {});
+    }
+
+    // @ts-ignore
+    return res.data?.items || [];
+  };
+
+  useEffect(() => {
+    (async () => {
+      const nsRes = await getNamespaces({}, {});
+      setNamespaceList(nsRes.data?.items || []);
+    })();
+  }, []);
+  return (
+    <>
+      <PageContainer content="任务运行（TaskRun）是 Tekton 中用于实例化并执行一个 Task 的具体运行实例，负责管理 Task 中定义步骤（Steps）的实际执行过程及资源。">
+        <ProTable
+          className={commonStyles.tableList}
+          columns={[
+            {
+              title: '名称',
+              key: 'metadata.name',
+              ellipsis: true,
+              render: (text, record) => (
+                <div>
+                  <div>{record.metadata?.name || '-'}</div>
+                  <div style={{ color: '#888', fontSize: 12 }}>
+                    {record.status?.taskSpec?.description || '-'}
+                  </div>
+                </div>
+              ),
+            },
+            {
+              title: '命名空间',
+              dataIndex: ['metadata', 'namespace'],
+              key: 'metadata.namespace',
+            },
+            {
+              title: '任务名称',
+              key: 'spec.taskRef.name',
+              render: (text, record) => {
+                let c = 0;
+                for (const condition of record.status?.conditions || []) {
+                  if (condition.status === 'False') {
+                    c += 1;
+                  }
+                }
+                if (c > 0) {
+                  return (
+                    <Tooltip
+                      color="white"
+                      placement="bottom"
+                      destroyOnHidden
+                      fresh
+                      styles={{
+                        root: {
+                          maxWidth: 800,
+                        },
+                      }}
+                      title={() => {
+                        const columns = [
+                          {
+                            title: '最后变更时间',
+                            dataIndex: 'lastTransitionTime',
+                            key: 'lastTransitionTime',
+                            ellipsis: true,
+                            render: (text: string) => {
+                              return formatDate(text) || '-';
+                            },
+                            width: 180,
+                          },
+                          {
+                            title: '状态',
+                            dataIndex: 'status',
+                            key: 'status',
+                            ellipsis: true,
+                            width: 100,
+                            render: (text: string) => {
+                              if (text === 'True') {
+                                return (
+                                  <CheckCircleOutlined style={{ color: 'green', fontSize: 15 }} />
+                                );
+                              } else if (text === 'False') {
+                                return (
+                                  <CloseCircleOutlined style={{ color: 'red', fontSize: 15 }} />
+                                );
+                              } else if (text === 'Unknown') {
+                                return (
+                                  <ExclamationCircleOutlined
+                                    style={{ color: 'orange', fontSize: 15 }}
+                                  />
+                                );
+                              }
+                              return '-';
+                            },
+                          },
+                          {
+                            title: '类型',
+                            dataIndex: 'type',
+                            key: 'type',
+                            ellipsis: true,
+                          },
+                          {
+                            title: '原因',
+                            dataIndex: 'reason',
+                            key: 'reason',
+                            ellipsis: true,
+                          },
+                          {
+                            title: '详情',
+                            dataIndex: 'message',
+                            key: 'message',
+                            ellipsis: true,
+                          },
+                        ];
+                        return (
+                          <div style={{ padding: 5 }}>
+                            <Table
+                              bordered
+                              dataSource={record.status?.conditions}
+                              columns={columns}
+                              pagination={false}
+                            />
+                          </div>
+                        );
+                      }}
+                    >
+                      <CloseCircleOutlined style={{ color: 'red', fontSize: 14, marginRight: 2 }} />{' '}
+                      运行失败
+                    </Tooltip>
+                  );
+                } else {
+                  return (
+                    <>
+                      <CheckCircleOutlined
+                        style={{ color: 'green', fontSize: 14, marginRight: 2 }}
+                      />{' '}
+                      运行成功
+                    </>
+                  );
+                }
+              },
+            },
+            {
+              title: '状态',
+              key: 'spec.taskRef.name',
+              render: (text, record) => (
+                <div>
+                  <div>{record.spec?.taskRef?.name || '-'}</div>
+                  <div style={{ color: '#888', fontSize: 12 }}>
+                    {record.status?.taskSpec?.displayName || '-'}
+                  </div>
+                </div>
+              ),
+            },
+            {
+              title: '创建时间',
+              dataIndex: ['metadata', 'creationTimestamp'],
+              key: 'metadata.creationTimestamp',
+              render: (text, record) => (
+                <div>
+                  <div>{formatDate(record.metadata?.creationTimestamp) || '-'}</div>
+                  <div style={{ color: '#888', fontSize: 12 }}>
+                    {record.status?.startTime && record.status?.completionTime
+                      ? (() => {
+                          const duration =
+                            (new Date(record.status.completionTime).getTime() -
+                              new Date(record.status.startTime).getTime()) /
+                            1000;
+                          const h = Math.floor(duration / 3600);
+                          const m = Math.floor((duration % 3600) / 60);
+                          const s = Math.floor(duration % 60);
+                          return [h > 0 ? `${h}h` : '', m > 0 ? `${m}m` : '', `${s}s`]
+                            .filter(Boolean)
+                            .join(' ');
+                        })()
+                      : '-'}
+                  </div>
+                </div>
+              ),
+            },
+          ]}
+          actionRef={actionRef}
+          request={async () => {
+            const _res = await getList();
+            return {
+              data: _res || [],
+              success: true,
+              total: _res?.length || 0,
+            };
+          }}
+          rowKey={(record) => record.metadata?.name}
+          pagination={false}
+          bordered
+          toolBarRender={() => [
+            <Button onClick={() => {}} key="addTask" type="primary" icon={<PlusOutlined />}>
+              新建任务
+            </Button>,
+            <Input
+              key="search"
+              placeholder="请输入名称"
+              allowClear
+              style={{ width: 300 }}
+              onChange={(e) => {
+                if (e.target.value === '') {
+                  setQuery({ ...query, fieldSelector: undefined });
+                } else {
+                  setQuery({ ...query, fieldSelector: 'metadata.name=' + e.target.value });
+                }
+              }}
+              onPressEnter={handleReload}
+              suffix={<SearchOutlined />}
+            />,
+            <Select
+              key="namespace"
+              style={{ width: 220 }}
+              allowClear
+              value={query.namespace}
+              options={namespaceList.map((ns) => ({
+                // @ts-ignore
+                label: ns.metadata.name,
+                // @ts-ignore
+                value: ns.metadata.name,
+              }))}
+              placeholder="请选择命名空间"
+              onChange={(value) => {
+                setQuery({ ...query, namespace: value });
+                setTimeout(async () => {
+                  await handleReload();
+                });
+              }}
+            />,
+          ]}
+          search={false}
+        />
+      </PageContainer>
+    </>
+  );
+};
+
+export default TaskRun;

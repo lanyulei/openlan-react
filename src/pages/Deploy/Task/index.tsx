@@ -1,14 +1,19 @@
 import React, { FC, useEffect, useRef } from 'react';
 import { ActionType, PageContainer, ProTable } from '@ant-design/pro-components';
-import { Button, Input, Select } from 'antd';
-import { EditOutlined, EyeOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
+import { Button, Input, message, Modal, Select } from 'antd';
+import { EditOutlined, PlusOutlined, RightSquareOutlined, SearchOutlined } from '@ant-design/icons';
 import styles from '@/pages/Resource/Cloud/Account/index.less';
 import { useNavigate } from 'react-router-dom';
 import { getNamespaces } from '@/services/deploy/namespace';
-import { taskList, taskListByNamespace } from '@/services/deploy/tasks';
+import { createResource, resourceList, resourceListByNamespace } from '@/services/deploy/tekton';
+
+const tasksName = 'tasks';
+const taskRunsName = 'taskruns';
 
 const Task: FC = () => {
   const navigate = useNavigate();
+  const [modal, modalContextHolder] = Modal.useModal();
+  const [messageApi, messageContextHolder] = message.useMessage();
   const actionRef = useRef<ActionType>();
   const [query, setQuery] = React.useState<any>({
     name: undefined,
@@ -17,16 +22,15 @@ const Task: FC = () => {
   const [namespaceList, setNamespaceList] = React.useState<string[]>([]);
 
   const handleReload = async () => {
-    console.log(query);
     await actionRef?.current?.reload();
   };
 
   const getList = async () => {
     let res = {};
     if (query.namespace && query.namespace !== '') {
-      res = await taskListByNamespace(query.namespace, query, {});
+      res = await resourceListByNamespace(tasksName, query.namespace, query, {});
     } else {
-      res = await taskList(query, {});
+      res = await resourceList(tasksName, query, {});
     }
 
     // @ts-ignore
@@ -37,14 +41,14 @@ const Task: FC = () => {
     (async () => {
       const nsRes = await getNamespaces({}, {});
       setNamespaceList(nsRes.data?.items || []);
-
-      await getList();
     })();
   }, []);
 
   return (
     <>
-      <PageContainer content="Task 是一个定义单次容器化操作（如构建、测试或部署）的可复用工作单元，包含一个或多个按顺序执行的步骤。">
+      {modalContextHolder}
+      {messageContextHolder}
+      <PageContainer content="任务（Task）是一个定义单次容器化操作（如构建、测试或部署）的可复用工作单元，包含一个或多个按顺序执行的步骤。">
         <ProTable
           className={styles.tableList}
           columns={[
@@ -60,6 +64,12 @@ const Task: FC = () => {
               key: 'metadata.namespace',
             },
             {
+              title: '创建时间',
+              dataIndex: ['metadata', 'creationTimestamp'],
+              key: 'metadata.creationTimestamp',
+              valueType: 'dateTime',
+            },
+            {
               title: '操作',
               dataIndex: 'option',
               valueType: 'option',
@@ -68,12 +78,36 @@ const Task: FC = () => {
               width: 150,
               render: (_: any, record: any) => [
                 <a
-                  key="details"
+                  key="run"
                   onClick={() => {
-                    navigate(`/resource/cloud/logic-resource-details/${record.id}`);
+                    modal.confirm({
+                      title: '提示',
+                      content: '确定是否需要运行此任务？',
+                      okText: '确认',
+                      cancelText: '取消',
+                      onOk: async () => {
+                        let _params = {
+                          apiVersion: 'tekton.dev/v1',
+                          kind: 'TaskRun',
+                          metadata: {
+                            name: record.metadata?.name + '-run-' + new Date().getTime(),
+                            namespace: record.metadata?.namespace,
+                          },
+                          spec: {
+                            taskRef: {
+                              name: record.metadata?.name,
+                            },
+                          },
+                        };
+
+                        await createResource(taskRunsName, record.metadata?.namespace, _params, {});
+                        messageApi.success('已执行此任务');
+                        return true;
+                      },
+                    });
                   }}
                 >
-                  <EyeOutlined /> 详情
+                  <RightSquareOutlined /> 执行
                 </a>,
                 <a
                   style={{ marginLeft: 10 }}
