@@ -8,20 +8,17 @@ import {
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
-import { Button, Col, Flex, Input, message, Row } from 'antd';
+import { Button, Col, Flex, message, Row } from 'antd';
 import styles from './TaskForm.less';
-import {
-  DeleteOutlined,
-  MinusCircleOutlined,
-  PlusCircleOutlined,
-  PlusOutlined,
-} from '@ant-design/icons';
+import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import { getNamespaces } from '@/services/deploy/namespace';
 import MonacoEditor from '@/components/MonacoEditor';
-import { createTask, updateTask } from '@/services/deploy/tasks';
+import { createTask, taskDetails, updateTask } from '@/services/deploy/tasks';
 
 interface TaskFormProps {
   status: 'create' | 'edit';
+  namespace?: string | undefined;
+  name?: string | undefined;
 }
 
 const initialScript = `#!/bin/bash
@@ -34,7 +31,11 @@ const initialScript = `#!/bin/bash
 
 `;
 
-const TaskForm: FC<TaskFormProps> = ({ status = 'create' }) => {
+const TaskForm: FC<TaskFormProps> = ({
+  status = 'create',
+  name = undefined,
+  namespace = undefined,
+}) => {
   const [form] = ProForm.useForm();
   const [messageApi, messageContextHolder] = message.useMessage();
   const [namespaceList, setNamespaceList] = useState<string[]>([]);
@@ -45,60 +46,71 @@ const TaskForm: FC<TaskFormProps> = ({ status = 'create' }) => {
     metadata: {
       name: '',
       namespace: 'default',
-      labels: {},
-      annotations: {},
     },
     spec: {
       steps: [],
     },
   });
 
-  const addLabel = () => {
-    setTaskForm((prev: any) => {
-      const labels = { ...prev.metadata.labels };
-      // 生成唯一 key
-      let idx = 1;
-      let newKey = `key${idx}`;
-      while (labels.hasOwnProperty(newKey)) {
-        idx += 1;
-        newKey = `key${idx}`;
-      }
-      labels[newKey] = '';
-      return {
-        ...prev,
-        metadata: {
-          ...prev.metadata,
-          labels,
-        },
-      };
-    });
-  };
-
-  const addAnnotations = () => {
-    setTaskForm((prev: any) => {
-      const annotations = { ...prev.metadata.annotations };
-      // 生成唯一 key
-      let idx = 1;
-      let newKey = `key${idx}`;
-      while (annotations.hasOwnProperty(newKey)) {
-        idx += 1;
-        newKey = `key${idx}`;
-      }
-      annotations[newKey] = '';
-      return {
-        ...prev,
-        metadata: {
-          ...prev.metadata,
-          annotations,
-        },
-      };
-    });
-  };
-
   useEffect(() => {
     (async () => {
       const _res = await getNamespaces({}, {});
       setNamespaceList(_res.data?.items || []);
+
+      if (status === 'edit') {
+        const res = await taskDetails(name, namespace, {});
+        const _data = res.data || {};
+
+        for (let param of _data.spec?.params || []) {
+          if (param.type === 'object' && param.properties) {
+            let properties = JSON.parse(JSON.stringify(param.properties));
+            param.properties = [];
+            for (let prop in properties) {
+              if (Object.prototype.hasOwnProperty.call(properties, prop)) {
+                param.properties.push({
+                  key: prop,
+                  value: properties[prop],
+                });
+              }
+            }
+          }
+        }
+
+        // @ts-ignore
+        for (let result of _data.spec?.results || []) {
+          if (result.type === 'object' && result.properties) {
+            let properties = JSON.parse(JSON.stringify(result.properties));
+            result.properties = [];
+            for (let prop in properties) {
+              if (Object.prototype.hasOwnProperty.call(properties, prop)) {
+                result.properties.push({
+                  key: prop,
+                  value: properties[prop],
+                });
+              }
+            }
+          }
+        }
+
+        if (_data.metadata?.labels) {
+          _data.metadata.labels = Object.entries(_data.metadata.labels).map(([key, value]) => ({
+            key,
+            value,
+          }));
+        }
+
+        if (_data.metadata?.annotations) {
+          _data.metadata.annotations = Object.entries(_data.metadata.annotations).map(
+            ([key, value]) => ({
+              key,
+              value,
+            }),
+          );
+        }
+
+        setTaskForm(_data || {});
+        form.setFieldsValue(_data || {});
+      }
     })();
   }, []);
 
@@ -136,13 +148,35 @@ const TaskForm: FC<TaskFormProps> = ({ status = 'create' }) => {
                   }
                 }
 
+                // @ts-ignore
+                if (taskForm.metadata?.labels) {
+                  // @ts-ignore
+                  taskForm.metadata.labels = Object.fromEntries(
+                    // @ts-ignore
+                    (taskForm.metadata.labels || []).map((label: any) => [label.key, label.value]),
+                  );
+                }
+
+                // @ts-ignore
+                if (taskForm.metadata?.annotations) {
+                  // @ts-ignore
+                  taskForm.metadata.annotations = Object.fromEntries(
+                    // @ts-ignore
+                    (taskForm.metadata.annotations || []).map((annotation: any) => [
+                      annotation.key,
+                      annotation.value,
+                    ]),
+                  );
+                }
+
                 const _data = {
                   ...values,
                   ...taskForm,
                 };
 
+                console.log(_data);
+
                 if (status === 'create') {
-                  console.log(_data);
                   await createTask(_data.metadata.namespace, _data, {});
                   messageApi.success('任务创建成功');
                 } else {
@@ -222,192 +256,70 @@ const TaskForm: FC<TaskFormProps> = ({ status = 'create' }) => {
                 placeholder="请输入任务描述"
                 label="描述"
               />
-              <ProForm.Item label="标签" name={['metadata', 'labels']}>
-                {taskForm.metadata.labels && Object.keys(taskForm.metadata.labels).length > 0 ? (
-                  <>
-                    {Object.entries(taskForm.metadata.labels).map(([key, value], index, arr) => (
-                      <Flex key={key} style={{ marginBottom: index === arr.length - 1 ? 0 : 8 }}>
-                        <Row style={{ width: 'calc(100% - 55px)' }}>
-                          <Col span={12}>
-                            <Input
-                              value={key}
-                              placeholder="请输入键"
-                              onChange={(e) => {
-                                const newKey = e.target.value;
-                                setTaskForm((prev: any) => {
-                                  const labels = { ...prev.metadata.labels } as Record<
-                                    string,
-                                    string
-                                  >;
-                                  const entries = Object.entries(labels);
-                                  const idx = entries.findIndex(([k]) => k === key);
-                                  if (idx === -1) return prev;
-                                  entries[idx][0] = newKey;
-                                  // 构建保持顺序的新对象
-                                  const newLabels: Record<string, string> = {};
-                                  entries.forEach(([k, v]) => {
-                                    newLabels[k] = v;
-                                  });
-                                  return {
-                                    ...prev,
-                                    metadata: {
-                                      ...prev.metadata,
-                                      labels: newLabels,
-                                    },
-                                  };
-                                });
-                              }}
-                            />
-                          </Col>
-                          <Col span={12}>
-                            <Input
-                              value={typeof value === 'string' ? value : ''}
-                              placeholder="请输入值"
-                              onChange={(e) => {
-                                const newValue = e.target.value;
-                                setTaskForm((prev) => {
-                                  const labels = { ...prev.metadata.labels, [key]: newValue };
-                                  return {
-                                    ...prev,
-                                    metadata: {
-                                      ...prev.metadata,
-                                      labels,
-                                    },
-                                  };
-                                });
-                              }}
-                            />
-                          </Col>
-                        </Row>
-                        <div className={styles.plusMinusIcon}>
-                          <PlusCircleOutlined className={styles.plusIcon} onClick={addLabel} />
-                          <MinusCircleOutlined
-                            className={styles.minusIcon}
-                            onClick={() => {
-                              setTaskForm((prev: any) => {
-                                const labels = { ...prev.metadata.labels };
-                                delete labels[key];
-                                return {
-                                  ...prev,
-                                  metadata: {
-                                    ...prev.metadata,
-                                    labels,
-                                  },
-                                };
-                              });
-                            }}
-                          />
-                        </div>
-                      </Flex>
-                    ))}
-                  </>
-                ) : (
-                  <Button
-                    icon={<PlusOutlined />}
-                    style={{ width: '100%' }}
-                    type="dashed"
-                    onClick={addLabel}
-                  >
-                    添加标签
-                  </Button>
+              <ProFormList
+                label="标签"
+                name={['metadata', 'labels']}
+                creatorButtonProps={{
+                  position: 'bottom',
+                  creatorButtonText: '添加标签',
+                  style: { width: 850 },
+                }}
+                itemRender={({ listDom, action }) => (
+                  <Flex align="center" gap={8}>
+                    {listDom}
+                    {action}
+                  </Flex>
                 )}
-              </ProForm.Item>
-              <ProForm.Item label="注解" name={['metadata', 'annotations']}>
-                {taskForm.metadata.annotations &&
-                Object.keys(taskForm.metadata.annotations).length > 0 ? (
-                  <>
-                    {Object.entries(taskForm.metadata.annotations).map(
-                      ([key, value], index, arr) => (
-                        <Flex key={key} style={{ marginBottom: index === arr.length - 1 ? 0 : 8 }}>
-                          <Row style={{ width: 'calc(100% - 55px)' }}>
-                            <Col span={12}>
-                              <Input
-                                value={key}
-                                placeholder="请输入键"
-                                onChange={(e) => {
-                                  const newKey = e.target.value;
-                                  setTaskForm((prev: any) => {
-                                    const annotations = { ...prev.metadata.annotations };
-                                    const entries = Object.entries(annotations);
-                                    const idx = entries.findIndex(([k]) => k === key);
-                                    if (idx === -1) return prev;
-                                    // 保持顺序并修改 key
-                                    entries[idx][0] = newKey;
-                                    const newAnnotations: any = {};
-                                    entries.forEach(([k, v]) => {
-                                      newAnnotations[k] = v;
-                                    });
-                                    return {
-                                      ...prev,
-                                      metadata: {
-                                        ...prev.metadata,
-                                        annotations: newAnnotations,
-                                      },
-                                    };
-                                  });
-                                }}
-                              />
-                            </Col>
-                            <Col span={12}>
-                              <Input
-                                value={typeof value === 'string' ? value : ''}
-                                placeholder="请输入值"
-                                onChange={(e) => {
-                                  const newValue = e.target.value;
-                                  setTaskForm((prev: any) => {
-                                    const annotations = {
-                                      ...prev.metadata.annotations,
-                                      [key]: newValue,
-                                    };
-                                    return {
-                                      ...prev,
-                                      metadata: {
-                                        ...prev.metadata,
-                                        annotations,
-                                      },
-                                    };
-                                  });
-                                }}
-                              />
-                            </Col>
-                          </Row>
-                          <div className={styles.plusMinusIcon}>
-                            <PlusCircleOutlined
-                              className={styles.plusIcon}
-                              onClick={addAnnotations}
-                            />
-                            <MinusCircleOutlined
-                              className={styles.minusIcon}
-                              onClick={() => {
-                                setTaskForm((prev: any) => {
-                                  const annotations = { ...prev.metadata.annotations };
-                                  delete annotations[key];
-                                  return {
-                                    ...prev,
-                                    metadata: {
-                                      ...prev.metadata,
-                                      annotations,
-                                    },
-                                  };
-                                });
-                              }}
-                            />
-                          </div>
-                        </Flex>
-                      ),
-                    )}
-                  </>
-                ) : (
-                  <Button
-                    icon={<PlusOutlined />}
-                    style={{ width: '100%' }}
-                    type="dashed"
-                    onClick={addAnnotations}
-                  >
-                    添加注解
-                  </Button>
+              >
+                {(_, propIdx) => (
+                  <ProFormGroup key={`object-prop-group-${propIdx}`}>
+                    <ProFormText
+                      width={390}
+                      name="key"
+                      placeholder="请输入键"
+                      rules={[{ required: true, message: '请输入键' }]}
+                    />
+                    <ProFormText
+                      width={390}
+                      name="value"
+                      placeholder="请输入值"
+                      rules={[{ required: true, message: '请输入值' }]}
+                    />
+                  </ProFormGroup>
                 )}
-              </ProForm.Item>
+              </ProFormList>
+              <ProFormList
+                label="注解"
+                name={['metadata', 'annotations']}
+                creatorButtonProps={{
+                  position: 'bottom',
+                  creatorButtonText: '添加注解',
+                  style: { width: 850 },
+                }}
+                itemRender={({ listDom, action }) => (
+                  <Flex align="center" gap={8}>
+                    {listDom}
+                    {action}
+                  </Flex>
+                )}
+              >
+                {(_, propIdx) => (
+                  <ProFormGroup key={`object-prop-group-${propIdx}`}>
+                    <ProFormText
+                      width={390}
+                      name="key"
+                      placeholder="请输入键"
+                      rules={[{ required: true, message: '请输入键' }]}
+                    />
+                    <ProFormText
+                      width={390}
+                      name="value"
+                      placeholder="请输入值"
+                      rules={[{ required: true, message: '请输入值' }]}
+                    />
+                  </ProFormGroup>
+                )}
+              </ProFormList>
               <div className={styles.taskFormHeader}>
                 <span className={styles.verticalDivider} />
                 <h3>步骤定义</h3>

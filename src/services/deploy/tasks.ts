@@ -43,3 +43,14 @@ export async function updateTask(
     ...(options || {}),
   });
 }
+
+export async function taskDetails(
+  name: string | undefined,
+  namespace: string | undefined,
+  options: { [key: string]: any },
+) {
+  return request(`${KubeApi}/apis/tekton.dev/v1/namespaces/${namespace}/tasks/${name}`, {
+    method: 'GET',
+    ...(options || {}),
+  });
+}

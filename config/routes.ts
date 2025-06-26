@@ -119,6 +119,12 @@ export default [
         hideInMenu: true,
       },
       {
+        path: '/deploy/task/edit/:namespace/:name',
+        name: 'editTask',
+        component: './Deploy/Task/edit',
+        hideInMenu: true,
+      },
+      {
         path: '/deploy/pipeline',
         name: 'pipeline',
         component: './Deploy/Pipeline',

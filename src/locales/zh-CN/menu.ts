@@ -19,7 +19,8 @@ export default {
   'menu.deploy': '应用部署',
   'menu.deploy.overview': '概览',
   'menu.deploy.task': '任务',
-  'menu.deploy.createTask': '任务管理',
+  'menu.deploy.createTask': '创建任务',
+  'menu.deploy.editTask': '编辑任务',
   'menu.deploy.pipeline': '流水线',
 
   'menu.login': '登录',

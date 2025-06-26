@@ -4,7 +4,7 @@ import TaskForm from './components/TaskForm';
 const CreateTask: FC = () => {
   return (
     <>
-      <TaskForm />
+      <TaskForm status="create" />
     </>
   );
 };

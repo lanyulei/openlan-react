@@ -44,20 +44,20 @@ const Task: FC = () => {
 
   return (
     <>
-      <PageContainer content="Task 是一个定义单次容器化操作（如构建、测试或部署）的可复用工作单元，包含一个或多个按顺序执行的步骤">
+      <PageContainer content="Task 是一个定义单次容器化操作（如构建、测试或部署）的可复用工作单元，包含一个或多个按顺序执行的步骤。">
         <ProTable
           className={styles.tableList}
           columns={[
             {
               title: '名称',
               dataIndex: ['metadata', 'name'],
-              key: 'name',
+              key: 'metadata.name',
               ellipsis: true,
             },
             {
               title: '命名空间',
               dataIndex: ['metadata', 'namespace'],
-              key: 'namespace',
+              key: 'metadata.namespace',
             },
             {
               title: '操作',
@@ -79,7 +79,9 @@ const Task: FC = () => {
                   style={{ marginLeft: 10 }}
                   key="edit"
                   onClick={() => {
-                    navigate(`/resource/cloud/logic-resource-details/${record.id}`);
+                    navigate(
+                      `/deploy/task/edit/${record.metadata?.namespace}/${record.metadata?.name}`,
+                    );
                   }}
                 >
                   <EditOutlined /> 编辑
@@ -96,7 +98,7 @@ const Task: FC = () => {
               total: _res?.length || 0,
             };
           }}
-          rowKey="id"
+          rowKey={(record) => record.metadata?.name}
           pagination={false}
           bordered
           toolBarRender={() => [
@@ -110,6 +112,21 @@ const Task: FC = () => {
             >
               新建任务
             </Button>,
+            <Input
+              key="search"
+              placeholder="请输入名称"
+              allowClear
+              style={{ width: 300 }}
+              onChange={(e) => {
+                if (e.target.value === '') {
+                  setQuery({ ...query, fieldSelector: undefined });
+                } else {
+                  setQuery({ ...query, fieldSelector: 'metadata.name=' + e.target.value });
+                }
+              }}
+              onPressEnter={handleReload}
+              suffix={<SearchOutlined />}
+            />,
             <Select
               key="namespace"
               style={{ width: 220 }}
@@ -129,26 +146,8 @@ const Task: FC = () => {
                 });
               }}
             />,
-            <Input
-              key="search"
-              placeholder="请输入名称"
-              allowClear
-              style={{ width: 300 }}
-              onChange={(e) => {
-                if (e.target.value === '') {
-                  setQuery({ ...query, fieldSelector: undefined });
-                } else {
-                  setQuery({ ...query, fieldSelector: 'metadata.name=' + e.target.value });
-                }
-              }}
-              onPressEnter={handleReload}
-              suffix={<SearchOutlined />}
-            />,
           ]}
           search={false}
-          options={{
-            reload: false,
-          }}
         />
       </PageContainer>
     </>
