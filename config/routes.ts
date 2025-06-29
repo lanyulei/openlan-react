@@ -118,6 +118,12 @@ export default [
         component: './Deploy/TaskRun',
       },
       {
+        path: '/deploy/taskruns/details/:namespace/:name',
+        name: 'taskRunsDetails',
+        component: './Deploy/TaskRun/Details',
+        hideInMenu: true,
+      },
+      {
         path: '/deploy/task/create',
         name: 'createTask',
         component: './Deploy/Task/create',

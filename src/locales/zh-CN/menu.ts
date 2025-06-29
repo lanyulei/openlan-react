@@ -23,6 +23,7 @@ export default {
   'menu.deploy.editTask': '编辑任务',
   'menu.deploy.pipeline': '流水线',
   'menu.deploy.taskRuns': '任务运行',
+  'menu.deploy.taskRunsDetails': '运行详情',
 
   'menu.login': '登录',
   'menu.register': '注册',

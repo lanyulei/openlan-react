@@ -8,15 +8,17 @@ import {
   PlusOutlined,
   SearchOutlined,
 } from '@ant-design/icons';
-import { Button, Input, Select, Table, Tooltip } from 'antd';
+import { Button, Input, Select, Tooltip } from 'antd';
 import { getNamespaces } from '@/services/deploy/namespace';
 import { formatDate } from '@/utils/tools/tools';
 import commonStyles from '@/pages/Resource/Cloud/Account/index.less';
+import { useNavigate } from 'react-router-dom';
 
 const taskRunsName = 'taskruns';
 const tasksName = 'tasks';
 
 const TaskRun: FC = () => {
+  const navigate = useNavigate();
   const actionRef = useRef<ActionType>();
   const [query, setQuery] = React.useState<any>({
     name: undefined,
@@ -67,13 +69,19 @@ const TaskRun: FC = () => {
               ellipsis: true,
               render: (text, record) => (
                 <div>
-                  <a>
-                    <div className="commonEllipsis">
-                      <Tooltip placement="top" title={record.metadata?.name}>
-                        {record.metadata?.name ? record.metadata.name : '-'}
-                      </Tooltip>
-                    </div>
-                  </a>
+                  <div
+                    className="commonEllipsis"
+                    style={{ cursor: 'pointer', color: '#1677ff' }}
+                    onClick={() => {
+                      navigate(
+                        `/deploy/taskruns/details/${record.metadata?.namespace}/${record.metadata?.name}`,
+                      );
+                    }}
+                  >
+                    <Tooltip placement="top" title={record.metadata?.name}>
+                      {record.metadata?.name ? record.metadata.name : '-'}
+                    </Tooltip>
+                  </div>
                   <div className="commonEllipsis" style={{ color: '#888', fontSize: 12 }}>
                     <Tooltip placement="top" title={record.status?.taskSpec?.description}>
                       {record.status?.taskSpec?.description || '-'}
@@ -90,150 +98,49 @@ const TaskRun: FC = () => {
             },
             {
               title: '状态',
-              tooltip: '鼠标滑过状态名称查看运行状态',
+              tooltip: '鼠标滑过状态名称查看详细运行状态',
               key: 'spec.taskRef.name',
               render: (text, record) => {
-                let pendingCount = 0;
-                let successCount = 0;
-                let failedCount = 0;
-                let runningCount = 0;
-                let startedCount = 0;
-                for (const condition of record.status?.conditions || []) {
-                  if (condition.reason === 'Pending') {
-                    pendingCount += 1;
-                  } else if (condition.reason === 'Started') {
-                    startedCount += 1;
-                  } else if (condition.reason === 'Running') {
-                    runningCount += 1;
-                  } else if (condition.reason === 'Succeeded') {
-                    successCount += 1;
-                  } else {
-                    failedCount += 1;
-                  }
-                }
-
-                let result = undefined as any;
-                if (pendingCount > 0) {
-                  result = (
-                    <>
-                      <ClockCircleOutlined
-                        style={{ color: 'orange', fontSize: 14, marginRight: 5 }}
-                      />
-                      等待中
-                    </>
+                let condition = record.status?.conditions?.[0] || {};
+                let iconResult = undefined as any;
+                if (condition?.reason === 'Pending') {
+                  iconResult = (
+                    <ClockCircleOutlined
+                      style={{ color: 'orange', fontSize: 14, marginRight: 5 }}
+                    />
                   );
-                } else if (startedCount > 0) {
-                  result = (
-                    <>
-                      <ClockCircleOutlined
-                        style={{ color: 'orange', fontSize: 14, marginRight: 5 }}
-                      />
-                      启动中
-                    </>
+                } else if (condition?.reason === 'Started') {
+                  iconResult = (
+                    <ClockCircleOutlined
+                      style={{ color: 'orange', fontSize: 14, marginRight: 5 }}
+                    />
                   );
-                } else if (runningCount > 0) {
-                  result = (
-                    <>
-                      <ClockCircleOutlined
-                        style={{ color: 'orange', fontSize: 14, marginRight: 5 }}
-                      />
-                      正在运行
-                    </>
+                } else if (condition?.reason === 'Running') {
+                  iconResult = (
+                    <ClockCircleOutlined
+                      style={{ color: 'orange', fontSize: 14, marginRight: 5 }}
+                    />
                   );
-                } else if (successCount > 0) {
-                  result = (
-                    <>
-                      <CheckCircleOutlined
-                        style={{ color: 'green', fontSize: 14, marginRight: 5 }}
-                      />
-                      成功
-                    </>
-                  );
-                } else if (failedCount > 0) {
-                  result = (
-                    <>
-                      <CloseCircleOutlined style={{ color: 'red', fontSize: 14, marginRight: 5 }} />
-                      失败
-                    </>
+                } else if (condition?.reason === 'Succeeded') {
+                  iconResult = (
+                    <CheckCircleOutlined style={{ color: 'green', fontSize: 14, marginRight: 5 }} />
                   );
                 } else {
-                  result = (
-                    <>
-                      <ClockCircleOutlined
-                        style={{ color: 'orange', fontSize: 14, marginRight: 5 }}
-                      />
-                      未知
-                    </>
+                  iconResult = (
+                    <CloseCircleOutlined style={{ color: 'red', fontSize: 14, marginRight: 5 }} />
                   );
                 }
 
                 return (
-                  <Tooltip
-                    color="white"
-                    placement="bottom"
-                    destroyOnHidden
-                    fresh
-                    styles={{
-                      root: {
-                        maxWidth: 800,
-                      },
-                    }}
-                    title={() => {
-                      const columns = [
-                        {
-                          title: '最后变更时间',
-                          dataIndex: 'lastTransitionTime',
-                          key: 'lastTransitionTime',
-                          ellipsis: true,
-                          render: (text: string) => {
-                            return formatDate(text) || '-';
-                          },
-                          width: 180,
-                        },
-                        {
-                          title: '状态',
-                          dataIndex: 'status',
-                          key: 'status',
-                          ellipsis: true,
-                          width: 100,
-                        },
-                        {
-                          title: '原因',
-                          dataIndex: 'reason',
-                          key: 'reason',
-                          ellipsis: true,
-                        },
-                        {
-                          title: '详情',
-                          dataIndex: 'message',
-                          key: 'message',
-                          ellipsis: true,
-                        },
-                      ];
-
-                      let _conditions = [];
-                      if (record.status?.conditions) {
-                        _conditions = record.status.conditions.map((condition: any) => ({
-                          id: `${condition.type}-${Math.random().toString(36).substr(2, 9)}`,
-                          ...condition,
-                        }));
-                      }
-
-                      return (
-                        <div style={{ padding: 5 }}>
-                          <Table
-                            rowKey="id"
-                            bordered
-                            dataSource={_conditions}
-                            columns={columns}
-                            pagination={false}
-                          />
-                        </div>
-                      );
-                    }}
-                  >
-                    {result}
-                  </Tooltip>
+                  <div>
+                    <div className="commonEllipsis">
+                      {iconResult}
+                      {condition?.reason}
+                    </div>
+                    <div className="commonEllipsis" style={{ color: '#888', fontSize: 12 }}>
+                      {condition?.message || '-'}
+                    </div>
+                  </div>
                 );
               },
             },
@@ -247,6 +154,13 @@ const TaskRun: FC = () => {
                     {record.status?.taskSpec?.displayName || '-'}
                   </div>
                 </div>
+              ),
+            },
+            {
+              title: '步骤数量',
+              key: 'status.stepCount',
+              render: (text, record) => (
+                <div>{record.status?.steps?.length || record.status?.stepCount || '-'}</div>
               ),
             },
             {
