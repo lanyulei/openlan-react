@@ -1,10 +1,12 @@
 import { FC, useEffect, useState } from 'react';
 import { PageContainer } from '@ant-design/pro-components';
-import { Card, Descriptions, Flex } from 'antd';
+import { Card, Descriptions, Flex, Tabs } from 'antd';
 import { resourceDetails } from '@/services/deploy/tekton';
 import { useParams } from '@@/exports';
 import styles from './index.less';
 import { podsLog } from '@/services/deploy/pods';
+import { jsonToYaml } from '@/utils/tools/tools';
+import MonacoEditor from '@/components/MonacoEditor';
 
 const TaskRunsName = 'taskruns';
 
@@ -79,7 +81,7 @@ const TaskRunsDetails: FC = () => {
                 children: taskRunDetails.status?.conditions?.[0]?.reason || '',
               },
               {
-                key: '6',
+                key: '5',
                 label: '状态详情',
                 children: taskRunDetails.status?.conditions?.[0]?.message || '',
               },
@@ -112,8 +114,54 @@ const TaskRunsDetails: FC = () => {
                 </Flex>
               ))}
             </div>
-            <div className={styles.logContent}>
-              <div className={styles.logValue}>{logContent}</div>
+            <div style={{ width: 'calc(100% - 250px)' }}>
+              <Tabs
+                defaultActiveKey="1"
+                type="card"
+                items={[
+                  {
+                    key: '1',
+                    label: '日志',
+                    children: (
+                      <div className={styles.logContent}>
+                        <div className={styles.logValue}>
+                          <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+                            {logContent}
+                          </pre>
+                        </div>
+                      </div>
+                    ),
+                  },
+                  {
+                    key: '2',
+                    label: '详情',
+                    children: (
+                      <div className={styles.logContent}>
+                        <div className={styles.logValue}>
+                          <MonacoEditor
+                            height={Math.max(
+                              200,
+                              ((
+                                jsonToYaml(
+                                  taskRunDetails?.status?.taskSpec?.steps?.[currentStep],
+                                ) || ''
+                              ).split('\n').length +
+                                1) *
+                                20,
+                            )}
+                            codeType="yaml"
+                            readOnly={true}
+                            value={
+                              jsonToYaml(taskRunDetails?.status?.taskSpec?.steps?.[currentStep]) ||
+                              ''
+                            }
+                          />
+                        </div>
+                      </div>
+                    ),
+                  },
+                ]}
+              />
             </div>
           </Flex>
         </Card>

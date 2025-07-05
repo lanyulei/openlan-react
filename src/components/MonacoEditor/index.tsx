@@ -8,6 +8,7 @@ interface MonacoEditorProps {
   height?: string | number;
   width?: string | number;
   codeType?: string;
+  readOnly?: boolean;
 }
 
 const MonacoEditor: FC<MonacoEditorProps> = ({
@@ -16,6 +17,7 @@ const MonacoEditor: FC<MonacoEditorProps> = ({
   height = '200px',
   width = '100%',
   codeType = 'shell',
+  readOnly = false,
 }) => {
   const [editorCode, setEditorCode] = useState(value);
 
@@ -43,6 +45,7 @@ const MonacoEditor: FC<MonacoEditorProps> = ({
           insertSpaces: true,
           matchBrackets: 'always',
           theme: 'vs-light', // 可选：深色主题
+          readOnly: readOnly,
         }}
         onMount={(
           {
