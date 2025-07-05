@@ -98,7 +98,6 @@ const TaskRun: FC = () => {
             },
             {
               title: '状态',
-              tooltip: '鼠标滑过状态名称查看详细运行状态',
               key: 'spec.taskRef.name',
               render: (text, record) => {
                 let condition = record.status?.conditions?.[0] || {};
