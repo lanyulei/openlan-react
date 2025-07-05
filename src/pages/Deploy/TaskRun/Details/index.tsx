@@ -136,28 +136,21 @@ const TaskRunsDetails: FC = () => {
                     key: '2',
                     label: '详情',
                     children: (
-                      <div className={styles.logContent}>
-                        <div className={styles.logValue}>
-                          <MonacoEditor
-                            height={Math.max(
-                              200,
-                              ((
-                                jsonToYaml(
-                                  taskRunDetails?.status?.taskSpec?.steps?.[currentStep],
-                                ) || ''
-                              ).split('\n').length +
-                                1) *
-                                20,
-                            )}
-                            codeType="yaml"
-                            readOnly={true}
-                            value={
-                              jsonToYaml(taskRunDetails?.status?.taskSpec?.steps?.[currentStep]) ||
-                              ''
-                            }
-                          />
-                        </div>
-                      </div>
+                      <MonacoEditor
+                        height={Math.max(
+                          200,
+                          ((
+                            jsonToYaml(taskRunDetails?.status?.taskSpec?.steps?.[currentStep]) || ''
+                          ).split('\n').length +
+                            1) *
+                            20,
+                        )}
+                        codeType="yaml"
+                        readOnly={true}
+                        value={
+                          jsonToYaml(taskRunDetails?.status?.taskSpec?.steps?.[currentStep]) || ''
+                        }
+                      />
                     ),
                   },
                 ]}

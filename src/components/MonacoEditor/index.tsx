@@ -1,4 +1,4 @@
-import { FC, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 import Editor from '@monaco-editor/react';
 import styles from './index.less';
 
@@ -26,6 +26,10 @@ const MonacoEditor: FC<MonacoEditorProps> = ({
     setEditorCode(code);
     onChange?.(code);
   };
+
+  useEffect(() => {
+    setEditorCode(value);
+  }, [value]);
 
   return (
     <div className={styles.editorContainer} style={{ width: width }}>
