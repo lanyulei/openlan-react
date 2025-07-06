@@ -22,6 +22,8 @@ export default {
   'menu.deploy.createTask': '创建任务',
   'menu.deploy.editTask': '编辑任务',
   'menu.deploy.pipeline': '流水线',
+  'menu.deploy.createPipeline': '创建流水线',
+  'menu.deploy.editPipeline': '编辑流水线',
   'menu.deploy.taskRuns': '任务运行',
   'menu.deploy.taskRunsDetails': '运行详情',
 

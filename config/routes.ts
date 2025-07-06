@@ -140,6 +140,18 @@ export default [
         name: 'pipeline',
         component: './Deploy/Pipeline',
       },
+      {
+        path: '/deploy/pipeline/create',
+        name: 'createPipeline',
+        component: './Deploy/Pipeline/create',
+        hideInMenu: true,
+      },
+      {
+        path: '/deploy/pipeline/edit/:namespace/:name',
+        name: 'editPipeline',
+        component: './Deploy/Pipeline/edit',
+        hideInMenu: true,
+      },
     ],
   },
   // {

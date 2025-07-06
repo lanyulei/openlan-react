@@ -1,211 +1,217 @@
-.pipelineHeader {
-  background-color: #fff !important;
-  border-bottom: 1px solid #e9edf0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  height: 56px;
-  padding: 0 20px;
-  width: 100%;
-  .pipelineHeaderCenter {
+.pipelineContainer {
+  border: 1px solid #dbdbdb;
+  height: calc(100vh - 210px);
+  overflow: hidden;
+  border-radius: 4px;
+  .pipelineHeader {
+    background-color: #fff !important;
+    border-bottom: 1px solid #e9edf0;
     display: flex;
-    gap: 8px;
-    div {
-      height: 32px;
-      font-size: 14px;
-      color: #292929;
-      padding: 8px 12px;
-      cursor: pointer;
-      text-decoration: none;
-      border-radius: 4px;
-      &:hover {
-        background-color: #f2f5f7;
-      }
-    }
-  }
-}
-
-.pipelineContent {
-  .pipelineSidebar {
-    display: inline-block;
-    max-height: calc(100vh - 56px);
-    max-width: 300px;
-    min-width: 300px;
-    overflow-y: auto;
-    vertical-align: top;
-    padding: 19px;
-    .pipelineSource {
-      height: auto;
-      margin-top: 46px;
-      width: 100%;
-    }
-  }
-  .pipelineContentList {
-    display: flex;
-    .pipelineGroup {
-      display: flex;
-      height: 100%;
-      position: relative;
-      white-space: nowrap;
-      .pipelineSplitline {
-        margin-left: -16px;
-        display: inline-block;
-        height: 100%;
-        padding: 0 1px;
-        position: relative;
-        text-align: center;
-        transform: rotate(0);
-        vertical-align: top;
-        width: 48px;
-        overflow: hidden;
-        .pipelineButton {
-          color: #8b8b8b;
-          cursor: pointer;
-          height: 100vh;
-          position: relative;
-          z-index: 1;
-          .pipelineButtonPlus {
-            margin-left: -8.5px;
-            position: absolute;
-            top: 96px;
-            z-index: 2;
-          }
-          &:before {
-            border-left: 1px solid #dbdbdb;
-            content: '';
-            height: 100%;
-            position: absolute;
-          }
-          &:after {
-            margin-left: 0;
-            width: 24px !important;
-            position: absolute;
-            top: 104.5px;
-            border-top: 1px solid #dbdbdb;
-            content: '';
-          }
-        }
-      }
-      .pipelineEditable {
-        display: inline-block;
-        height: 100%;
-        overflow-y: auto;
-        padding-top: 19px;
-        vertical-align: top;
-        .pipelineGroupHeader {
-          margin-bottom: 38px;
-          padding: 0 20px;
-        }
-        .pipelineStages {
-          .pipelineTaskContainer {
-            height: 60px;
-
-            .pipelineStagesContainer {
-              display: flex;
-              margin: 0 14px;
-              position: relative;
-              bottom: 60px;
-
-              .pipelineJobType {
-                box-shadow: 0 2px 4px 0 rgba(38, 38, 38, 0.1);
-                margin: 10px 14px 10px 10px;
-                width: 40px;
-                border: 1px solid #e9edf0;
-                background: #fff;
-                align-items: center;
-                -webkit-box-pack: center;
-                -webkit-box-align: center;
-                border-radius: 20px;
-                cursor: pointer;
-                display: flex;
-                height: 40px;
-                justify-content: center;
-                z-index: 2;
-
-                &:hover {
-                  border-color: #40a9ff;
-                }
-
-                &:hover .pipelineAddStage {
-                  color: #40a9ff;
-                }
-              }
-
-              .pipelineJob {
-                display: flex;
-                -webkit-box-align: center;
-                -webkit-box-pack: center;
-                align-items: center;
-                justify-content: center;
-                position: relative;
-                transition: all 0.2s ease-in-out;
-                z-index: 1;
-                margin: 10px 0;
-                height: 44px;
-
-                &:hover .pipelineJobExtra {
-                  visibility: visible;
-                  display: flex;
-                }
-
-                &:last-child {
-                  margin-right: 0;
-                }
-
-                .pipelineJobExtra {
-                  width: 20px;
-                  visibility: hidden;
-                  align-items: center;
-                }
-
-                .pipelineJobContent {
-                  z-index: 3;
-                }
-              }
-            }
-
-            &:before {
-              border-bottom: 1px solid #dbdbdb;
-              border-left: 1px solid #dbdbdb;
-              border-right: 1px solid #dbdbdb;
-              height: 60px;
-              width: 100%;
-              content: '';
-              z-index: 1;
-              display: block;
-              position: relative;
-              bottom: 28px;
-            }
-
-            &:first-child:before {
-              border-left: none;
-              border-radius: 0 !important;
-              border-right: none;
-            }
-
-            &:last-child:before {
-              border-radius: 0 0 16px 16px;
-            }
-          }
-        }
-      }
-    }
-  }
-  .pipelineTitle {
-    display: flex;
-    font-size: 14px;
+    justify-content: space-between;
     align-items: center;
-    color: #8b8b8b;
-    -webkit-box-align: center;
+    height: 56px;
+    padding: 0 20px;
+    width: 100%;
+    .pipelineHeaderCenter {
+      display: flex;
+      gap: 8px;
+      div {
+        height: 32px;
+        font-size: 14px;
+        color: #292929;
+        padding: 8px 12px;
+        cursor: pointer;
+        text-decoration: none;
+        border-radius: 4px;
+        &:hover {
+          background-color: #f2f5f7;
+        }
+      }
+    }
   }
-}
-.pipelineAddStage {
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-  color: #7d8389;
-  z-index: 3;
-  &:hover {
-    color: #40a9ff;
+
+  .pipelineContent {
+    .pipelineSidebar {
+      display: inline-block;
+      max-height: calc(100vh - 56px);
+      max-width: 300px;
+      min-width: 300px;
+      overflow-y: auto;
+      vertical-align: top;
+      padding: 19px;
+      .pipelineSource {
+        height: auto;
+        margin-top: 46px;
+        width: 100%;
+      }
+    }
+    .pipelineContentList {
+      display: flex;
+      .pipelineGroup {
+        display: flex;
+        height: 100%;
+        position: relative;
+        white-space: nowrap;
+        .pipelineSplitline {
+          margin-left: -16px;
+          display: inline-block;
+          height: 100%;
+          padding: 0 1px;
+          position: relative;
+          text-align: center;
+          transform: rotate(0);
+          vertical-align: top;
+          width: 48px;
+          overflow: hidden;
+          .pipelineButton {
+            color: #8b8b8b;
+            cursor: pointer;
+            height: calc(100vh - 268px);
+            position: relative;
+            z-index: 1;
+            .pipelineButtonPlus {
+              margin-left: -8.5px;
+              position: absolute;
+              top: 96px;
+              z-index: 2;
+            }
+            &:before {
+              border-left: 1px solid #dbdbdb;
+              content: '';
+              height: 100%;
+              position: absolute;
+            }
+            &:after {
+              margin-left: 0;
+              width: 24px !important;
+              position: absolute;
+              top: 104.5px;
+              border-top: 1px solid #dbdbdb;
+              content: '';
+            }
+          }
+        }
+        .pipelineEditable {
+          display: inline-block;
+          height: 100%;
+          overflow-y: auto;
+          padding-top: 19px;
+          vertical-align: top;
+          .pipelineGroupHeader {
+            margin-bottom: 38px;
+            padding: 0 20px;
+          }
+          .pipelineStages {
+            .pipelineTaskContainer {
+              height: 60px;
+
+              .pipelineStagesContainer {
+                display: flex;
+                margin: 0 14px;
+                position: relative;
+                bottom: 60px;
+
+                .pipelineJobType {
+                  box-shadow: 0 2px 4px 0 rgba(38, 38, 38, 0.1);
+                  margin: 10px 14px 10px 10px;
+                  width: 40px;
+                  border: 1px solid #e9edf0;
+                  background: #fff;
+                  align-items: center;
+                  -webkit-box-pack: center;
+                  -webkit-box-align: center;
+                  border-radius: 20px;
+                  cursor: pointer;
+                  display: flex;
+                  height: 40px;
+                  justify-content: center;
+                  z-index: 2;
+
+                  &:hover {
+                    border-color: #40a9ff;
+                  }
+
+                  &:hover .pipelineAddStage {
+                    color: #40a9ff;
+                  }
+                }
+
+                .pipelineJob {
+                  display: flex;
+                  -webkit-box-align: center;
+                  -webkit-box-pack: center;
+                  align-items: center;
+                  justify-content: center;
+                  position: relative;
+                  transition: all 0.2s ease-in-out;
+                  z-index: 1;
+                  margin: 10px 0;
+                  height: 44px;
+
+                  &:hover .pipelineJobExtra {
+                    visibility: visible;
+                    display: flex;
+                  }
+
+                  &:last-child {
+                    margin-right: 0;
+                  }
+
+                  .pipelineJobExtra {
+                    width: 20px;
+                    visibility: hidden;
+                    align-items: center;
+                  }
+
+                  .pipelineJobContent {
+                    z-index: 3;
+                  }
+                }
+              }
+
+              &:before {
+                border-bottom: 1px solid #dbdbdb;
+                border-left: 1px solid #dbdbdb;
+                border-right: 1px solid #dbdbdb;
+                height: 60px;
+                width: 100%;
+                content: '';
+                z-index: 1;
+                display: block;
+                position: relative;
+                bottom: 28px;
+              }
+
+              &:first-child:before {
+                border-left: none;
+                border-radius: 0 !important;
+                border-right: none;
+              }
+
+              &:last-child:before {
+                border-radius: 0 0 16px 16px;
+              }
+            }
+          }
+        }
+      }
+    }
+    .pipelineTitle {
+      display: flex;
+      font-size: 14px;
+      align-items: center;
+      color: #8b8b8b;
+      -webkit-box-align: center;
+    }
+  }
+  .pipelineAddStage {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    color: #7d8389;
+    z-index: 3;
+    &:hover {
+      color: #40a9ff;
+    }
   }
 }

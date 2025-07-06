@@ -150,7 +150,7 @@ const Task: FC = () => {
               key="search"
               placeholder="请输入名称"
               allowClear
-              style={{ width: 300 }}
+              style={{ width: 260 }}
               onChange={(e) => {
                 if (e.target.value === '') {
                   setQuery({ ...query, fieldSelector: undefined });
@@ -163,7 +163,7 @@ const Task: FC = () => {
             />,
             <Select
               key="namespace"
-              style={{ width: 220 }}
+              style={{ width: 200 }}
               allowClear
               value={query.namespace}
               options={namespaceList.map((ns) => ({
