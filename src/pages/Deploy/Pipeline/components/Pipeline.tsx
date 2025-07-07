@@ -5,6 +5,7 @@ import { PlusOutlined } from '@ant-design/icons';
 import { ReactComponent as PlusFill } from '@/assets/svg/plusFill.svg';
 import { ReactComponent as AutomaticTrigger } from '@/assets/svg/automaticTrigger.svg';
 import { PageContainer } from '@ant-design/pro-components';
+import { resourceDetails } from '@/services/deploy/tekton';
 
 interface PipelineProps {
   status: 'create' | 'edit';
@@ -12,15 +13,28 @@ interface PipelineProps {
   name?: string | undefined;
 }
 
+const pipelinesName = 'pipelines';
+
 const Pipeline: FC<PipelineProps> = ({
   status = 'create',
   name = undefined,
   namespace = undefined,
 }) => {
   const [active, setActive] = useState('process');
+  const [pipelineDetails, setPipelineDetails] = useState({});
+  const [taskList, setTaskList] = useState<any[]>([]);
 
   useEffect(() => {
-    console.log(status, name, namespace);
+    if (status === 'create') {
+    } else if (status === 'edit') {
+      (async () => {
+        const res = await resourceDetails(pipelinesName, name, namespace, {});
+        const _data = res.data || {};
+        setPipelineDetails(_data);
+        console.log(_data.spec.tasks, pipelineDetails);
+        setTaskList(_data.spec.tasks || []);
+      })();
+    }
   }, []);
 
   return (
@@ -94,48 +108,80 @@ const Pipeline: FC<PipelineProps> = ({
                 <div className={styles.pipelineContentList}>
                   <div className={styles.pipelineGroup}>
                     <div className={`${styles.pipelineSplitline}`}>
-                      <div className={`${styles.pipelineButton} ${styles.pipelineButtonAfter}`}>
+                      <div
+                        className={`${styles.pipelineButton} ${
+                          Array.isArray(taskList) && taskList.length > 0
+                            ? styles.pipelineButtonAfter
+                            : ''
+                        }`}
+                      >
                         <PlusFill
                           className={`${styles.pipelineButtonPlus} ${styles.pipelineAddStage}`}
                         />
                       </div>
                     </div>
-                    <div className={`${styles.pipelineEditable} ${styles.pipelineTitle}`}>
-                      <div className={styles.pipelineGroupHeader}>暂无流程</div>
-                      <div className={`${styles.pipelineStages}`}>
-                        <div className={`${styles.pipelineTaskContainer}`}>
-                          <div className={styles.pipelineStagesContainer}>
-                            <div className={styles.pipelineJobType}>
-                              <AutomaticTrigger className={styles.pipelineAddStage} />
+                    {Array.isArray(taskList) && taskList.length > 0
+                      ? taskList.map((stage: any, idx: number) => (
+                          <div key={idx}>
+                            <div className={`${styles.pipelineEditable} ${styles.pipelineTitle}`}>
+                              <div className={styles.pipelineGroupHeader}>
+                                {stage.name || `阶段${idx + 1}`}
+                              </div>
+                              <div className={`${styles.pipelineStages}`}>
+                                <div className={`${styles.pipelineTaskContainer}`}>
+                                  <div className={styles.pipelineStagesContainer}>
+                                    <div className={styles.pipelineJobType}>
+                                      <AutomaticTrigger className={styles.pipelineAddStage} />
+                                    </div>
+                                    <div className={styles.pipelineJob}>
+                                      <div
+                                        className={styles.pipelineJobExtra}
+                                        style={{ marginRight: 14 }}
+                                      >
+                                        <PlusFill className={styles.pipelineAddStage} />
+                                      </div>
+                                      <div className={styles.pipelineJobContent}>
+                                        <Button
+                                          shape="round"
+                                          style={{
+                                            width: '100%',
+                                            color: '#595c62',
+                                            fontSize: '14px',
+                                          }}
+                                          size="large"
+                                        >
+                                          {stage?.taskRef?.name || '新建阶段'}
+                                        </Button>
+                                      </div>
+                                      <div
+                                        className={styles.pipelineJobExtra}
+                                        style={{ marginLeft: 14 }}
+                                      >
+                                        <PlusFill className={styles.pipelineAddStage} />
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
-                            <div className={styles.pipelineJob}>
-                              <div className={styles.pipelineJobExtra} style={{ marginRight: 14 }}>
-                                <PlusFill className={styles.pipelineAddStage} />
-                              </div>
-                              <div className={styles.pipelineJobContent}>
-                                <Button
-                                  shape="round"
-                                  style={{ width: '100%', color: '#595c62', fontSize: '14px' }}
-                                  size="large"
-                                >
-                                  新建阶段
-                                </Button>
-                              </div>
-                              <div className={styles.pipelineJobExtra} style={{ marginLeft: 14 }}>
-                                <PlusFill className={styles.pipelineAddStage} />
+                            <div className={styles.pipelineSplitline}>
+                              <div
+                                className={`${styles.pipelineButton} ${
+                                  Array.isArray(taskList) &&
+                                  taskList.length > 0 &&
+                                  idx !== taskList.length - 1
+                                    ? styles.pipelineButtonAfter
+                                    : ''
+                                }`}
+                              >
+                                <PlusFill
+                                  className={`${styles.pipelineButtonPlus} ${styles.pipelineAddStage}`}
+                                />
                               </div>
                             </div>
                           </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className={styles.pipelineSplitline}>
-                      <div className={styles.pipelineButton}>
-                        <PlusFill
-                          className={`${styles.pipelineButtonPlus} ${styles.pipelineAddStage}`}
-                        />
-                      </div>
-                    </div>
+                        ))
+                      : null}
                   </div>
                 </div>
               </div>
