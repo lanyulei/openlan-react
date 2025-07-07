@@ -93,8 +93,8 @@ const Pipeline: FC<PipelineProps> = ({
                 </div>
                 <div className={styles.pipelineContentList}>
                   <div className={styles.pipelineGroup}>
-                    <div className={styles.pipelineSplitline}>
-                      <div className={styles.pipelineButton}>
+                    <div className={`${styles.pipelineSplitline}`}>
+                      <div className={`${styles.pipelineButton} ${styles.pipelineButtonAfter}`}>
                         <PlusFill
                           className={`${styles.pipelineButtonPlus} ${styles.pipelineAddStage}`}
                         />
@@ -127,6 +127,13 @@ const Pipeline: FC<PipelineProps> = ({
                             </div>
                           </div>
                         </div>
+                      </div>
+                    </div>
+                    <div className={styles.pipelineSplitline}>
+                      <div className={styles.pipelineButton}>
+                        <PlusFill
+                          className={`${styles.pipelineButtonPlus} ${styles.pipelineAddStage}`}
+                        />
                       </div>
                     </div>
                   </div>
