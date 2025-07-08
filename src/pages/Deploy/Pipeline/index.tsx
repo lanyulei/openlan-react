@@ -44,7 +44,7 @@ const PipelineList: FC = () => {
   const [namespaceList, setNamespaceList] = React.useState<string[]>([]);
   const [drawerOpen, setDrawerOpen] = React.useState<boolean>(false);
   const [drawerStatus, setDrawerStatus] = React.useState<'create' | 'edit'>('create');
-  const [pipelineDetails, setPipelineDetails] = React.useState<any>({});
+  const [pipelineDetails, setPipelineDetails] = React.useState<any>();
 
   const handleReload = async () => {
     await actionRef?.current?.reload();
@@ -110,6 +110,7 @@ const PipelineList: FC = () => {
                     //   `/deploy/pipeline/edit/${record.metadata?.namespace}/${record.metadata?.name}`,
                     // );
                     setDrawerStatus('edit');
+                    delete record.metadata?.managedFields;
                     setPipelineDetails(record);
                     setDrawerOpen(true);
                   }}

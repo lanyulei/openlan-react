@@ -50,7 +50,7 @@ const Task: FC = () => {
   const [namespaceList, setNamespaceList] = React.useState<string[]>([]);
   const [drawerOpen, setDrawerOpen] = React.useState<boolean>(false);
   const [drawerStatus, setDrawerStatus] = React.useState<'create' | 'edit'>('create');
-  const [taskData, setTaskData] = React.useState<any>({});
+  const [taskData, setTaskData] = React.useState<any>();
 
   const handleReload = async () => {
     await actionRef?.current?.reload();
@@ -148,9 +148,8 @@ const Task: FC = () => {
                     //   `/deploy/task/edit/${record.metadata?.namespace}/${record.metadata?.name}`,
                     // );
                     setDrawerStatus('edit');
-                    setTaskData({
-                      content: jsonToYaml(record),
-                    });
+                    delete record.metadata?.managedFields;
+                    setTaskData(record);
                     setDrawerOpen(true);
                   }}
                 >
@@ -201,9 +200,7 @@ const Task: FC = () => {
               onClick={() => {
                 // navigate('/deploy/task/create');
                 setDrawerStatus('create');
-                setTaskData({
-                  content: initTaskData,
-                });
+                setTaskData(initTaskData);
                 setDrawerOpen(true);
               }}
               key="addTask"
@@ -259,7 +256,7 @@ const Task: FC = () => {
           destroyOnHidden: true,
         }}
         onFinish={async () => {
-          const taskDetails = yamlToJson(taskData.content);
+          const taskDetails = yamlToJson(taskData);
           if (drawerStatus === 'create') {
             await createResource(tasksName, taskDetails.metadata?.namespace, taskDetails, {});
             messageApi.success('任务创建成功');
@@ -284,11 +281,11 @@ const Task: FC = () => {
         }}
       >
         <MonacoEditor
-          height={Math.max(200, ((taskData.content || '').split('\n').length + 1) * 20)}
+          height={Math.max(200, ((jsonToYaml(taskData) || '').split('\n').length + 1) * 20)}
           codeType="yaml"
-          value={taskData.content || ''}
+          value={jsonToYaml(taskData) || ''}
           onChange={(value: string) => {
-            setTaskData({ ...taskData, content: value });
+            setTaskData(value);
           }}
         />
       </DrawerForm>
