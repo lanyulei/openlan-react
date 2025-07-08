@@ -25,3 +25,13 @@ export const jsonToYaml = (json: object | string) => {
     return '';
   }
 };
+
+// 生成一个 yaml 转 json 的函数
+export const yamlToJson = (yamlString: any) => {
+  try {
+    return yaml.load(yamlString);
+  } catch (e) {
+    console.error('Error converting YAML to JSON:', e);
+    return {};
+  }
+};

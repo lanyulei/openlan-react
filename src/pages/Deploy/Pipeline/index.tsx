@@ -1,12 +1,18 @@
 import React, { FC, useEffect, useRef } from 'react';
 import { ActionType, DrawerForm, PageContainer, ProTable } from '@ant-design/pro-components';
 import styles from '@/pages/Resource/Cloud/Account/index.less';
-import { resourceList, resourceListByNamespace } from '@/services/deploy/tekton';
-import { EditOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
-import { Button, Form, Input, Select } from 'antd';
+import {
+  createResource,
+  deleteResource,
+  resourceList,
+  resourceListByNamespace,
+  updateResource,
+} from '@/services/deploy/tekton';
+import { DeleteOutlined, EditOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
+import { Button, Form, Input, message, Modal, Select } from 'antd';
 import { getNamespaces } from '@/services/deploy/namespace';
 import MonacoEditor from '@/components/MonacoEditor';
-import { jsonToYaml } from '@/utils/tools/tools';
+import { jsonToYaml, yamlToJson } from '@/utils/tools/tools';
 
 const pipelinesName = 'pipelines';
 const initPipeline = `apiVersion: tekton.dev/v1
@@ -28,6 +34,8 @@ spec:
 const PipelineList: FC = () => {
   const [form] = Form.useForm();
   // const navigate = useNavigate();
+  const [modal, modalContextHolder] = Modal.useModal();
+  const [messageApi, messageContextHolder] = message.useMessage();
   const actionRef = useRef<ActionType>();
   const [query, setQuery] = React.useState<any>({
     name: undefined,
@@ -63,6 +71,8 @@ const PipelineList: FC = () => {
 
   return (
     <>
+      {modalContextHolder}
+      {messageContextHolder}
       <PageContainer content="流水线（Pipeline）是由多个任务（Task）组成的自动化工作流，用于定义和执行 CI/CD 中的各个步骤及其依赖关系。">
         <ProTable
           className={styles.tableList}
@@ -105,6 +115,31 @@ const PipelineList: FC = () => {
                   }}
                 >
                   <EditOutlined /> 编辑
+                </a>,
+                <a
+                  style={{ marginLeft: 10 }}
+                  key="delete"
+                  onClick={() => {
+                    modal.confirm({
+                      title: '提示',
+                      content: '确定是否删除此任务？',
+                      okText: '确认',
+                      cancelText: '取消',
+                      onOk: async () => {
+                        await deleteResource(
+                          pipelinesName,
+                          record.metadata?.name,
+                          record.metadata?.namespace,
+                          {},
+                        );
+                        await handleReload();
+                        messageApi.success('任务删除成功');
+                        return true;
+                      },
+                    });
+                  }}
+                >
+                  <DeleteOutlined /> 删除
                 </a>,
               ],
             },
@@ -180,21 +215,38 @@ const PipelineList: FC = () => {
         drawerProps={{
           destroyOnHidden: true,
         }}
-        onFinish={async (values) => {
+        onFinish={async () => {
+          const pipelineData = yamlToJson(pipelineDetails);
           if (drawerStatus === 'create') {
+            await createResource(pipelinesName, pipelineData.metadata?.namespace, pipelineData, {});
+            messageApi.success('任务创建成功');
           } else if (drawerStatus === 'edit') {
+            await updateResource(
+              pipelinesName,
+              pipelineData.metadata?.name,
+              pipelineData.metadata?.namespace,
+              pipelineData,
+              {},
+            );
+            messageApi.success('任务更新成功');
           }
-          console.log(values);
+          await handleReload();
           return true;
         }}
         width={800}
         open={drawerOpen}
         onOpenChange={setDrawerOpen}
+        submitter={{
+          searchConfig: { submitText: '保存', resetText: '取消' },
+        }}
       >
         <MonacoEditor
           height={Math.max(200, ((jsonToYaml(pipelineDetails) || '').split('\n').length + 1) * 20)}
           codeType="yaml"
           value={jsonToYaml(pipelineDetails) || ''}
+          onChange={(value) => {
+            setPipelineDetails(value);
+          }}
         />
       </DrawerForm>
     </>

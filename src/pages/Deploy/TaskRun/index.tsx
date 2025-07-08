@@ -5,10 +5,9 @@ import {
   CheckCircleOutlined,
   ClockCircleOutlined,
   CloseCircleOutlined,
-  PlusOutlined,
   SearchOutlined,
 } from '@ant-design/icons';
-import { Button, Input, Select, Tooltip } from 'antd';
+import { Input, Select, Tooltip } from 'antd';
 import { getNamespaces } from '@/services/deploy/namespace';
 import { formatDate } from '@/utils/tools/tools';
 import commonStyles from '@/pages/Resource/Cloud/Account/index.less';
@@ -202,9 +201,6 @@ const TaskRun: FC = () => {
           pagination={false}
           bordered
           toolBarRender={() => [
-            <Button onClick={() => {}} key="addTask" type="primary" icon={<PlusOutlined />}>
-              新建任务
-            </Button>,
             <Input
               key="search"
               placeholder="请输入名称"

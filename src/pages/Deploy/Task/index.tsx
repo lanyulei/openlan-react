@@ -1,17 +1,45 @@
 import React, { FC, useEffect, useRef } from 'react';
-import { ActionType, PageContainer, ProTable } from '@ant-design/pro-components';
-import { Button, Input, message, Modal, Select } from 'antd';
-import { EditOutlined, PlusOutlined, RightSquareOutlined, SearchOutlined } from '@ant-design/icons';
+import { ActionType, DrawerForm, PageContainer, ProTable } from '@ant-design/pro-components';
+import { Button, Form, Input, message, Modal, Select } from 'antd';
+import {
+  DeleteOutlined,
+  EditOutlined,
+  PlusOutlined,
+  RightSquareOutlined,
+  SearchOutlined,
+} from '@ant-design/icons';
 import styles from '@/pages/Resource/Cloud/Account/index.less';
-import { useNavigate } from 'react-router-dom';
 import { getNamespaces } from '@/services/deploy/namespace';
-import { createResource, resourceList, resourceListByNamespace } from '@/services/deploy/tekton';
+import {
+  createResource,
+  deleteResource,
+  resourceList,
+  resourceListByNamespace,
+  updateResource,
+} from '@/services/deploy/tekton';
+import MonacoEditor from '@/components/MonacoEditor';
+import { jsonToYaml, yamlToJson } from '@/utils/tools/tools';
 
 const tasksName = 'tasks';
 const taskRunsName = 'taskruns';
+const initTaskData = `apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: demo-task
+  namespace: default
+spec:
+  steps:
+    - computeResources: {}
+      image: alpine
+      name: echo-lanyulei
+      script: |
+        #!/bin/sh
+        echo "Hello, lanyulei!"
+`;
 
 const Task: FC = () => {
-  const navigate = useNavigate();
+  const [form] = Form.useForm();
+  // const navigate = useNavigate();
   const [modal, modalContextHolder] = Modal.useModal();
   const [messageApi, messageContextHolder] = message.useMessage();
   const actionRef = useRef<ActionType>();
@@ -20,6 +48,9 @@ const Task: FC = () => {
     namespace: undefined,
   });
   const [namespaceList, setNamespaceList] = React.useState<string[]>([]);
+  const [drawerOpen, setDrawerOpen] = React.useState<boolean>(false);
+  const [drawerStatus, setDrawerStatus] = React.useState<'create' | 'edit'>('create');
+  const [taskData, setTaskData] = React.useState<any>({});
 
   const handleReload = async () => {
     await actionRef?.current?.reload();
@@ -75,7 +106,7 @@ const Task: FC = () => {
               valueType: 'option',
               key: 'option',
               align: 'center' as const,
-              width: 150,
+              width: 200,
               render: (_: any, record: any) => [
                 <a
                   key="run"
@@ -101,7 +132,7 @@ const Task: FC = () => {
                         };
 
                         await createResource(taskRunsName, record.metadata?.namespace, _params, {});
-                        messageApi.success('已执行此任务');
+                        messageApi.success('已开始执行此任务');
                         return true;
                       },
                     });
@@ -113,12 +144,42 @@ const Task: FC = () => {
                   style={{ marginLeft: 10 }}
                   key="edit"
                   onClick={() => {
-                    navigate(
-                      `/deploy/task/edit/${record.metadata?.namespace}/${record.metadata?.name}`,
-                    );
+                    // navigate(
+                    //   `/deploy/task/edit/${record.metadata?.namespace}/${record.metadata?.name}`,
+                    // );
+                    setDrawerStatus('edit');
+                    setTaskData({
+                      content: jsonToYaml(record),
+                    });
+                    setDrawerOpen(true);
                   }}
                 >
                   <EditOutlined /> 编辑
+                </a>,
+                <a
+                  style={{ marginLeft: 10 }}
+                  key="delete"
+                  onClick={() => {
+                    modal.confirm({
+                      title: '提示',
+                      content: '确定是否删除此任务？',
+                      okText: '确认',
+                      cancelText: '取消',
+                      onOk: async () => {
+                        await deleteResource(
+                          tasksName,
+                          record.metadata?.name,
+                          record.metadata?.namespace,
+                          {},
+                        );
+                        await handleReload();
+                        messageApi.success('任务删除成功');
+                        return true;
+                      },
+                    });
+                  }}
+                >
+                  <DeleteOutlined /> 删除
                 </a>,
               ],
             },
@@ -138,7 +199,12 @@ const Task: FC = () => {
           toolBarRender={() => [
             <Button
               onClick={() => {
-                navigate('/deploy/task/create');
+                // navigate('/deploy/task/create');
+                setDrawerStatus('create');
+                setTaskData({
+                  content: initTaskData,
+                });
+                setDrawerOpen(true);
               }}
               key="addTask"
               type="primary"
@@ -184,6 +250,48 @@ const Task: FC = () => {
           search={false}
         />
       </PageContainer>
+
+      <DrawerForm
+        title={drawerStatus === 'create' ? '新建任务' : '编辑任务'}
+        form={form}
+        autoFocusFirstInput
+        drawerProps={{
+          destroyOnHidden: true,
+        }}
+        onFinish={async () => {
+          const taskDetails = yamlToJson(taskData.content);
+          if (drawerStatus === 'create') {
+            await createResource(tasksName, taskDetails.metadata?.namespace, taskDetails, {});
+            messageApi.success('任务创建成功');
+          } else if (drawerStatus === 'edit') {
+            await updateResource(
+              tasksName,
+              taskDetails.metadata?.name,
+              taskDetails.metadata?.namespace,
+              taskDetails,
+              {},
+            );
+            messageApi.success('任务更新成功');
+          }
+          await handleReload();
+          return true;
+        }}
+        width={800}
+        open={drawerOpen}
+        onOpenChange={setDrawerOpen}
+        submitter={{
+          searchConfig: { submitText: '保存', resetText: '取消' },
+        }}
+      >
+        <MonacoEditor
+          height={Math.max(200, ((taskData.content || '').split('\n').length + 1) * 20)}
+          codeType="yaml"
+          value={taskData.content || ''}
+          onChange={(value: string) => {
+            setTaskData({ ...taskData, content: value });
+          }}
+        />
+      </DrawerForm>
     </>
   );
 };

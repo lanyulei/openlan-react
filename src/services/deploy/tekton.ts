@@ -55,6 +55,18 @@ export async function updateResource(
   });
 }
 
+export async function deleteResource(
+  resource: string,
+  name: string,
+  namespace: string,
+  options: { [key: string]: any },
+) {
+  return request(`${KubeApi}/apis/tekton.dev/v1/namespaces/${namespace}/${resource}/${name}`, {
+    method: 'DELETE',
+    ...(options || {}),
+  });
+}
+
 export async function resourceDetails(
   resource: string,
   name: string | undefined,

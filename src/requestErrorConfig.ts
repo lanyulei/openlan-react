@@ -2,8 +2,7 @@
 import type { RequestConfig } from '@umijs/max';
 import { message, notification } from 'antd';
 import { getItem } from './utils/session';
-import { TOKEN_KEY } from './utils/variable';
-import { SUCCESS_CODE } from './utils/variable';
+import { SUCCESS_CODE, TOKEN_KEY } from './utils/variable';
 
 // 错误处理方案： 错误类型
 enum ErrorShowType {
@@ -75,7 +74,7 @@ export const errorConfig: RequestConfig = {
       } else if (error.response) {
         // Axios 的错误
         // 请求成功发出且服务器也响应了状态码，但状态代码超出了 2xx 的范围
-        message.error(`Response status:${error.response.status}`);
+        message.error(error.response?.data?.message || 'Request error, please retry.');
       } else if (error.request) {
         // 请求已经成功发起，但没有收到响应
         // \`error.request\` 在浏览器中是 XMLHttpRequest 的实例，
