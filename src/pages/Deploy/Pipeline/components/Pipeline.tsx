@@ -44,17 +44,17 @@ const Pipeline: FC<PipelineProps> = ({
   const [pipelineDetails, setPipelineDetails] = useState({});
   const [taskList, setTaskList] = useState<any[]>([]);
   const [visible, setVisible] = useState(false);
-  const [taskDetails, setTaskDetails] = useState<any>({});
+  const [taskConfigure, setTaskConfigure] = useState<any>({});
 
   const handleClick = () => {
     setVisible(!visible);
   };
 
-  const handleTaskDetails = (task: any) => {
-    setTaskDetails(task);
+  const handleTaskConfigure = (task: any) => {
+    setTaskConfigure(task);
     form.setFieldsValue(task);
     setVisible(!visible);
-    console.log('taskDetails:', taskDetails);
+    console.log('taskConfigure:', taskConfigure);
   };
 
   useEffect(() => {
@@ -125,7 +125,7 @@ const Pipeline: FC<PipelineProps> = ({
             {active === 'process' && (
               <div style={{ display: 'flex', height: '100%' }}>
                 <div className={styles.pipelineSidebar}>
-                  <div className={styles.pipelineTitle}>流水线源</div>
+                  <div className={styles.pipelineTitle}>流水线配置</div>
                   <div className={styles.pipelineSource}></div>
                   <div>
                     <Button
@@ -184,7 +184,7 @@ const Pipeline: FC<PipelineProps> = ({
                                             fontSize: '14px',
                                           }}
                                           size="large"
-                                          onClick={() => handleTaskDetails(stage)}
+                                          onClick={() => handleTaskConfigure(stage)}
                                         >
                                           {stage?.taskRef?.name || '新建阶段'}
                                         </Button>
@@ -245,10 +245,10 @@ const Pipeline: FC<PipelineProps> = ({
           return true;
         }}
       >
-        <ProFormText name={['metadata', 'name']} label="名称" rules={[{ required: true }]} />
+        <ProFormText name={['name']} label="名称" rules={[{ required: true }]} />
 
         <ProFormList
-          name={['spec', 'params']}
+          name={['params']}
           label="全局参数"
           creatorButtonProps={{ position: 'top', creatorButtonText: '添加参数' }}
           itemRender={({ listDom, action }) => (

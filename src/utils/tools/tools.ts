@@ -14,8 +14,11 @@ export const formatDate = (dateString: string) => {
 };
 
 // 生成一个 json 转 yaml 的函数
-export const jsonToYaml = (json: object) => {
+export const jsonToYaml = (json: object | string) => {
   try {
+    if (typeof json !== 'object' || json === null || Array.isArray(json)) {
+      return json;
+    }
     return yaml.dump(json);
   } catch (e) {
     console.error('Error converting JSON to YAML:', e);

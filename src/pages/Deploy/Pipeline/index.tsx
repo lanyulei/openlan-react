@@ -1,22 +1,42 @@
 import React, { FC, useEffect, useRef } from 'react';
-import { ActionType, PageContainer, ProTable } from '@ant-design/pro-components';
+import { ActionType, DrawerForm, PageContainer, ProTable } from '@ant-design/pro-components';
 import styles from '@/pages/Resource/Cloud/Account/index.less';
 import { resourceList, resourceListByNamespace } from '@/services/deploy/tekton';
 import { EditOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
-import { Button, Input, Select } from 'antd';
-import { useNavigate } from 'react-router-dom';
+import { Button, Form, Input, Select } from 'antd';
 import { getNamespaces } from '@/services/deploy/namespace';
+import MonacoEditor from '@/components/MonacoEditor';
+import { jsonToYaml } from '@/utils/tools/tools';
 
 const pipelinesName = 'pipelines';
+const initPipeline = `apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: demo-pipeline
+  namespace: default
+spec:
+  tasks:
+    - name: demo-task
+      params:
+        - name: url
+          value: https://github.com/lanyulei/lanyulei.git
+      taskRef:
+        kind: Task
+        name: git-clone
+`;
 
 const PipelineList: FC = () => {
-  const navigate = useNavigate();
+  const [form] = Form.useForm();
+  // const navigate = useNavigate();
   const actionRef = useRef<ActionType>();
   const [query, setQuery] = React.useState<any>({
     name: undefined,
     namespace: undefined,
   });
   const [namespaceList, setNamespaceList] = React.useState<string[]>([]);
+  const [drawerOpen, setDrawerOpen] = React.useState<boolean>(false);
+  const [drawerStatus, setDrawerStatus] = React.useState<'create' | 'edit'>('create');
+  const [pipelineDetails, setPipelineDetails] = React.useState<any>({});
 
   const handleReload = async () => {
     await actionRef?.current?.reload();
@@ -76,9 +96,12 @@ const PipelineList: FC = () => {
                   style={{ marginLeft: 10 }}
                   key="edit"
                   onClick={() => {
-                    navigate(
-                      `/deploy/pipeline/edit/${record.metadata?.namespace}/${record.metadata?.name}`,
-                    );
+                    // navigate(
+                    //   `/deploy/pipeline/edit/${record.metadata?.namespace}/${record.metadata?.name}`,
+                    // );
+                    setDrawerStatus('edit');
+                    setPipelineDetails(record);
+                    setDrawerOpen(true);
                   }}
                 >
                   <EditOutlined /> 编辑
@@ -101,7 +124,10 @@ const PipelineList: FC = () => {
           toolBarRender={() => [
             <Button
               onClick={() => {
-                navigate('/deploy/pipeline/create');
+                // navigate('/deploy/pipeline/create');
+                setDrawerStatus('create');
+                setPipelineDetails(initPipeline);
+                setDrawerOpen(true);
               }}
               key="addTask"
               type="primary"
@@ -147,6 +173,30 @@ const PipelineList: FC = () => {
           search={false}
         />
       </PageContainer>
+      <DrawerForm
+        title={drawerStatus === 'create' ? '新建流水线' : '编辑流水线'}
+        form={form}
+        autoFocusFirstInput
+        drawerProps={{
+          destroyOnHidden: true,
+        }}
+        onFinish={async (values) => {
+          if (drawerStatus === 'create') {
+          } else if (drawerStatus === 'edit') {
+          }
+          console.log(values);
+          return true;
+        }}
+        width={800}
+        open={drawerOpen}
+        onOpenChange={setDrawerOpen}
+      >
+        <MonacoEditor
+          height={Math.max(200, ((jsonToYaml(pipelineDetails) || '').split('\n').length + 1) * 20)}
+          codeType="yaml"
+          value={jsonToYaml(pipelineDetails) || ''}
+        />
+      </DrawerForm>
     </>
   );
 };
