@@ -1,15 +1,15 @@
 import React, { FC, useEffect, useRef } from 'react';
 import {
-  ProTable,
   ActionType,
-  PageContainer,
   ModalForm,
-  ProFormSelect,
+  PageContainer,
+  ProColumns,
+  ProFormGroup,
   ProFormRadio,
+  ProFormSelect,
   ProFormText,
   ProFormTextArea,
-  ProFormGroup,
-  ProColumns,
+  ProTable,
 } from '@ant-design/pro-components';
 import { Button, Dropdown, Input, MenuProps, message, Modal, SelectProps, Space, Tag } from 'antd';
 import {
@@ -326,6 +326,9 @@ const Account: FC = () => {
         onValuesChange={(_, values) => {
           setAccountForm((prev: any) => ({ ...prev, ...values }));
         }}
+        submitter={{
+          searchConfig: { submitText: '保存', resetText: '取消' },
+        }}
       >
         <ProFormGroup>
           <ProFormSelect
@@ -407,6 +410,9 @@ const Account: FC = () => {
         onOpenChange={setSyncModal}
         open={syncModal}
         width={600}
+        submitter={{
+          searchConfig: { submitText: '提交', resetText: '取消' },
+        }}
       >
         <ProFormSelect
           mode="multiple"

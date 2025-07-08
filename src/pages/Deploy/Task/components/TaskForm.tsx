@@ -364,7 +364,7 @@ const TaskForm: FC<TaskFormProps> = ({
                         />
                       </div>
                     </div>
-                    <div className={styles.commonBackgroundColor}>
+                    <div className="commonBackgroundColor">
                       <Row gutter={16}>
                         <Col span={12}>
                           <ProFormText
@@ -575,7 +575,7 @@ const TaskForm: FC<TaskFormProps> = ({
                       参数 {idx + 1}
                     </div>
                     <div
-                      className={styles.commonBackgroundColor}
+                      className="commonBackgroundColor"
                       style={{ paddingBottom: 0, marginBottom: 10 }}
                     >
                       <ProFormGroup key="param-group">
@@ -704,7 +704,7 @@ const TaskForm: FC<TaskFormProps> = ({
                       结果 {idx + 1}
                     </div>
                     <div
-                      className={styles.commonBackgroundColor}
+                      className="commonBackgroundColor"
                       style={{ paddingBottom: 0, marginBottom: 10 }}
                     >
                       <ProFormGroup key="result-group">
@@ -803,7 +803,7 @@ const TaskForm: FC<TaskFormProps> = ({
                       工作空间 {idx + 1}
                     </div>
                     <div
-                      className={styles.commonBackgroundColor}
+                      className="commonBackgroundColor"
                       style={{ paddingBottom: 0, marginBottom: 10 }}
                     >
                       <ProFormGroup key="workspace-group">
@@ -874,7 +874,7 @@ const TaskForm: FC<TaskFormProps> = ({
                       存储卷 {idx + 1}
                     </div>
                     <div
-                      className={styles.commonBackgroundColor}
+                      className="commonBackgroundColor"
                       style={{ paddingBottom: 0, marginBottom: 10 }}
                     >
                       <ProFormGroup key="volume-group">
@@ -935,7 +935,7 @@ const TaskForm: FC<TaskFormProps> = ({
               >
                 <div>
                   <div
-                    className={styles.commonBackgroundColor}
+                    className="commonBackgroundColor"
                     style={{ paddingBottom: 0, marginBottom: 10 }}
                   >
                     <ProFormGroup key="step-template-env-group">
@@ -986,7 +986,7 @@ const TaskForm: FC<TaskFormProps> = ({
                       辅助容器 {idx + 1}
                     </div>
                     <div
-                      className={styles.commonBackgroundColor}
+                      className="commonBackgroundColor"
                       style={{ paddingBottom: 0, marginBottom: 10 }}
                     >
                       <ProFormGroup key="sidecar-group">

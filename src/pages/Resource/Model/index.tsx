@@ -16,8 +16,8 @@ import {
   SearchOutlined,
 } from '@ant-design/icons';
 import styles from '../common.less';
-import { Button, Dropdown, Input, message, Modal } from 'antd';
 import type { MenuProps } from 'antd';
+import { Button, Dropdown, Input, message, Modal } from 'antd';
 import CreateModel from './components/CreateModel';
 
 import { getModels } from '@/services/resource/model';
@@ -268,6 +268,9 @@ const Models: FC = () => {
           setGroupForm((prev) => ({ ...prev, ...values }));
         }}
         onOpenChange={setModalVisit}
+        submitter={{
+          searchConfig: { submitText: '保存', resetText: '取消' },
+        }}
       >
         <ProFormText
           name="name"

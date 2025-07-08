@@ -65,7 +65,6 @@
           overflow: hidden;
           .pipelineButton {
             color: #8b8b8b;
-            cursor: pointer;
             height: calc(100vh - 268px);
             position: relative;
             z-index: 1;
@@ -167,6 +166,7 @@
 
                   .pipelineJobContent {
                     z-index: 3;
+                    margin: 0 10px;
                   }
                 }
               }
@@ -214,6 +214,14 @@
     z-index: 3;
     &:hover {
       color: #40a9ff;
+    }
+  }
+}
+
+.pipelineDrawerForm {
+  :global {
+    .ant-space {
+      gap: 0px 16px !important;
     }
   }
 }

@@ -177,6 +177,9 @@ const FieldPreview = forwardRef<
           ...normalizeMultiValue(fieldList, values),
         }));
       }}
+      submitter={{
+        searchConfig: { submitText: '保存', resetText: '取消' },
+      }}
     >
       {Array.isArray(fieldList) && fieldList.length > 0
         ? fieldList.map((item) => (

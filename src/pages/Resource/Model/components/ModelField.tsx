@@ -500,6 +500,9 @@ const ModelField: FC = () => {
           initialValues={fieldForm}
           onOpenChange={setFieldVisit}
           open={fieldVisit}
+          submitter={{
+            searchConfig: { submitText: '保存', resetText: '取消' },
+          }}
         >
           <ProFormText
             name="key"
@@ -931,6 +934,9 @@ const ModelField: FC = () => {
           initialValues={fieldGroupForm}
           onOpenChange={setFieldGroupVisit}
           open={fieldGroupVisit}
+          submitter={{
+            searchConfig: { submitText: '保存', resetText: '取消' },
+          }}
         >
           <Flex gap={12} style={{ width: '100%' }} className={styles.flexWidth100}>
             <ProFormText

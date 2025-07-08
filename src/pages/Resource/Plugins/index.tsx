@@ -1,13 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { EditOutlined } from '@ant-design/icons';
 import { Card } from 'antd';
-import { PageContainer } from '@ant-design/pro-components';
+import {
+  ModalForm,
+  PageContainer,
+  ProFormSelect,
+  ProFormText,
+  ProFormTextArea,
+} from '@ant-design/pro-components';
 import { getPlugins, updatePlugin } from '@/services/resource/plugin';
 import styles from '@/pages/Resource/common.less';
 import pluginStyles from './index.less';
 
 import { Form, IconPicker, IconUnit } from '@ant-design/pro-editor';
-import { ModalForm, ProFormText, ProFormSelect, ProFormTextArea } from '@ant-design/pro-components';
 
 const { Meta } = Card;
 
@@ -118,6 +123,9 @@ const App: React.FC = () => {
         open={modalVisit}
         onOpenChange={setModalVisit}
         width={600}
+        submitter={{
+          searchConfig: { submitText: '保存', resetText: '取消' },
+        }}
       >
         <div className={pluginStyles.modelIcon}>
           <div>
