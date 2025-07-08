@@ -3,8 +3,15 @@ import styles from './Pipeline.less';
 import { Button } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { ReactComponent as PlusFill } from '@/assets/svg/plusFill.svg';
-import { ReactComponent as AutomaticTrigger } from '@/assets/svg/automaticTrigger.svg';
-import { PageContainer } from '@ant-design/pro-components';
+import {
+  DrawerForm,
+  PageContainer,
+  ProFormDigit,
+  ProFormGroup,
+  ProFormList,
+  ProFormSelect,
+  ProFormText,
+} from '@ant-design/pro-components';
 import { resourceDetails } from '@/services/deploy/tekton';
 
 interface PipelineProps {
@@ -12,6 +19,16 @@ interface PipelineProps {
   namespace?: string | undefined;
   name?: string | undefined;
 }
+
+const paramTypeOptions = [
+  { label: 'string', value: 'string' },
+  { label: 'array', value: 'array' },
+];
+
+const operatorOptions = [
+  { label: 'in', value: 'in' },
+  { label: 'notin', value: 'notin' },
+];
 
 const pipelinesName = 'pipelines';
 
@@ -23,6 +40,7 @@ const Pipeline: FC<PipelineProps> = ({
   const [active, setActive] = useState('process');
   const [pipelineDetails, setPipelineDetails] = useState({});
   const [taskList, setTaskList] = useState<any[]>([]);
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     if (status === 'create') {
@@ -130,9 +148,9 @@ const Pipeline: FC<PipelineProps> = ({
                               <div className={`${styles.pipelineStages}`}>
                                 <div className={`${styles.pipelineTaskContainer}`}>
                                   <div className={styles.pipelineStagesContainer}>
-                                    <div className={styles.pipelineJobType}>
-                                      <AutomaticTrigger className={styles.pipelineAddStage} />
-                                    </div>
+                                    {/*<div className={styles.pipelineJobType}>*/}
+                                    {/*  <AutomaticTrigger className={styles.pipelineAddStage} />*/}
+                                    {/*</div>*/}
                                     <div className={styles.pipelineJob}>
                                       <div
                                         className={styles.pipelineJobExtra}
@@ -191,6 +209,179 @@ const Pipeline: FC<PipelineProps> = ({
           </div>
         </div>
       </PageContainer>
+      <DrawerForm
+        title="编辑 Pipeline"
+        open={visible}
+        onOpenChange={setVisible}
+        width={800}
+        submitter={{
+          searchConfig: { submitText: '保存', resetText: '重置' },
+          render: (props, doms) => <div style={{ textAlign: 'right' }}>{doms}</div>,
+        }}
+      >
+        <ProFormGroup title="基础信息">
+          <ProFormText name={['metadata', 'name']} label="名称" rules={[{ required: true }]} />
+        </ProFormGroup>
+
+        <ProFormList
+          name={['spec', 'params']}
+          label="全局参数"
+          creatorButtonProps={{ position: 'top', creatorButtonText: '添加参数' }}
+          itemRender={({ listDom, action }) => (
+            <div
+              style={{ marginBottom: 16, border: '1px solid #eee', padding: 16, borderRadius: 4 }}
+            >
+              {listDom}
+              {action}
+            </div>
+          )}
+        >
+          <ProFormGroup>
+            <ProFormText name="name" label="参数名" rules={[{ required: true }]} />
+            <ProFormSelect
+              name="type"
+              label="类型"
+              options={paramTypeOptions}
+              rules={[{ required: true }]}
+            />
+            <ProFormText name="description" label="描述" />
+            <ProFormText name="default" label="默认值" />
+          </ProFormGroup>
+        </ProFormList>
+
+        <ProFormList
+          name={['spec', 'workspaces']}
+          label="工作区"
+          creatorButtonProps={{ position: 'top', creatorButtonText: '添加工作区' }}
+          itemRender={({ listDom, action }) => (
+            <div
+              style={{ marginBottom: 16, border: '1px solid #eee', padding: 16, borderRadius: 4 }}
+            >
+              {listDom}
+              {action}
+            </div>
+          )}
+        >
+          <ProFormGroup>
+            <ProFormText name="name" label="名称" rules={[{ required: true }]} />
+            <ProFormText name="description" label="描述" />
+          </ProFormGroup>
+        </ProFormList>
+
+        <ProFormList
+          name={['spec', 'tasks']}
+          label="任务"
+          creatorButtonProps={{ position: 'top', creatorButtonText: '添加任务' }}
+          itemRender={({ listDom, action }) => (
+            <div
+              style={{ marginBottom: 16, border: '1px solid #eee', padding: 16, borderRadius: 4 }}
+            >
+              {listDom}
+              {action}
+            </div>
+          )}
+        >
+          <ProFormGroup>
+            <ProFormText name="name" label="任务名" rules={[{ required: true }]} />
+            <ProFormText name="displayName" label="显示名" />
+            <ProFormText name="description" label="描述" />
+            <ProFormText name={['taskRef', 'name']} label="任务引用" rules={[{ required: true }]} />
+            <ProFormList
+              name="params"
+              label="参数"
+              creatorButtonProps={{ creatorButtonText: '添加参数' }}
+            >
+              <ProFormGroup>
+                <ProFormText name="name" label="参数名" />
+                <ProFormText name="value" label="值" />
+              </ProFormGroup>
+            </ProFormList>
+            <ProFormList
+              name="workspaces"
+              label="工作区"
+              creatorButtonProps={{ creatorButtonText: '添加工作区' }}
+            >
+              <ProFormGroup>
+                <ProFormText name="name" label="名称" />
+                <ProFormText name="workspace" label="工作区" />
+              </ProFormGroup>
+            </ProFormList>
+            <ProFormDigit name="retries" label="重试次数" min={0} />
+            <ProFormList
+              name="runAfter"
+              label="依赖任务"
+              creatorButtonProps={{ creatorButtonText: '添加依赖' }}
+            >
+              <ProFormText name="" label="任务名" />
+            </ProFormList>
+            <ProFormList
+              name="when"
+              label="条件"
+              creatorButtonProps={{ creatorButtonText: '添加条件' }}
+            >
+              <ProFormGroup>
+                <ProFormText name="input" label="输入" />
+                <ProFormSelect name="operator" label="操作符" options={operatorOptions} />
+                <ProFormText name="values" label="值（逗号分隔）" />
+              </ProFormGroup>
+            </ProFormList>
+            <ProFormText name="timeout" label="超时时间" />
+          </ProFormGroup>
+        </ProFormList>
+
+        <ProFormList
+          name={['spec', 'finally']}
+          label="最终任务"
+          creatorButtonProps={{ position: 'top', creatorButtonText: '添加最终任务' }}
+          itemRender={({ listDom, action }) => (
+            <div
+              style={{ marginBottom: 16, border: '1px solid #eee', padding: 16, borderRadius: 4 }}
+            >
+              {listDom}
+              {action}
+            </div>
+          )}
+        >
+          <ProFormGroup>
+            <ProFormText name="name" label="任务名" rules={[{ required: true }]} />
+            <ProFormText name="displayName" label="显示名" />
+            <ProFormText name="description" label="描述" />
+            <ProFormText name={['taskRef', 'name']} label="任务引用" rules={[{ required: true }]} />
+            <ProFormList
+              name="params"
+              label="参数"
+              creatorButtonProps={{ creatorButtonText: '添加参数' }}
+            >
+              <ProFormGroup>
+                <ProFormText name="name" label="参数名" />
+                <ProFormText name="value" label="值" />
+              </ProFormGroup>
+            </ProFormList>
+            <ProFormList
+              name="workspaces"
+              label="工作区"
+              creatorButtonProps={{ creatorButtonText: '添加工作区' }}
+            >
+              <ProFormGroup>
+                <ProFormText name="name" label="名称" />
+                <ProFormText name="workspace" label="工作区" />
+              </ProFormGroup>
+            </ProFormList>
+            <ProFormDigit name="retries" label="重试次数" min={0} />
+            <ProFormList
+              name="when"
+              label="条件"
+              creatorButtonProps={{ creatorButtonText: '添加条件' }}
+            >
+              <ProFormGroup>
+                <ProFormText name="input" label="输入" />
+                <ProFormSelect name="operator" label="操作符" options={operatorOptions} />
+                <ProFormText name="values" label="值（逗号分隔）" />
+              </ProFormGroup>
+            </ProFormList>
+          </ProFormGroup>
+        </ProFormList>
+      </DrawerForm>
     </>
   );
 };
