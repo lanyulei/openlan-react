@@ -14,7 +14,7 @@ interface MonacoEditorProps {
 const MonacoEditor: FC<MonacoEditorProps> = ({
   value = '',
   onChange,
-  height = '200px',
+  height = Math.max(200, (value || '').split('\n').length * 21),
   width = '100%',
   codeType = 'shell',
   readOnly = false,

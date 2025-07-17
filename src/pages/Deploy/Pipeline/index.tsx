@@ -242,7 +242,6 @@ const PipelineList: FC = () => {
         }}
       >
         <MonacoEditor
-          height={Math.max(200, ((jsonToYaml(pipelineDetails) || '').split('\n').length + 1) * 20)}
           codeType="yaml"
           value={jsonToYaml(pipelineDetails) || ''}
           onChange={(value) => {

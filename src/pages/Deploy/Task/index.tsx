@@ -281,7 +281,6 @@ const Task: FC = () => {
         }}
       >
         <MonacoEditor
-          height={Math.max(200, ((jsonToYaml(taskData) || '').split('\n').length + 1) * 20)}
           codeType="yaml"
           value={jsonToYaml(taskData) || ''}
           onChange={(value: string) => {
