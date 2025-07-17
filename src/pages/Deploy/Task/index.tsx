@@ -1,6 +1,6 @@
 import React, { FC, useEffect, useRef } from 'react';
 import { ActionType, DrawerForm, PageContainer, ProTable } from '@ant-design/pro-components';
-import { Button, Input, message, Modal, Select, Spin } from 'antd';
+import { Alert, Button, Input, message, Modal, Select, Spin } from 'antd';
 import {
   DeleteOutlined,
   EditOutlined,
@@ -117,10 +117,12 @@ const Task: FC = () => {
                   onClick={async () => {
                     setLoading(true);
                     setExecDrawerOpen(true);
+                    let jsonValue = JSON.parse(JSON.stringify(record));
+                    delete jsonValue?.metadata?.managedFields;
                     const prompt = tektonResourcePrompt(
                       'Task',
                       record.metadata.name,
-                      jsonToYaml(record),
+                      jsonToYaml(jsonValue),
                       'TaskRun',
                       record.metadata?.name + '-run-' + new Date().getTime(),
                       record.metadata?.namespace,
@@ -131,7 +133,7 @@ const Task: FC = () => {
                       },
                       {},
                     );
-                    setTaskRunData(res.data || '');
+                    setTaskRunData(res?.data || '');
                     setLoading(false);
                   }}
                 >
@@ -309,6 +311,11 @@ const Task: FC = () => {
           searchConfig: { submitText: '执行', resetText: '取消' },
         }}
       >
+        <Alert
+          message="下面的 YAML 内容，是根据当前 Task 自动生成，请根据实际情况进行调整。"
+          type="info"
+          style={{ marginBottom: 15 }}
+        />
         <Spin spinning={loading}>
           <MonacoEditor
             codeType="yaml"
