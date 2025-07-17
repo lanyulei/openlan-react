@@ -1,6 +1,6 @@
 import React, { FC, useEffect, useRef } from 'react';
 import { ActionType, DrawerForm, PageContainer, ProTable } from '@ant-design/pro-components';
-import { Button, Form, Input, message, Modal, Select } from 'antd';
+import { Button, Input, message, Modal, Select, Spin } from 'antd';
 import {
   DeleteOutlined,
   EditOutlined,
@@ -19,6 +19,8 @@ import {
 } from '@/services/deploy/tekton';
 import MonacoEditor from '@/components/MonacoEditor';
 import { jsonToYaml, yamlToJson } from '@/utils/tools/tools';
+import { invoke } from '@/services/openlei/chat';
+import tektonResourcePrompt from '@/pages/Deploy/Task/components/variable';
 
 const tasksName = 'tasks';
 const taskRunsName = 'taskruns';
@@ -38,7 +40,6 @@ spec:
 `;
 
 const Task: FC = () => {
-  const [form] = Form.useForm();
   // const navigate = useNavigate();
   const [modal, modalContextHolder] = Modal.useModal();
   const [messageApi, messageContextHolder] = message.useMessage();
@@ -49,8 +50,11 @@ const Task: FC = () => {
   });
   const [namespaceList, setNamespaceList] = React.useState<string[]>([]);
   const [drawerOpen, setDrawerOpen] = React.useState<boolean>(false);
+  const [execDrawerOpen, setExecDrawerOpen] = React.useState<boolean>(false);
   const [drawerStatus, setDrawerStatus] = React.useState<'create' | 'edit'>('create');
   const [taskData, setTaskData] = React.useState<any>();
+  const [loading, setLoading] = React.useState<boolean>(false);
+  const [taskRunData, setTaskRunData] = React.useState<any>();
 
   const handleReload = async () => {
     await actionRef?.current?.reload();
@@ -110,32 +114,25 @@ const Task: FC = () => {
               render: (_: any, record: any) => [
                 <a
                   key="run"
-                  onClick={() => {
-                    modal.confirm({
-                      title: '提示',
-                      content: '确定是否需要运行此任务？',
-                      okText: '确认',
-                      cancelText: '取消',
-                      onOk: async () => {
-                        let _params = {
-                          apiVersion: 'tekton.dev/v1',
-                          kind: 'TaskRun',
-                          metadata: {
-                            name: record.metadata?.name + '-run-' + new Date().getTime(),
-                            namespace: record.metadata?.namespace,
-                          },
-                          spec: {
-                            taskRef: {
-                              name: record.metadata?.name,
-                            },
-                          },
-                        };
-
-                        await createResource(taskRunsName, record.metadata?.namespace, _params, {});
-                        messageApi.success('已开始执行此任务');
-                        return true;
+                  onClick={async () => {
+                    setLoading(true);
+                    setExecDrawerOpen(true);
+                    const prompt = tektonResourcePrompt(
+                      'Task',
+                      record.metadata.name,
+                      jsonToYaml(record),
+                      'TaskRun',
+                      record.metadata?.name + '-run-' + new Date().getTime(),
+                      record.metadata?.namespace,
+                    );
+                    const res = await invoke(
+                      {
+                        query: prompt,
                       },
-                    });
+                      {},
+                    );
+                    setTaskRunData(res.data || '');
+                    setLoading(false);
                   }}
                 >
                   <RightSquareOutlined /> 执行
@@ -250,7 +247,6 @@ const Task: FC = () => {
 
       <DrawerForm
         title={drawerStatus === 'create' ? '新建任务' : '编辑任务'}
-        form={form}
         autoFocusFirstInput
         drawerProps={{
           destroyOnHidden: true,
@@ -287,6 +283,41 @@ const Task: FC = () => {
             setTaskData(value);
           }}
         />
+      </DrawerForm>
+
+      <DrawerForm
+        title="执行任务"
+        autoFocusFirstInput
+        drawerProps={{
+          destroyOnHidden: true,
+        }}
+        onFinish={async () => {
+          let _params = yamlToJson(taskRunData);
+          await createResource(
+            taskRunsName,
+            _params?.metadata?.namespace,
+            yamlToJson(taskRunData),
+            {},
+          );
+          messageApi.success('任务执行成功');
+          return true;
+        }}
+        width={800}
+        open={execDrawerOpen}
+        onOpenChange={setExecDrawerOpen}
+        submitter={{
+          searchConfig: { submitText: '执行', resetText: '取消' },
+        }}
+      >
+        <Spin spinning={loading}>
+          <MonacoEditor
+            codeType="yaml"
+            value={taskRunData || ''}
+            onChange={(value: string) => {
+              setTaskRunData(value);
+            }}
+          />
+        </Spin>
       </DrawerForm>
     </>
   );

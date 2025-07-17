@@ -24,6 +24,10 @@ export default {
       target: 'http://localhost:8080',
       changeOrigin: true,
     },
+    '/openlei/': {
+      target: 'http://localhost:8080',
+      changeOrigin: true,
+    },
   },
 
   /**
