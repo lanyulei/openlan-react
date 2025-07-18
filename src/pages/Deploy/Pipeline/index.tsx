@@ -8,12 +8,21 @@ import {
   resourceListByNamespace,
   updateResource,
 } from '@/services/deploy/tekton';
-import { DeleteOutlined, EditOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
-import { Button, Form, Input, message, Modal, Select } from 'antd';
+import {
+  DeleteOutlined,
+  EditOutlined,
+  PlusOutlined,
+  RightSquareOutlined,
+  SearchOutlined,
+} from '@ant-design/icons';
+import { Alert, Button, Form, Input, message, Modal, Select, Spin } from 'antd';
 import { getNamespaces } from '@/services/deploy/namespace';
 import MonacoEditor from '@/components/MonacoEditor';
 import { jsonToYaml, yamlToJson } from '@/utils/tools/tools';
+import tektonPipelinePrompt from '@/pages/Deploy/Pipeline/components/variable';
+import { invoke } from '@/services/openlei/chat';
 
+const pipelineRunsName = 'pipelineruns';
 const pipelinesName = 'pipelines';
 const initPipeline = `apiVersion: tekton.dev/v1
 kind: Pipeline
@@ -45,6 +54,9 @@ const PipelineList: FC = () => {
   const [drawerOpen, setDrawerOpen] = React.useState<boolean>(false);
   const [drawerStatus, setDrawerStatus] = React.useState<'create' | 'edit'>('create');
   const [pipelineDetails, setPipelineDetails] = React.useState<any>();
+  const [execDrawerOpen, setExecDrawerOpen] = React.useState<boolean>(false);
+  const [pipelineRunData, setPipelineRunData] = React.useState<any>();
+  const [loading, setLoading] = React.useState<boolean>(false);
 
   const handleReload = async () => {
     await actionRef?.current?.reload();
@@ -100,8 +112,32 @@ const PipelineList: FC = () => {
               valueType: 'option',
               key: 'option',
               align: 'center' as const,
-              width: 150,
+              width: 200,
               render: (_: any, record: any) => [
+                <a
+                  key="run"
+                  onClick={async () => {
+                    let jsonValue = JSON.parse(JSON.stringify(record));
+                    delete jsonValue?.metadata?.managedFields;
+                    setExecDrawerOpen(true);
+                    setLoading(true);
+                    const prompt = tektonPipelinePrompt(
+                      jsonToYaml(jsonValue),
+                      record.metadata?.name + '-run-' + new Date().getTime(),
+                      record.metadata?.namespace,
+                    );
+                    const res = await invoke(
+                      {
+                        query: prompt,
+                      },
+                      {},
+                    );
+                    setPipelineRunData(res?.data || '');
+                    setLoading(false);
+                  }}
+                >
+                  <RightSquareOutlined /> 执行
+                </a>,
                 <a
                   style={{ marginLeft: 10 }}
                   key="edit"
@@ -248,6 +284,46 @@ const PipelineList: FC = () => {
             setPipelineDetails(value);
           }}
         />
+      </DrawerForm>
+
+      <DrawerForm
+        title="执行任务"
+        autoFocusFirstInput
+        drawerProps={{
+          destroyOnHidden: true,
+        }}
+        onFinish={async () => {
+          let _params = yamlToJson(pipelineRunData);
+          await createResource(
+            pipelineRunsName,
+            _params?.metadata?.namespace,
+            yamlToJson(pipelineRunData),
+            {},
+          );
+          messageApi.success('任务执行成功');
+          return true;
+        }}
+        width={800}
+        open={execDrawerOpen}
+        onOpenChange={setExecDrawerOpen}
+        submitter={{
+          searchConfig: { submitText: '执行', resetText: '取消' },
+        }}
+      >
+        <Alert
+          message="下面的 YAML 内容，是根据当前 Pipeline 的 YAML 自动生成，请根据实际情况进行调整。"
+          type="info"
+          style={{ marginBottom: 15 }}
+        />
+        <Spin spinning={loading}>
+          <MonacoEditor
+            codeType="yaml"
+            value={pipelineRunData || ''}
+            onChange={(value: string) => {
+              setPipelineRunData(value);
+            }}
+          />
+        </Spin>
       </DrawerForm>
     </>
   );

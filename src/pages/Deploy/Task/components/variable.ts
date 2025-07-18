@@ -1,11 +1,13 @@
-const tektonResourcePrompt = (
-  source: string,
+const tektonTaskPrompt = (
   sourceName: string,
   yamlContent: string,
-  target: string,
   targetName: string,
   targetNamespace: string,
-): string => `
+): string => {
+  let source = 'Task';
+  let target = 'TaskRun';
+
+  return `
 你是一名资深 Kubernetes 管理员，精通 Tekton 资源配置管理。请严格遵循以下流程：
 
 1. 深度分析 ${source} 的完整 YAML 配置
@@ -23,7 +25,7 @@ const tektonResourcePrompt = (
    ├── Sidecar 容器
    └── 元数据 (displayName/description)
 
-3. 基于 ${source} 配置生成 ${target} TaskRun：
+3. 基于 Task 配置生成 TaskRun 的配置：
    ├── 继承所有参数定义 → spec.params
    ├── 映射工作区声明 → spec.workspaces
    ├── 保持卷配置一致性 → spec.podTemplate.volumes
@@ -42,10 +44,10 @@ ${source} YAML 配置：
 ${yamlContent}
 """
 
-生成 ${target} TaskRun 基础框架：
+生成 ${target} 的基础框架：
 """
 apiVersion: tekton.dev/v1
-kind: TaskRun
+kind: ${target}
 metadata:
   name: ${targetName}
   namespace: ${targetNamespace}
@@ -57,4 +59,6 @@ spec:
 
 请直接输出完整的 ${target} YAML 配置，禁止解释性内容及其他非 YAML 的内容。
 `;
-export default tektonResourcePrompt;
+};
+
+export default tektonTaskPrompt;

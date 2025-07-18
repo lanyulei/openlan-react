@@ -20,7 +20,7 @@ import {
 import MonacoEditor from '@/components/MonacoEditor';
 import { jsonToYaml, yamlToJson } from '@/utils/tools/tools';
 import { invoke } from '@/services/openlei/chat';
-import tektonResourcePrompt from '@/pages/Deploy/Task/components/variable';
+import tektonTaskPrompt from '@/pages/Deploy/Task/components/variable';
 
 const tasksName = 'tasks';
 const taskRunsName = 'taskruns';
@@ -119,11 +119,9 @@ const Task: FC = () => {
                     setExecDrawerOpen(true);
                     let jsonValue = JSON.parse(JSON.stringify(record));
                     delete jsonValue?.metadata?.managedFields;
-                    const prompt = tektonResourcePrompt(
-                      'Task',
+                    const prompt = tektonTaskPrompt(
                       record.metadata.name,
                       jsonToYaml(jsonValue),
-                      'TaskRun',
                       record.metadata?.name + '-run-' + new Date().getTime(),
                       record.metadata?.namespace,
                     );
@@ -312,7 +310,7 @@ const Task: FC = () => {
         }}
       >
         <Alert
-          message="下面的 YAML 内容，是根据当前 Task 自动生成，请根据实际情况进行调整。"
+          message="下面的 YAML 内容，是根据当前 Task 的 YAML 自动生成，请根据实际情况进行调整。"
           type="info"
           style={{ marginBottom: 15 }}
         />
