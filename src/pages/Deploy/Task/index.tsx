@@ -1,6 +1,13 @@
 import React, { FC, useEffect, useRef } from 'react';
-import { ActionType, DrawerForm, PageContainer, ProTable } from '@ant-design/pro-components';
-import { Alert, Button, Input, message, Modal, Select, Spin } from 'antd';
+import {
+  ActionType,
+  DrawerForm,
+  ModalForm,
+  PageContainer,
+  ProFormRadio,
+  ProTable,
+} from '@ant-design/pro-components';
+import { Alert, Button, Form, Input, message, Modal, Select, Spin } from 'antd';
 import {
   DeleteOutlined,
   EditOutlined,
@@ -41,20 +48,24 @@ spec:
 
 const Task: FC = () => {
   // const navigate = useNavigate();
-  const [modal, modalContextHolder] = Modal.useModal();
+  const [form] = Form.useForm();
   const [messageApi, messageContextHolder] = message.useMessage();
-  const actionRef = useRef<ActionType>();
+  const [modal, modalContextHolder] = Modal.useModal();
   const [query, setQuery] = React.useState<any>({
     name: undefined,
     namespace: undefined,
   });
+  const actionRef = useRef<ActionType>();
   const [namespaceList, setNamespaceList] = React.useState<string[]>([]);
   const [drawerOpen, setDrawerOpen] = React.useState<boolean>(false);
-  const [execDrawerOpen, setExecDrawerOpen] = React.useState<boolean>(false);
   const [drawerStatus, setDrawerStatus] = React.useState<'create' | 'edit'>('create');
   const [taskData, setTaskData] = React.useState<any>();
+  const [execDrawerOpen, setExecDrawerOpen] = React.useState<boolean>(false);
   const [loading, setLoading] = React.useState<boolean>(false);
   const [taskRunData, setTaskRunData] = React.useState<any>();
+  const [autoGenerate, setAutoGenerate] = React.useState<boolean>(false);
+  const [autoGenerateVisible, setAutoGenerateVisible] = React.useState<boolean>(false);
+  const [currentRecord, setCurrentRecord] = React.useState<any>(null);
 
   const handleReload = async () => {
     await actionRef?.current?.reload();
@@ -71,6 +82,14 @@ const Task: FC = () => {
     // @ts-ignore
     return (res.data?.items || []).reverse();
   };
+
+  useEffect(() => {
+    if (autoGenerateVisible) {
+      form.setFieldsValue({
+        autoGenerate: false,
+      });
+    }
+  }, [autoGenerateVisible]);
 
   useEffect(() => {
     (async () => {
@@ -115,24 +134,9 @@ const Task: FC = () => {
                 <a
                   key="run"
                   onClick={async () => {
-                    setLoading(true);
-                    setExecDrawerOpen(true);
-                    let jsonValue = JSON.parse(JSON.stringify(record));
-                    delete jsonValue?.metadata?.managedFields;
-                    const prompt = tektonTaskPrompt(
-                      record.metadata.name,
-                      jsonToYaml(jsonValue),
-                      record.metadata?.name + '-run-' + new Date().getTime(),
-                      record.metadata?.namespace,
-                    );
-                    const res = await invoke(
-                      {
-                        query: prompt,
-                      },
-                      {},
-                    );
-                    setTaskRunData(res?.data || '');
-                    setLoading(false);
+                    setAutoGenerate(false);
+                    setCurrentRecord(record);
+                    setAutoGenerateVisible(true);
                   }}
                 >
                   <RightSquareOutlined /> 执行
@@ -245,6 +249,79 @@ const Task: FC = () => {
         />
       </PageContainer>
 
+      <ModalForm
+        form={form}
+        title="提示"
+        autoFocusFirstInput
+        modalProps={{
+          destroyOnHidden: true,
+          onCancel: () => {
+            setCurrentRecord(null);
+          },
+        }}
+        onFinish={async () => {
+          setLoading(true);
+          setExecDrawerOpen(true);
+          if (autoGenerate) {
+            let jsonValue = JSON.parse(JSON.stringify(currentRecord));
+            delete jsonValue?.metadata?.managedFields;
+            const prompt = tektonTaskPrompt(
+              currentRecord.metadata.name,
+              jsonToYaml(jsonValue),
+              currentRecord.metadata?.name + '-run-' + new Date().getTime(),
+              currentRecord.metadata?.namespace,
+            );
+            const res = await invoke(
+              {
+                query: prompt,
+              },
+              {},
+            );
+            setTaskRunData(res?.data || '');
+          } else {
+            let _data = `apiVersion: tekton.dev/v1
+kind: TaskRun
+metadata:
+  name: ${currentRecord.metadata?.name + '-run-' + new Date().getTime()},
+  namespace: ${currentRecord.metadata?.namespace}
+spec:
+  taskRef:
+    name: ${currentRecord.metadata?.name}
+ `;
+            setTaskRunData(_data);
+          }
+          setLoading(false);
+          return true;
+        }}
+        width={600}
+        open={autoGenerateVisible}
+        onOpenChange={setAutoGenerateVisible}
+      >
+        <Alert
+          message="自动生成执行配置，需调用大模型 API，请确认是否支持此操作。"
+          type="info"
+          style={{ marginBottom: 15 }}
+        />
+        <ProFormRadio.Group
+          label="是否需要自动生成执行配置"
+          name="autoGenerate"
+          initialValue={autoGenerate}
+          fieldProps={{
+            onChange: (e: any) => setAutoGenerate(e.target.value),
+          }}
+          options={[
+            {
+              label: '是',
+              value: true,
+            },
+            {
+              label: '否',
+              value: false,
+            },
+          ]}
+        />
+      </ModalForm>
+
       <DrawerForm
         title={drawerStatus === 'create' ? '新建任务' : '编辑任务'}
         autoFocusFirstInput
@@ -309,11 +386,20 @@ const Task: FC = () => {
           searchConfig: { submitText: '执行', resetText: '取消' },
         }}
       >
-        <Alert
-          message="下面的 YAML 内容，是根据当前 Task 的 YAML 自动生成，请根据实际情况进行调整。"
-          type="info"
-          style={{ marginBottom: 15 }}
-        />
+        {autoGenerate ? (
+          <Alert
+            message="下面的 YAML 内容，是根据当前 Task 的 YAML 自动生成，请根据实际情况进行调整。"
+            type="info"
+            style={{ marginBottom: 15 }}
+          />
+        ) : (
+          <Alert
+            message="请完善下面的 Task 执行所需的 YAML 内容。"
+            type="info"
+            style={{ marginBottom: 15 }}
+          />
+        )}
+
         <Spin spinning={loading}>
           <MonacoEditor
             codeType="yaml"
