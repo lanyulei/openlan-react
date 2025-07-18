@@ -1,5 +1,12 @@
 import React, { FC, useEffect, useRef } from 'react';
-import { ActionType, DrawerForm, PageContainer, ProTable } from '@ant-design/pro-components';
+import {
+  ActionType,
+  DrawerForm,
+  ModalForm,
+  PageContainer,
+  ProFormRadio,
+  ProTable,
+} from '@ant-design/pro-components';
 import styles from '@/pages/Resource/Cloud/Account/index.less';
 import {
   createResource,
@@ -42,6 +49,7 @@ spec:
 
 const PipelineList: FC = () => {
   const [form] = Form.useForm();
+  const [modalForm] = Form.useForm();
   // const navigate = useNavigate();
   const [modal, modalContextHolder] = Modal.useModal();
   const [messageApi, messageContextHolder] = message.useMessage();
@@ -57,6 +65,9 @@ const PipelineList: FC = () => {
   const [execDrawerOpen, setExecDrawerOpen] = React.useState<boolean>(false);
   const [pipelineRunData, setPipelineRunData] = React.useState<any>();
   const [loading, setLoading] = React.useState<boolean>(false);
+  const [autoGenerate, setAutoGenerate] = React.useState<boolean>(false);
+  const [autoGenerateVisible, setAutoGenerateVisible] = React.useState<boolean>(false);
+  const [currentRecord, setCurrentRecord] = React.useState<any>(null);
 
   const handleReload = async () => {
     await actionRef?.current?.reload();
@@ -73,6 +84,14 @@ const PipelineList: FC = () => {
     // @ts-ignore
     return (res.data?.items || []).reverse();
   };
+
+  useEffect(() => {
+    if (autoGenerateVisible) {
+      modalForm.setFieldsValue({
+        autoGenerate: false,
+      });
+    }
+  }, [autoGenerateVisible]);
 
   useEffect(() => {
     (async () => {
@@ -117,23 +136,9 @@ const PipelineList: FC = () => {
                 <a
                   key="run"
                   onClick={async () => {
-                    let jsonValue = JSON.parse(JSON.stringify(record));
-                    delete jsonValue?.metadata?.managedFields;
-                    setExecDrawerOpen(true);
-                    setLoading(true);
-                    const prompt = tektonPipelinePrompt(
-                      jsonToYaml(jsonValue),
-                      record.metadata?.name + '-run-' + new Date().getTime(),
-                      record.metadata?.namespace,
-                    );
-                    const res = await invoke(
-                      {
-                        query: prompt,
-                      },
-                      {},
-                    );
-                    setPipelineRunData(res?.data || '');
-                    setLoading(false);
+                    setAutoGenerate(false);
+                    setCurrentRecord(record);
+                    setAutoGenerateVisible(true);
                   }}
                 >
                   <RightSquareOutlined /> 执行
@@ -245,6 +250,77 @@ const PipelineList: FC = () => {
           search={false}
         />
       </PageContainer>
+
+      <ModalForm
+        form={modalForm}
+        title="提示"
+        autoFocusFirstInput
+        modalProps={{
+          destroyOnHidden: true,
+          onCancel: () => {
+            setCurrentRecord(null);
+          },
+        }}
+        onFinish={async () => {
+          setLoading(true);
+          setExecDrawerOpen(true);
+          if (autoGenerate) {
+            let jsonValue = JSON.parse(JSON.stringify(currentRecord));
+            delete jsonValue?.metadata?.managedFields;
+            const prompt = tektonPipelinePrompt(
+              jsonToYaml(jsonValue),
+              currentRecord.metadata?.name + '-run-' + new Date().getTime(),
+              currentRecord.metadata?.namespace,
+            );
+            const res = await invoke(
+              {
+                query: prompt,
+              },
+              {},
+            );
+            setPipelineRunData(res?.data || '');
+          } else {
+            let _data = `apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  name: ${currentRecord.metadata?.name + '-run-' + new Date().getTime()},
+  namespace: ${currentRecord.metadata?.namespace}
+spec:
+ `;
+            setPipelineRunData(_data);
+          }
+          setLoading(false);
+          return true;
+        }}
+        width={600}
+        open={autoGenerateVisible}
+        onOpenChange={setAutoGenerateVisible}
+      >
+        <Alert
+          message="自动生成执行配置，需调用大模型 API，请确认是否支持此操作。"
+          type="info"
+          style={{ marginBottom: 15 }}
+        />
+        <ProFormRadio.Group
+          label="是否需要自动生成执行配置"
+          name="autoGenerate"
+          initialValue={autoGenerate}
+          fieldProps={{
+            onChange: (e: any) => setAutoGenerate(e.target.value),
+          }}
+          options={[
+            {
+              label: '是',
+              value: true,
+            },
+            {
+              label: '否',
+              value: false,
+            },
+          ]}
+        />
+      </ModalForm>
+
       <DrawerForm
         title={drawerStatus === 'create' ? '新建流水线' : '编辑流水线'}
         form={form}
