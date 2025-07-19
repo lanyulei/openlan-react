@@ -26,6 +26,8 @@ export default {
   'menu.deploy.editPipeline': '编辑流水线',
   'menu.deploy.taskRuns': '任务运行',
   'menu.deploy.taskRunsDetails': '运行详情',
+  'menu.deploy.pipelineRuns': '流水线运行',
+  'menu.deploy.pipelineRunsDetails': '运行详情',
 
   'menu.login': '登录',
   'menu.register': '注册',

@@ -38,6 +38,7 @@ const tektonTaskPrompt = (
 
 4. 严格遵循 Tekton v1 API 规范
 5. 确保 ${target} 与 ${source} 配置完全兼容
+6. spec.timeout 若是空字符串，则无需生成到 YAML 内容中
 
 ${source} YAML 配置：
 """

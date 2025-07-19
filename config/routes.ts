@@ -141,6 +141,17 @@ export default [
         component: './Deploy/Pipeline',
       },
       {
+        path: '/deploy/pipelineruns',
+        name: 'pipelineRuns',
+        component: './Deploy/PipelineRun',
+      },
+      {
+        path: '/deploy/pipelineruns/details/:namespace/:name',
+        name: 'pipelineRunsDetails',
+        component: './Deploy/PipelineRun/Details',
+        hideInMenu: true,
+      },
+      {
         path: '/deploy/pipeline/create',
         name: 'createPipeline',
         component: './Deploy/Pipeline/create',
