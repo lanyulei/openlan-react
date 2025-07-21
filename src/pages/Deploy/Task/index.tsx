@@ -34,7 +34,7 @@ const taskRunsName = 'taskruns';
 const initTaskData = `apiVersion: tekton.dev/v1
 kind: Task
 metadata:
-  name: demo-task
+  name: example-task
   namespace: default
 spec:
   steps:

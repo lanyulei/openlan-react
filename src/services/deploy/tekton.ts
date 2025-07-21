@@ -7,8 +7,9 @@ export async function resourceList(
   resource: string,
   params: object,
   options: { [key: string]: any },
+  apiVersion: string = 'tekton.dev/v1',
 ) {
-  return request(`${KubeApi}/apis/tekton.dev/v1/${resource}`, {
+  return request(`${KubeApi}/apis/${apiVersion}/${resource}`, {
     method: 'GET',
     params,
     ...(options || {}),
@@ -20,8 +21,9 @@ export async function resourceListByNamespace(
   namespace: string,
   params: object,
   options: { [key: string]: any },
+  apiVersion: string = 'tekton.dev/v1',
 ) {
-  return request(`${KubeApi}/apis/tekton.dev/v1/namespaces/${namespace}/${resource}`, {
+  return request(`${KubeApi}/apis/${apiVersion}/namespaces/${namespace}/${resource}`, {
     method: 'GET',
     params,
     ...(options || {}),
@@ -33,8 +35,22 @@ export async function createResource(
   namespace: string,
   data: object,
   options: { [key: string]: any },
+  apiVersion: string = 'tekton.dev/v1',
 ) {
-  return request(`${KubeApi}/apis/tekton.dev/v1/namespaces/${namespace}/${resource}`, {
+  return request(`${KubeApi}/apis/${apiVersion}/namespaces/${namespace}/${resource}`, {
+    method: 'POST',
+    data,
+    ...(options || {}),
+  });
+}
+
+export async function createClusterResource(
+  resource: string,
+  data: object,
+  options: { [key: string]: any },
+  apiVersion: string = 'tekton.dev/v1',
+) {
+  return request(`${KubeApi}/apis/${apiVersion}/${resource}`, {
     method: 'POST',
     data,
     ...(options || {}),
@@ -47,8 +63,23 @@ export async function updateResource(
   namespace: string,
   data: object,
   options: { [key: string]: any },
+  apiVersion: string = 'tekton.dev/v1',
 ) {
-  return request(`${KubeApi}/apis/tekton.dev/v1/namespaces/${namespace}/${resource}/${name}`, {
+  return request(`${KubeApi}/apis/${apiVersion}/namespaces/${namespace}/${resource}/${name}`, {
+    method: 'PUT',
+    data,
+    ...(options || {}),
+  });
+}
+
+export async function updateClusterResource(
+  resource: string,
+  name: string,
+  data: object,
+  options: { [key: string]: any },
+  apiVersion: string = 'tekton.dev/v1',
+) {
+  return request(`${KubeApi}/apis/${apiVersion}/${resource}/${name}`, {
     method: 'PUT',
     data,
     ...(options || {}),
@@ -60,8 +91,21 @@ export async function deleteResource(
   name: string,
   namespace: string,
   options: { [key: string]: any },
+  apiVersion: string = 'tekton.dev/v1',
 ) {
-  return request(`${KubeApi}/apis/tekton.dev/v1/namespaces/${namespace}/${resource}/${name}`, {
+  return request(`${KubeApi}/apis/${apiVersion}/namespaces/${namespace}/${resource}/${name}`, {
+    method: 'DELETE',
+    ...(options || {}),
+  });
+}
+
+export async function deleteClusterResource(
+  resource: string,
+  name: string,
+  options: { [key: string]: any },
+  apiVersion: string = 'tekton.dev/v1',
+) {
+  return request(`${KubeApi}/apis/${apiVersion}/${resource}/${name}`, {
     method: 'DELETE',
     ...(options || {}),
   });
@@ -72,8 +116,9 @@ export async function resourceDetails(
   name: string | undefined,
   namespace: string | undefined,
   options: { [key: string]: any },
+  apiVersion: string = 'tekton.dev/v1',
 ) {
-  return request(`${KubeApi}/apis/tekton.dev/v1/namespaces/${namespace}/${resource}/${name}`, {
+  return request(`${KubeApi}/apis/${apiVersion}/namespaces/${namespace}/${resource}/${name}`, {
     method: 'GET',
     ...(options || {}),
   });

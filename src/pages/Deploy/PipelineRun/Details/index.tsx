@@ -1,12 +1,12 @@
-import { FC, useEffect, useState } from 'react';
+import { FC, Key, useEffect, useState } from 'react';
 import { PageContainer } from '@ant-design/pro-components';
 import { Card, Descriptions, Flex, Tabs, Tree } from 'antd';
 import { resourceDetails, resourceListByNamespace } from '@/services/deploy/tekton';
 import { useParams } from '@@/exports';
 import styles from './index.less';
-import { jsonToYaml } from '@/utils/tools/tools';
 import MonacoEditor from '@/components/MonacoEditor';
 import { podsLog } from '@/services/deploy/pods';
+import { jsonToYaml } from '@/utils/tools/tools';
 
 const PipelineRunsName = 'pipelineruns';
 const TaskRunsName = 'taskruns';
@@ -14,36 +14,27 @@ const TaskRunsName = 'taskruns';
 const PipelineRunsDetails: FC = () => {
   const { namespace, name } = useParams<{ namespace: string; name: string }>();
   const [pipelineRunDetails, setPipelineRunDetails] = useState<any>({});
-  const [currentStep, setCurrentStep] = useState(0);
   const [logContent, setLogContent] = useState<string>('');
+  const [currentTaskSpec, setCurrentTaskSpec] = useState<any>({});
   const [treeData, setTreeData] = useState<any[]>([]);
-  const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
+  const [expandedKeys, setExpandedKeys] = useState<Key[]>([]);
 
-  const getLogContent = async (status: any, stepIndex: any) => {
-    const step = status?.steps?.[stepIndex];
-    for (let taskRun of status.childReferences || []) {
-      let _logRes = await podsLog(
-        taskRun?.name + '-pod',
-        namespace,
-        {
-          container: step?.container,
-          timestamps: true,
-        },
-        {},
-      );
-      console.log(_logRes);
-    }
-    setLogContent('');
+  const getLogContent = async (podName: string, namespace: string, container: any) => {
+    let _logRes = await podsLog(
+      podName,
+      namespace,
+      {
+        container: container,
+        timestamps: true,
+      },
+      {},
+    );
+    setLogContent(_logRes.data?.content || '');
   };
 
-  // @ts-ignore
-  const handleStepClick = async (current: number) => {
-    setCurrentStep(current);
-    await getLogContent(pipelineRunDetails?.status, current);
-  };
-
-  const onSelect = async () => {
-    await handleStepClick(1);
+  const onSelect = async (_: any, e: any) => {
+    await getLogContent(e.node.podName, e.node.namespace, e.node.container);
+    setCurrentTaskSpec(e.node.taskSpec);
   };
 
   useEffect(() => {
@@ -68,6 +59,7 @@ const PipelineRunsDetails: FC = () => {
         let _item: any = {
           key: k,
           title: taskRunName,
+          disabled: true,
           // icon: <TaskIcon style={{ width: 12, height: 12, marginTop: 8 }} />,
           children: [],
         };
@@ -77,8 +69,11 @@ const PipelineRunsDetails: FC = () => {
             key: `${taskRunName}-${taskRunNamespace}-${i}-${j}`,
             title: stepName,
             // icon: <StepIcon style={{ width: 12, height: 12, marginTop: 8 }} />,
+            namespace: taskRunNamespace,
+            podName: _taskRunRes.data?.items[i]?.status?.podName,
             container: _taskRunRes.data?.items[i]?.status?.steps[j]?.container,
             terminationReason: _taskRunRes.data?.items[i]?.status?.steps[j]?.terminationReason,
+            taskSpec: _taskRunRes.data?.items[i]?.status?.taskSpec?.steps?.[j],
           });
         }
 
@@ -88,8 +83,6 @@ const PipelineRunsDetails: FC = () => {
 
       setExpandedKeys(_expandedKeys);
       setTreeData(_treeData);
-
-      await getLogContent(_res.data?.status, currentStep);
     })();
   }, []);
 
@@ -193,11 +186,7 @@ const PipelineRunsDetails: FC = () => {
                       <MonacoEditor
                         codeType="yaml"
                         readOnly={true}
-                        value={
-                          jsonToYaml(
-                            pipelineRunDetails?.status?.pipelineSpec?.steps?.[currentStep],
-                          ) || ''
-                        }
+                        value={jsonToYaml(currentTaskSpec) || ''}
                       />
                     ),
                   },

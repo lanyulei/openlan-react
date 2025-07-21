@@ -34,11 +34,11 @@ const pipelinesName = 'pipelines';
 const initPipeline = `apiVersion: tekton.dev/v1
 kind: Pipeline
 metadata:
-  name: demo-pipeline
+  name: example-pipeline
   namespace: default
 spec:
   tasks:
-    - name: demo-task
+    - name: example-task
       params:
         - name: url
           value: https://github.com/lanyulei/lanyulei.git

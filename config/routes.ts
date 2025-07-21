@@ -146,6 +146,51 @@ export default [
         component: './Deploy/PipelineRun',
       },
       {
+        path: '/deploy/stepactions',
+        name: 'stepActions',
+        component: './Deploy/StepAction',
+      },
+      {
+        path: '/deploy/customruns',
+        name: 'customRuns',
+        component: './Deploy/CustomRun',
+      },
+      {
+        path: '/deploy/eventlisteners',
+        name: 'eventListeners',
+        component: './Deploy/EventListener',
+      },
+      {
+        path: '/deploy/triggers',
+        name: 'triggers',
+        component: './Deploy/Trigger',
+      },
+      {
+        path: '/deploy/triggerbindings',
+        name: 'triggerBindings',
+        component: './Deploy/TriggerBinding',
+      },
+      {
+        path: '/deploy/clustertriggerbindings',
+        name: 'clusterTriggerBindings',
+        component: './Deploy/ClusterTriggerBinding',
+      },
+      {
+        path: '/deploy/triggertemplates',
+        name: 'triggerTemplates',
+        component: './Deploy/TriggerTemplate',
+      },
+      {
+        path: '/deploy/interceptors',
+        name: 'interceptors',
+        component: './Deploy/Interceptor',
+      },
+      {
+        path: '/deploy/clusterinterceptors',
+        name: 'clusterInterceptors',
+        component: './Deploy/ClusterInterceptor',
+      },
+      {
         path: '/deploy/pipelineruns/details/:namespace/:name',
         name: 'pipelineRunsDetails',
         component: './Deploy/PipelineRun/Details',
