@@ -96,7 +96,7 @@ export default [
   {
     path: '/deploy',
     name: 'deploy',
-    icon: 'database',
+    icon: 'appstore',
     routes: [
       {
         path: '/deploy',
