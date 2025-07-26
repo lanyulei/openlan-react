@@ -4,7 +4,7 @@ import { request } from '@umijs/max';
 import { OpenLeiApi } from '@/services/version';
 
 export async function invoke(data: object, options: { [key: string]: any }) {
-  return request(`${OpenLeiApi}/api/v1/invoke`, {
+  return request(`${OpenLeiApi}/apis/v1/invoke`, {
     method: 'POST',
     data,
     ...(options || {}),

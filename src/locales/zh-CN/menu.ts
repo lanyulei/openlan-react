@@ -37,6 +37,10 @@ export default {
   'menu.deploy.triggerTemplates': '触发器模板',
   'menu.deploy.interceptors': '拦截器',
   'menu.deploy.clusterInterceptors': '集群拦截器',
+  'menu.task': '任务管理',
+  'menu.task.overview': '概览',
+  'menu.task.template': '任务模板',
+  'menu.task.variable': '变量管理',
 
   'menu.login': '登录',
   'menu.register': '注册',

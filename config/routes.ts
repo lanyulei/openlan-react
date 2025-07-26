@@ -216,7 +216,32 @@ export default [
   //   path: '/list',
   //   component: './TableList',
   // },
-
+  {
+    path: '/task',
+    name: 'task',
+    icon: 'appstore',
+    routes: [
+      {
+        path: '/task',
+        redirect: '/task/overview',
+      },
+      {
+        path: '/task/overview',
+        name: 'overview',
+        component: './Task/Overview',
+      },
+      {
+        path: '/task/template',
+        name: 'template',
+        component: './Task/Template',
+      },
+      {
+        path: '/task/variable',
+        name: 'variable',
+        component: './Task/Variable',
+      },
+    ],
+  },
   // 内置配置
   {
     path: '/',
