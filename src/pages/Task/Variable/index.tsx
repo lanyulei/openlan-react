@@ -1,10 +1,9 @@
-import React, { FC, useRef } from 'react';
+import React, { FC, useEffect, useRef } from 'react';
 import {
   ActionType,
   ModalForm,
   PageContainer,
   ProFormList,
-  ProFormSelect,
   ProFormText,
   ProFormTextArea,
   ProTable,
@@ -12,6 +11,12 @@ import {
 import styles from '@/pages/Resource/Cloud/Account/index.less';
 import { DeleteOutlined, EditOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import { Button, Col, Flex, Form, Input, message, Modal, Row } from 'antd';
+import {
+  createVariable,
+  deleteVariable,
+  updateVariable,
+  variableList,
+} from '@/services/task/variable';
 
 const Variable: FC = () => {
   const [form] = Form.useForm();
@@ -20,18 +25,27 @@ const Variable: FC = () => {
   const actionRef = useRef<ActionType>();
   const [query, setQuery] = React.useState<any>({
     name: undefined,
-    namespace: undefined,
   });
   const [modalStatus, setModalStatus] = React.useState<string>('create'); // create | edit
   const [modalVisible, setModalVisible] = React.useState<boolean>(false);
+  const [currentRecord, setCurrentRecord] = React.useState<any>(undefined);
 
   const handleReload = async () => {
     await actionRef?.current?.reload();
   };
 
   const getList = async () => {
-    return [];
+    const res = await variableList(query);
+    return res.data || {};
   };
+
+  useEffect(() => {
+    if (modalVisible) {
+      form.setFieldsValue(currentRecord);
+    } else {
+      setCurrentRecord(undefined);
+    }
+  }, [modalVisible]);
 
   return (
     <>
@@ -43,14 +57,20 @@ const Variable: FC = () => {
           columns={[
             {
               title: '名称',
-              dataIndex: ['metadata', 'name'],
-              key: 'metadata.name',
+              dataIndex: 'name',
+              key: 'name',
               ellipsis: true,
             },
             {
               title: '创建时间',
-              dataIndex: ['metadata', 'creationTimestamp'],
-              key: 'metadata.creationTimestamp',
+              dataIndex: 'create_time',
+              key: 'create_time',
+              valueType: 'dateTime',
+            },
+            {
+              title: '更新时间',
+              dataIndex: 'update_time',
+              key: 'update_time',
               valueType: 'dateTime',
             },
             {
@@ -65,8 +85,17 @@ const Variable: FC = () => {
                   style={{ marginLeft: 10 }}
                   key="edit"
                   onClick={() => {
-                    console.log('edit', record);
+                    const _data = JSON.parse(JSON.stringify(record));
+                    // 处理 additional 和 environment 字段
+                    _data.additional = Object.entries(_data.additional || {}).map(
+                      ([key, value]) => ({ key, value }),
+                    );
+                    _data.environment = Object.entries(_data.environment || {}).map(
+                      ([key, value]) => ({ key, value }),
+                    );
+                    setCurrentRecord(_data);
                     setModalStatus('edit');
+                    setModalVisible(true);
                   }}
                 >
                   <EditOutlined /> 编辑
@@ -77,10 +106,13 @@ const Variable: FC = () => {
                   onClick={() => {
                     modal.confirm({
                       title: '提示',
-                      content: '确定是否删除此步骤动作？',
+                      content: '确定是否删除此变量？',
                       okText: '确认',
                       cancelText: '取消',
                       onOk: async () => {
+                        await deleteVariable(record.id);
+                        await handleReload();
+                        messageApi.success('删除成功');
                         return true;
                       },
                     });
@@ -95,12 +127,12 @@ const Variable: FC = () => {
           request={async () => {
             const _res = await getList();
             return {
-              data: _res || [],
+              data: _res?.list || [],
               success: true,
-              total: _res?.length || 0,
+              total: _res?.total || 0,
             };
           }}
-          rowKey={(record) => record.metadata?.name}
+          rowKey={(record) => record.id || record.name}
           pagination={false}
           bordered
           toolBarRender={() => [
@@ -141,6 +173,9 @@ const Variable: FC = () => {
         autoFocusFirstInput
         modalProps={{
           destroyOnHidden: true,
+          onCancel: () => {
+            form.setFieldsValue(undefined);
+          },
         }}
         onFinish={async (values) => {
           const _data = JSON.parse(JSON.stringify(values));
@@ -158,10 +193,16 @@ const Variable: FC = () => {
           _data.environment = environment;
 
           if (modalStatus === 'create') {
+            // 调用创建接口
+            await createVariable(_data);
+            await handleReload();
+            messageApi.success('创建成功');
           } else if (modalStatus === 'edit') {
+            // 调用更新接口
+            await updateVariable(currentRecord.id, _data, {});
+            await handleReload();
+            messageApi.success('更新成功');
           }
-
-          messageApi.success('test');
 
           return true;
         }}
@@ -175,7 +216,7 @@ const Variable: FC = () => {
         width={650}
       >
         <Row gutter={16}>
-          <Col span={12}>
+          <Col span={24}>
             <ProFormText
               name="name"
               label="名称"
@@ -183,19 +224,19 @@ const Variable: FC = () => {
               rules={[{ required: true, message: '请输入名称' }]}
             />
           </Col>
-          <Col span={12}>
-            <ProFormSelect
-              label="类型"
-              name="types"
-              initialValue="variables"
-              options={[
-                { label: '额外参数', value: 'variables' },
-                { label: '环境变量', value: 'secrets' },
-              ]}
-              rules={[{ required: true, message: '请选择类型' }]}
-              placeholder="请选择变量类型"
-            />
-          </Col>
+          {/*<Col span={12}>*/}
+          {/*  <ProFormSelect*/}
+          {/*    label="类型"*/}
+          {/*    name="types"*/}
+          {/*    initialValue="variables"*/}
+          {/*    options={[*/}
+          {/*      { label: '变量', value: 'variables' },*/}
+          {/*      { label: '秘密', value: 'secrets' },*/}
+          {/*    ]}*/}
+          {/*    rules={[{ required: true, message: '请选择类型' }]}*/}
+          {/*    placeholder="请选择变量类型"*/}
+          {/*  />*/}
+          {/*</Col>*/}
         </Row>
         <ProFormList
           name="additional"
