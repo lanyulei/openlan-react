@@ -74,6 +74,17 @@ const Secret: FC = () => {
               ellipsis: true,
             },
             {
+              title: '类型',
+              dataIndex: 'types',
+              key: 'types',
+              render: (_: React.ReactNode, record: any) => {
+                if (record.types === 'sshKey') return 'SSH 秘钥';
+                if (record.types === 'password') return '用户密码';
+                if (record.types === 'none') return '无';
+                return record.types || '-';
+              },
+            },
+            {
               title: '创建时间',
               dataIndex: 'create_time',
               key: 'create_time',
