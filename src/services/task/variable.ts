@@ -3,12 +3,6 @@
 import { request } from '@umijs/max';
 import { V1 } from '@/services/version';
 
-// router.GET("", api.VariableList)
-// router.GET("/:id", api.VariableDetailById)
-// router.POST("", api.CreateVariable)
-// router.PUT("/:id", api.UpdateVariable)
-// router.DELETE("/:id", api.DeleteVariable)
-
 export async function variableList(params: object, options?: { [key: string]: any }) {
   return request(`${V1}/task/variable`, {
     method: 'GET',

@@ -240,6 +240,16 @@ export default [
         name: 'variable',
         component: './Task/Variable',
       },
+      {
+        path: '/task/inventory',
+        name: 'inventory',
+        component: './Task/Inventory',
+      },
+      {
+        path: '/task/secret',
+        name: 'secret',
+        component: './Task/Secret',
+      },
     ],
   },
   // 内置配置
