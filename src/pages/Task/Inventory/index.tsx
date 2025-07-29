@@ -106,7 +106,7 @@ const Variable: FC = () => {
                   onClick={() => {
                     modal.confirm({
                       title: '提示',
-                      content: '确定是否删除此变量？',
+                      content: '确定是否删除此主机清单？',
                       okText: '确认',
                       cancelText: '取消',
                       onOk: async () => {
@@ -145,7 +145,7 @@ const Variable: FC = () => {
               type="primary"
               icon={<PlusOutlined />}
             >
-              新建变量
+              新建主机清单
             </Button>,
             <Input
               key="search"
@@ -220,7 +220,7 @@ const Variable: FC = () => {
             <ProFormText
               name="name"
               label="名称"
-              placeholder="请输入变量名称"
+              placeholder="请输入主机清单名称"
               rules={[{ required: true, message: '请输入名称' }]}
             />
           </Col>
@@ -230,11 +230,11 @@ const Variable: FC = () => {
           {/*    name="types"*/}
           {/*    initialValue="variables"*/}
           {/*    options={[*/}
-          {/*      { label: '变量', value: 'variables' },*/}
+          {/*      { label: '主机清单', value: 'variables' },*/}
           {/*      { label: '秘密', value: 'secrets' },*/}
           {/*    ]}*/}
           {/*    rules={[{ required: true, message: '请选择类型' }]}*/}
-          {/*    placeholder="请选择变量类型"*/}
+          {/*    placeholder="请选择主机清单类型"*/}
           {/*  />*/}
           {/*</Col>*/}
         </Row>
@@ -275,10 +275,10 @@ const Variable: FC = () => {
         </ProFormList>
         <ProFormList
           name="environment"
-          label="环境变量"
+          label="环境主机清单"
           creatorButtonProps={{
             position: 'bottom',
-            creatorButtonText: '新增环境变量',
+            creatorButtonText: '新增环境主机清单',
           }}
           itemRender={({ listDom, action }) => (
             <Flex align="center" gap={5}>
