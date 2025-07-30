@@ -3,22 +3,34 @@ import {
   ActionType,
   ModalForm,
   PageContainer,
-  ProFormList,
+  ProFormSelect,
   ProFormText,
   ProFormTextArea,
   ProTable,
 } from '@ant-design/pro-components';
 import styles from '@/pages/Resource/Cloud/Account/index.less';
 import { DeleteOutlined, EditOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
-import { Button, Col, Flex, Form, Input, message, Modal, Row } from 'antd';
+import { Button, Col, Form, Input, message, Modal, Row } from 'antd';
 import {
-  createVariable,
-  deleteVariable,
-  updateVariable,
-  variableList,
-} from '@/services/task/variable';
+  createInventory,
+  deleteInventory,
+  inventoryList,
+  updateInventory,
+} from '@/services/task/inventory';
+import { secretList } from '@/services/task/secret';
+import MonacoEditor from '@/components/MonacoEditor';
 
-const Variable: FC = () => {
+interface InventoryData {
+  id?: string | undefined;
+  name: string;
+  types: 'ini' | 'yaml' | undefined;
+  user_cred: string | undefined; // 用户凭据 ID
+  sudo_cred?: string; // Sudo 凭据 ID
+  content?: string; // 内容
+  remarks?: string; // 备注
+}
+
+const Inventory: FC = () => {
   const [form] = Form.useForm();
   const [messageApi, messageContextHolder] = message.useMessage();
   const [modal, modalContextHolder] = Modal.useModal();
@@ -28,24 +40,47 @@ const Variable: FC = () => {
   });
   const [modalStatus, setModalStatus] = React.useState<string>('create'); // create | edit
   const [modalVisible, setModalVisible] = React.useState<boolean>(false);
-  const [currentRecord, setCurrentRecord] = React.useState<any>(undefined);
+  const [inventoryForm, setInventoryForm] = React.useState<InventoryData>({
+    id: undefined,
+    name: '',
+    types: 'ini',
+    user_cred: undefined,
+  });
+  const [secretValueList, setSecretValueList] = React.useState<any[]>([]);
 
   const handleReload = async () => {
     await actionRef?.current?.reload();
   };
 
   const getList = async () => {
-    const res = await variableList(query);
+    const res = await inventoryList(query);
     return res.data || {};
   };
 
+  const getSecretList = async () => {
+    const res = await secretList({
+      not_page: true,
+    });
+    setSecretValueList(res.data?.list);
+  };
+
   useEffect(() => {
-    if (modalVisible) {
-      form.setFieldsValue(currentRecord);
+    if (modalVisible && inventoryForm) {
+      form.setFieldsValue(inventoryForm);
     } else {
-      setCurrentRecord(undefined);
+      setInventoryForm({
+        name: '',
+        types: 'ini',
+        user_cred: undefined,
+      });
     }
   }, [modalVisible]);
+
+  useEffect(() => {
+    (async () => {
+      await getSecretList();
+    })();
+  }, []);
 
   return (
     <>
@@ -60,6 +95,17 @@ const Variable: FC = () => {
               dataIndex: 'name',
               key: 'name',
               ellipsis: true,
+            },
+            {
+              title: '类型',
+              dataIndex: 'types',
+              key: 'types',
+              render: (_: React.ReactNode, record: any) => {
+                if (record.types === 'sshKey') return 'SSH 主机清单';
+                if (record.types === 'password') return '用户密码';
+                if (record.types === 'none') return '无';
+                return record.types || '-';
+              },
             },
             {
               title: '创建时间',
@@ -85,15 +131,7 @@ const Variable: FC = () => {
                   style={{ marginLeft: 10 }}
                   key="edit"
                   onClick={() => {
-                    const _data = JSON.parse(JSON.stringify(record));
-                    // 处理 additional 和 environment 字段
-                    _data.additional = Object.entries(_data.additional || {}).map(
-                      ([key, value]) => ({ key, value }),
-                    );
-                    _data.environment = Object.entries(_data.environment || {}).map(
-                      ([key, value]) => ({ key, value }),
-                    );
-                    setCurrentRecord(_data);
+                    setInventoryForm({ ...record });
                     setModalStatus('edit');
                     setModalVisible(true);
                   }}
@@ -110,7 +148,7 @@ const Variable: FC = () => {
                       okText: '确认',
                       cancelText: '取消',
                       onOk: async () => {
-                        await deleteVariable(record.id);
+                        await deleteInventory(record.id);
                         await handleReload();
                         messageApi.success('删除成功');
                         return true;
@@ -141,7 +179,7 @@ const Variable: FC = () => {
                 setModalStatus('create');
                 setModalVisible(true);
               }}
-              key="addStepAction"
+              key="addInventory"
               type="primary"
               icon={<PlusOutlined />}
             >
@@ -154,9 +192,9 @@ const Variable: FC = () => {
               style={{ width: 260 }}
               onChange={(e) => {
                 if (e.target.value === '') {
-                  setQuery({ ...query, fieldSelector: undefined });
+                  setQuery({ name: undefined });
                 } else {
-                  setQuery({ ...query, fieldSelector: 'metadata.name=' + e.target.value });
+                  setQuery({ name: e.target.value });
                 }
               }}
               onPressEnter={handleReload}
@@ -168,7 +206,7 @@ const Variable: FC = () => {
       </PageContainer>
 
       <ModalForm
-        title="新建表单"
+        title={modalStatus === 'create' ? '新建主机清单' : '编辑主机清单'}
         form={form}
         autoFocusFirstInput
         modalProps={{
@@ -178,28 +216,14 @@ const Variable: FC = () => {
           },
         }}
         onFinish={async (values) => {
-          const _data = JSON.parse(JSON.stringify(values));
-          let additional: any = {};
-          for (const item of _data.additional || []) {
-            additional[item.key] = item.value;
-          }
-
-          let environment: any = {};
-          for (const item of _data.environment || []) {
-            environment[item.key] = item.value;
-          }
-
-          _data.additional = additional;
-          _data.environment = environment;
-
           if (modalStatus === 'create') {
             // 调用创建接口
-            await createVariable(_data);
+            await createInventory(values);
             await handleReload();
             messageApi.success('创建成功');
           } else if (modalStatus === 'edit') {
             // 调用更新接口
-            await updateVariable(currentRecord.id, _data, {});
+            await updateInventory(inventoryForm?.id, values, {});
             await handleReload();
             messageApi.success('更新成功');
           }
@@ -209,14 +233,12 @@ const Variable: FC = () => {
         open={modalVisible}
         onOpenChange={(visible) => {
           setModalVisible(visible);
-          if (!visible) {
-            form.resetFields();
-          }
         }}
         width={650}
+        onValuesChange={(_, allValues) => setInventoryForm({ ...inventoryForm, ...allValues })}
       >
-        <Row gutter={16}>
-          <Col span={24}>
+        <Row gutter={15}>
+          <Col span={12}>
             <ProFormText
               name="name"
               label="名称"
@@ -224,94 +246,62 @@ const Variable: FC = () => {
               rules={[{ required: true, message: '请输入名称' }]}
             />
           </Col>
-          {/*<Col span={12}>*/}
-          {/*  <ProFormSelect*/}
-          {/*    label="类型"*/}
-          {/*    name="types"*/}
-          {/*    initialValue="variables"*/}
-          {/*    options={[*/}
-          {/*      { label: '主机清单', value: 'variables' },*/}
-          {/*      { label: '秘密', value: 'secrets' },*/}
-          {/*    ]}*/}
-          {/*    rules={[{ required: true, message: '请选择类型' }]}*/}
-          {/*    placeholder="请选择主机清单类型"*/}
-          {/*  />*/}
-          {/*</Col>*/}
+          <Col span={12}>
+            <ProFormSelect
+              name="types"
+              label="类型"
+              options={[
+                { label: 'INI 格式', value: 'ini' },
+                { label: 'YAML 格式', value: 'yaml' },
+              ]}
+              placeholder="请选择类型"
+              rules={[{ required: true, message: '请选择类型' }]}
+            />
+          </Col>
+          <Col span={12}>
+            <ProFormSelect
+              name="user_cred"
+              label="用户凭证"
+              options={secretValueList.map((item) => ({
+                label: (
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ fontWeight: 500 }}>{item.name}</span>
+                    <span style={{ color: '#888', marginLeft: 8 }}>{item.types}</span>
+                  </div>
+                ),
+                value: item.id,
+              }))}
+              placeholder="请选择用户凭证"
+              rules={[{ required: true, message: '请选择用户凭证' }]}
+            />
+          </Col>
+          <Col span={12}>
+            <ProFormSelect
+              name="sudo_cred"
+              label="Sudo 凭证"
+              options={secretValueList
+                .filter((item) => item.types !== 'none')
+                .map((item) => ({
+                  label: (
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ fontWeight: 500 }}>{item.name}</span>
+                      <span style={{ color: '#888', marginLeft: 8 }}>{item.types}</span>
+                    </div>
+                  ),
+                  value: item.id,
+                }))}
+              placeholder="请选择 Sudo 凭证"
+            />
+          </Col>
         </Row>
-        <ProFormList
-          name="additional"
-          label="额外参数"
-          creatorButtonProps={{
-            position: 'bottom',
-            creatorButtonText: '新增额外参数',
-          }}
-          itemRender={({ listDom, action }) => (
-            <Flex align="center" gap={5}>
-              <div style={{ width: '100%' }}>{listDom}</div>
-              <div>{action}</div>
-            </Flex>
-          )}
-        >
-          <Flex gap={15}>
-            <ProFormText
-              style={{ width: '100%' }}
-              name="key"
-              placeholder="请输入键"
-              rules={[
-                { required: true, message: '请输入键' },
-                {
-                  pattern: /^[a-zA-Z][a-zA-Z0-9_]*$/,
-                  message: '只能是字母、数字、下划线，以字母开头',
-                },
-              ]}
-            />
-            <ProFormText
-              style={{ width: '100%' }}
-              name="value"
-              placeholder="请输入值"
-              rules={[{ required: true, message: '请输入值' }]}
-            />
-          </Flex>
-        </ProFormList>
-        <ProFormList
-          name="environment"
-          label="环境主机清单"
-          creatorButtonProps={{
-            position: 'bottom',
-            creatorButtonText: '新增环境主机清单',
-          }}
-          itemRender={({ listDom, action }) => (
-            <Flex align="center" gap={5}>
-              <div style={{ width: '100%' }}>{listDom}</div>
-              <div>{action}</div>
-            </Flex>
-          )}
-        >
-          <Flex gap={15}>
-            <ProFormText
-              style={{ width: '100%' }}
-              name="key"
-              placeholder="请输入键"
-              rules={[
-                { required: true, message: '请输入键' },
-                {
-                  pattern: /^[a-zA-Z][a-zA-Z0-9_]*$/,
-                  message: '只能是字母、数字、下划线，以字母开头',
-                },
-              ]}
-            />
-            <ProFormText
-              style={{ width: '100%' }}
-              name="value"
-              placeholder="请输入值"
-              rules={[{ required: true, message: '请输入值' }]}
-            />
-          </Flex>
-        </ProFormList>
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ marginBottom: 8 }}>内容</div>
+          <MonacoEditor codeType={inventoryForm.types} value={inventoryForm.content} />
+        </div>
         <ProFormTextArea label="备注" name="remarks" placeholder="请输入备注" />
       </ModalForm>
     </>
   );
 };
 
-export default Variable;
+export default Inventory;

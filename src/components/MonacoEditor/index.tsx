@@ -31,35 +31,65 @@ const MonacoEditor: FC<MonacoEditorProps> = ({
     setEditorCode(value);
   }, [value]);
 
+  // ini 高亮规则（完善支持 ini 格式，包括区块、注释、键值、转义、布尔、数字等）
+  const iniMonarch = {
+    tokenizer: {
+      root: [
+        // 区块 [section]
+        [/\[[^\]]+\]/, 'keyword'],
+        // 注释 ; 或 #
+        [/^\s*[;#].*$/, 'comment'],
+        // 键值对 key = value
+        [
+          /^\s*([\w.\-\u4e00-\u9fa5]+)\s*=\s*(.*)$/,
+          [
+            'attribute.name', // key
+            '', // =
+            {
+              // value
+              cases: {
+                '^true$|^false$': 'constant.language.boolean',
+                '^[0-9]+$': 'number',
+                '^".*"$': 'string',
+                '^.*$': 'string',
+              },
+            },
+          ],
+        ],
+        // 空行
+        [/^\s*$/, ''],
+      ],
+    },
+  };
+
   return (
     <div className={styles.editorContainer} style={{ width: width }}>
       <Editor
         height={height}
-        language={codeType} // 关键：设置为Shell语言
+        language={codeType}
         value={editorCode}
         onChange={handleEditorChange}
         options={{
-          minimap: { enabled: false }, // 关闭缩略图
-          scrollBeyondLastLine: false, // 取消底部空白
-          automaticLayout: true, // 自动布局
+          minimap: { enabled: false },
+          scrollBeyondLastLine: false,
+          automaticLayout: true,
           fontSize: 14,
-          lineNumbers: 'on', // 显示行号
-          folding: true, // 启用代码折叠
-          tabSize: 2, // Shell推荐2空格缩进
+          lineNumbers: 'on',
+          folding: true,
+          tabSize: 2,
           insertSpaces: true,
           matchBrackets: 'always',
-          theme: 'vs-light', // 可选：深色主题
+          theme: 'vs-light',
           readOnly: readOnly,
         }}
-        onMount={(
-          {
-            /*editor*/
-          },
-        ) => {
+        onMount={(editor, monaco) => {
+          if (codeType === 'ini') {
+            if (!monaco.languages.getLanguages().some((lang) => lang.id === 'ini')) {
+              monaco.languages.register({ id: 'ini' });
+              monaco.languages.setMonarchTokensProvider('ini', iniMonarch);
+            }
+          }
           // 可选：添加自定义快捷键
-          // editor.addCommand(window.monaco.KeyMod.CtrlCmd | window.monaco.KeyCode.Enter, () =>
-          //   console.log('Ctrl+Enter pressed'),
-          // );
         }}
       />
     </div>
