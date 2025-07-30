@@ -25,7 +25,7 @@ interface InventoryData {
   name: string;
   types: 'ini' | 'yaml' | undefined;
   user_cred: string | undefined; // 用户凭据 ID
-  sudo_cred?: string; // Sudo 凭据 ID
+  sudo_cred?: string | undefined; // Sudo 凭据 ID
   content?: string; // 内容
   remarks?: string; // 备注
 }
@@ -45,6 +45,7 @@ const Inventory: FC = () => {
     name: '',
     types: 'ini',
     user_cred: undefined,
+    sudo_cred: undefined,
   });
   const [secretValueList, setSecretValueList] = React.useState<any[]>([]);
 
@@ -72,6 +73,7 @@ const Inventory: FC = () => {
         name: '',
         types: 'ini',
         user_cred: undefined,
+        sudo_cred: undefined,
       });
     }
   }, [modalVisible]);
@@ -101,9 +103,8 @@ const Inventory: FC = () => {
               dataIndex: 'types',
               key: 'types',
               render: (_: React.ReactNode, record: any) => {
-                if (record.types === 'sshKey') return 'SSH 主机清单';
-                if (record.types === 'password') return '用户密码';
-                if (record.types === 'none') return '无';
+                if (record.types === 'ini') return 'INI 格式';
+                if (record.types === 'yaml') return 'YAML 格式';
                 return record.types || '-';
               },
             },
