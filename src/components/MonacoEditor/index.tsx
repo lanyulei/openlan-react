@@ -31,33 +31,19 @@ const MonacoEditor: FC<MonacoEditorProps> = ({
     setEditorCode(value);
   }, [value]);
 
-  // ini 高亮规则（完善支持 ini 格式，包括区块、注释、键值、转义、布尔、数字等）
   const iniMonarch = {
     tokenizer: {
       root: [
-        // 区块 [section]
-        [/\[[^\]]+\]/, 'keyword'],
-        // 注释 ; 或 #
-        [/^\s*[;#].*$/, 'comment'],
-        // 键值对 key = value
-        [
-          /^\s*([\w.\-\u4e00-\u9fa5]+)\s*=\s*(.*)$/,
-          [
-            'attribute.name', // key
-            '', // =
-            {
-              // value
-              cases: {
-                '^true$|^false$': 'constant.language.boolean',
-                '^[0-9]+$': 'number',
-                '^".*"$': 'string',
-                '^.*$': 'string',
-              },
-            },
-          ],
-        ],
-        // 空行
-        [/^\s*$/, ''],
+        [/\[[^\]]+\]/, 'keyword'], // 区块
+        [/^\s*[;#].*$/, 'comment'], // 注释
+        [/^([\w.\-\u4e00-\u9fa5]+)\s*=/, 'attribute.name', '@value'], // 键值对
+        [/^\s*$/, ''], // 空行
+      ],
+      value: [
+        [/^\s*(true|false)\s*$/, 'constant.language.boolean', '@pop'], // 布尔
+        [/^\s*\d+\s*$/, 'number', '@pop'], // 数字
+        [/^\s*".*"\s*$/, 'string', '@pop'], // 双引号字符串
+        [/^\s*.*\s*$/, 'string', '@pop'], // 普通字符串
       ],
     },
   };
@@ -86,6 +72,7 @@ const MonacoEditor: FC<MonacoEditorProps> = ({
           if (codeType === 'ini') {
             if (!monaco.languages.getLanguages().some((lang) => lang.id === 'ini')) {
               monaco.languages.register({ id: 'ini' });
+              // @ts-ignore
               monaco.languages.setMonarchTokensProvider('ini', iniMonarch);
             }
           }
