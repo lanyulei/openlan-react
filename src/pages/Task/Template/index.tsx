@@ -1,66 +1,100 @@
 import React, { FC, useEffect, useRef } from 'react';
-import { ActionType, DrawerForm, PageContainer, ProTable } from '@ant-design/pro-components';
-import { Button, Input, message, Modal, Select } from 'antd';
-import { DeleteOutlined, EditOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
-import styles from '@/pages/Resource/Cloud/Account/index.less';
-import { getNamespaces } from '@/services/deploy/namespace';
 import {
-  createResource,
-  deleteResource,
-  resourceList,
-  resourceListByNamespace,
-  updateResource,
-} from '@/services/deploy/tekton';
-import MonacoEditor from '@/components/MonacoEditor';
-import { jsonToYaml, yamlToJson } from '@/utils/tools/tools';
+  ActionType,
+  DrawerForm,
+  PageContainer,
+  ProFormSelect,
+  ProFormText,
+  ProFormTextArea,
+  ProTable,
+} from '@ant-design/pro-components';
+import styles from '@/pages/Resource/Cloud/Account/index.less';
+import { DeleteOutlined, EditOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
+import { Button, Col, Form, Input, message, Modal, Row } from 'antd';
+import {
+  createTemplate,
+  deleteTemplate,
+  templateList,
+  updateTemplate,
+} from '@/services/task/template';
+import { variableList } from '@/services/task/variable';
+import { inventoryList } from '@/services/task/inventory';
 
-const apiVersion = 'tekton.dev/v1beta1';
-const stepActionsName = 'stepactions';
-const initStepActionData = `apiVersion: ${apiVersion}
-kind: StepAction
-metadata:
-  name: example-step-action
-  namespace: default
-spec:
-  image: alpine
-  command: ["echo"]
-  args: ["Hello from StepAction!"]
-`;
+interface TemplateData {
+  id?: string | undefined;
+  name: string;
+  types: 'shell' | 'playbook'; // 模板类型
+  content: string; // 模板内容
+  variable_id: string | undefined; // 绑定变量 ID
+  variable?: string[]; // 变量内容
+  args?: string[]; // 参数列表
+  limit?: string[]; // 限制列表
+  tags?: string[]; // 标签列表
+  skip_tags?: string[]; // 跳过标签列表
+  remarks?: string; // 备注
+}
 
 const Template: FC = () => {
-  // const navigate = useNavigate();
+  const [form] = Form.useForm();
   const [messageApi, messageContextHolder] = message.useMessage();
   const [modal, modalContextHolder] = Modal.useModal();
+  const actionRef = useRef<ActionType>();
   const [query, setQuery] = React.useState<any>({
     name: undefined,
-    namespace: undefined,
   });
-  const actionRef = useRef<ActionType>();
-  const [namespaceList, setNamespaceList] = React.useState<string[]>([]);
-  const [drawerOpen, setDrawerOpen] = React.useState<boolean>(false);
-  const [drawerStatus, setDrawerStatus] = React.useState<'create' | 'edit'>('create');
-  const [stepActionData, setStepActionData] = React.useState<any>();
+  const [modalStatus, setModalStatus] = React.useState<string>('create'); // create | edit
+  const [modalVisible, setModalVisible] = React.useState<boolean>(false);
+  const [templateForm, setTemplateForm] = React.useState<TemplateData>({
+    id: undefined,
+    name: '',
+    types: 'shell',
+    content: '',
+    variable_id: undefined,
+  });
+  const [variables, setVariables] = React.useState<any[]>([]);
+  const [inventorys, setInventorys] = React.useState<any[]>([]);
 
   const handleReload = async () => {
     await actionRef?.current?.reload();
   };
 
-  const getList = async () => {
-    let res = {};
-    if (query.namespace && query.namespace !== '') {
-      res = await resourceListByNamespace(stepActionsName, query.namespace, query, {}, apiVersion);
-    } else {
-      res = await resourceList(stepActionsName, query, {}, apiVersion);
-    }
+  const getVariableList = async () => {
+    const res = await variableList({
+      not_page: true,
+    });
+    setVariables(res.data?.list || []);
+  };
 
-    // @ts-ignore
-    return (res.data?.items || []).reverse();
+  const getInventoryList = async () => {
+    const res = await inventoryList({
+      not_page: true,
+    });
+    setInventorys(res.data?.list || []);
+  };
+
+  const getList = async () => {
+    const res = await templateList(query);
+    return res.data || {};
   };
 
   useEffect(() => {
+    if (modalVisible && templateForm) {
+      form.setFieldsValue(templateForm);
+    } else {
+      setTemplateForm({
+        name: '',
+        types: 'shell',
+        content: '',
+        variable_id: undefined,
+        variable: [],
+      });
+    }
+  }, [modalVisible]);
+
+  useEffect(() => {
     (async () => {
-      const nsRes = await getNamespaces({}, {});
-      setNamespaceList(nsRes.data?.items || []);
+      await getVariableList();
+      await getInventoryList();
     })();
   }, []);
 
@@ -74,19 +108,31 @@ const Template: FC = () => {
           columns={[
             {
               title: '名称',
-              dataIndex: ['metadata', 'name'],
-              key: 'metadata.name',
+              dataIndex: 'name',
+              key: 'name',
               ellipsis: true,
             },
             {
-              title: '命名空间',
-              dataIndex: ['metadata', 'namespace'],
-              key: 'metadata.namespace',
+              title: '类型',
+              dataIndex: 'types',
+              key: 'types',
+              render: (_: React.ReactNode, record: any) => {
+                if (record.types === 'sshKey') return 'SSH 任务模板';
+                if (record.types === 'password') return '用户密码';
+                if (record.types === 'none') return '无';
+                return record.types || '-';
+              },
             },
             {
               title: '创建时间',
-              dataIndex: ['metadata', 'creationTimestamp'],
-              key: 'metadata.creationTimestamp',
+              dataIndex: 'create_time',
+              key: 'create_time',
+              valueType: 'dateTime',
+            },
+            {
+              title: '更新时间',
+              dataIndex: 'update_time',
+              key: 'update_time',
               valueType: 'dateTime',
             },
             {
@@ -101,13 +147,9 @@ const Template: FC = () => {
                   style={{ marginLeft: 10 }}
                   key="edit"
                   onClick={() => {
-                    // navigate(
-                    //   `/deploy/task/edit/${record.metadata?.namespace}/${record.metadata?.name}`,
-                    // );
-                    setDrawerStatus('edit');
-                    delete record.metadata?.managedFields;
-                    setStepActionData(record);
-                    setDrawerOpen(true);
+                    setTemplateForm({ ...record });
+                    setModalStatus('edit');
+                    setModalVisible(true);
                   }}
                 >
                   <EditOutlined /> 编辑
@@ -118,19 +160,13 @@ const Template: FC = () => {
                   onClick={() => {
                     modal.confirm({
                       title: '提示',
-                      content: '确定是否删除此步骤动作？',
+                      content: '确定是否删除此任务模板？',
                       okText: '确认',
                       cancelText: '取消',
                       onOk: async () => {
-                        await deleteResource(
-                          stepActionsName,
-                          record.metadata?.name,
-                          record.metadata?.namespace,
-                          {},
-                          apiVersion,
-                        );
+                        await deleteTemplate(record.id);
                         await handleReload();
-                        messageApi.success('步骤动作删除成功');
+                        messageApi.success('删除成功');
                         return true;
                       },
                     });
@@ -145,27 +181,25 @@ const Template: FC = () => {
           request={async () => {
             const _res = await getList();
             return {
-              data: _res || [],
+              data: _res?.list || [],
               success: true,
-              total: _res?.length || 0,
+              total: _res?.total || 0,
             };
           }}
-          rowKey={(record) => record.metadata?.name}
+          rowKey={(record) => record.id || record.name}
           pagination={false}
           bordered
           toolBarRender={() => [
             <Button
               onClick={() => {
-                // navigate('/deploy/task/create');
-                setDrawerStatus('create');
-                setStepActionData(initStepActionData);
-                setDrawerOpen(true);
+                setModalStatus('create');
+                setModalVisible(true);
               }}
-              key="addStepAction"
+              key="addTemplate"
               type="primary"
               icon={<PlusOutlined />}
             >
-              新建步骤动作
+              新建任务模板
             </Button>,
             <Input
               key="search"
@@ -174,32 +208,13 @@ const Template: FC = () => {
               style={{ width: 260 }}
               onChange={(e) => {
                 if (e.target.value === '') {
-                  setQuery({ ...query, fieldSelector: undefined });
+                  setQuery({ name: undefined });
                 } else {
-                  setQuery({ ...query, fieldSelector: 'metadata.name=' + e.target.value });
+                  setQuery({ name: e.target.value });
                 }
               }}
               onPressEnter={handleReload}
               suffix={<SearchOutlined />}
-            />,
-            <Select
-              key="namespace"
-              style={{ width: 200 }}
-              allowClear
-              value={query.namespace}
-              options={namespaceList.map((ns) => ({
-                // @ts-ignore
-                label: ns.metadata.name,
-                // @ts-ignore
-                value: ns.metadata.name,
-              }))}
-              placeholder="请选择命名空间"
-              onChange={(value) => {
-                setQuery({ ...query, namespace: value });
-                setTimeout(async () => {
-                  await handleReload();
-                });
-              }}
             />,
           ]}
           search={false}
@@ -207,50 +222,117 @@ const Template: FC = () => {
       </PageContainer>
 
       <DrawerForm
-        title={drawerStatus === 'create' ? '新建步骤动作' : '编辑步骤动作'}
+        title={modalStatus === 'create' ? '新建任务模板' : '编辑任务模板'}
+        form={form}
         autoFocusFirstInput
         drawerProps={{
           destroyOnHidden: true,
+          onClose: () => {
+            form.setFieldsValue(undefined);
+          },
         }}
-        onFinish={async () => {
-          const stepActionDetails = yamlToJson(stepActionData);
-          if (drawerStatus === 'create') {
-            await createResource(
-              stepActionsName,
-              stepActionDetails.metadata?.namespace,
-              stepActionDetails,
-              {},
-              apiVersion,
-            );
-            messageApi.success('步骤动作创建成功');
-          } else if (drawerStatus === 'edit') {
-            await updateResource(
-              stepActionsName,
-              stepActionDetails.metadata?.name,
-              stepActionDetails.metadata?.namespace,
-              stepActionDetails,
-              {},
-              apiVersion,
-            );
-            messageApi.success('步骤动作更新成功');
+        onFinish={async (values) => {
+          if (modalStatus === 'create') {
+            // 调用创建接口
+            await createTemplate(values);
+            await handleReload();
+            messageApi.success('创建成功');
+          } else if (modalStatus === 'edit') {
+            // 调用更新接口
+            await updateTemplate(templateForm?.id, values, {});
+            await handleReload();
+            messageApi.success('更新成功');
           }
-          await handleReload();
+
           return true;
         }}
-        width={800}
-        open={drawerOpen}
-        onOpenChange={setDrawerOpen}
-        submitter={{
-          searchConfig: { submitText: '保存', resetText: '取消' },
+        open={modalVisible}
+        onOpenChange={(visible) => {
+          setModalVisible(visible);
         }}
+        width={650}
+        onValuesChange={(_, allValues) => setTemplateForm({ ...templateForm, ...allValues })}
       >
-        <MonacoEditor
-          codeType="yaml"
-          value={jsonToYaml(stepActionData) || ''}
-          onChange={(value: string) => {
-            setStepActionData(value);
-          }}
+        <Row gutter={15}>
+          <Col span={12}>
+            <ProFormText
+              name="name"
+              label="名称"
+              placeholder="请输入任务模板名称"
+              rules={[{ required: true, message: '请输入名称' }]}
+            />
+          </Col>
+          <Col span={12}>
+            <ProFormSelect
+              name="types"
+              label="类型"
+              options={[
+                { label: 'Shell', value: 'shell' },
+                { label: 'Playbook', value: 'playbook' },
+              ]}
+              placeholder="请选择类型"
+              rules={[{ required: true, message: '请选择类型' }]}
+            />
+          </Col>
+          <Col span={12}>
+            <ProFormSelect
+              label="主机清单"
+              name="inventory"
+              placeholder="请选择主机清单"
+              options={inventorys.map((item) => ({
+                label: item.name,
+                value: item.id,
+              }))}
+            />
+          </Col>
+          <Col span={12}>
+            <ProFormSelect
+              label="变量组"
+              name="variable_id"
+              placeholder="请选择变量组"
+              options={variables.map((item) => ({
+                label: (
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span>{item.name}</span>
+                    <span style={{ color: '#888' }}>{item.types}</span>
+                  </div>
+                ),
+                value: item.id,
+              }))}
+            />
+          </Col>
+        </Row>
+        <ProFormSelect
+          label="变量"
+          name="variable"
+          tooltip="优先级高于变量组配置"
+          placeholder="请输入变量"
         />
+        <ProFormSelect
+          label="额外参数"
+          name="args"
+          tooltip="优先级高于变量组配置"
+          placeholder="请输入额外参数"
+        />
+        <ProFormSelect
+          label="限制"
+          name="limit"
+          placeholder="请输入限制"
+          tooltip="限制 Playbook 仅在指定的主机或组上执行"
+        />
+        <ProFormSelect
+          label="标签"
+          name="tags"
+          placeholder="请输入标签"
+          tooltip="仅执行带有指定标签的任务"
+        />
+        <ProFormSelect
+          label="跳过标签"
+          name="skip_tags"
+          placeholder="请输入跳过标签"
+          tooltip="跳过带有指定标签的任务"
+        />
+        <ProFormTextArea label="备注" name="remarks" placeholder="请输入备注" />
       </DrawerForm>
     </>
   );

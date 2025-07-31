@@ -219,7 +219,7 @@ export default [
   {
     path: '/task',
     name: 'task',
-    icon: 'appstore',
+    icon: 'AlignRight',
     routes: [
       {
         path: '/task',
