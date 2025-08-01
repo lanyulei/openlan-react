@@ -3,14 +3,21 @@ import {
   ActionType,
   DrawerForm,
   PageContainer,
+  ProFormList,
   ProFormSelect,
   ProFormText,
   ProFormTextArea,
   ProTable,
 } from '@ant-design/pro-components';
 import styles from '@/pages/Resource/Cloud/Account/index.less';
-import { DeleteOutlined, EditOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
-import { Button, Col, Form, Input, message, Modal, Row } from 'antd';
+import {
+  DeleteOutlined,
+  EditOutlined,
+  PlusOutlined,
+  RightSquareOutlined,
+  SearchOutlined,
+} from '@ant-design/icons';
+import { Button, Checkbox, Col, Flex, Form, Input, message, Modal, Row } from 'antd';
 import {
   createTemplate,
   deleteTemplate,
@@ -21,14 +28,20 @@ import { variableList } from '@/services/task/variable';
 import { inventoryList } from '@/services/task/inventory';
 import MonacoEditor from '@/components/MonacoEditor';
 
+interface KeyValue {
+  key: string;
+  value: string;
+  is_prompt: boolean; // 是否提示
+}
+
 interface TemplateData {
   id?: string | undefined;
   name: string;
   types: 'shell' | 'playbook'; // 模板类型
   content: string; // 模板内容
   variable_id: string | undefined; // 绑定变量 ID
-  variable?: string[]; // 变量内容
-  args?: string[]; // 参数列表
+  variable?: KeyValue[]; // 变量内容
+  args?: KeyValue[]; // 参数列表
   limit?: string[]; // 限制列表
   tags?: string[]; // 标签列表
   skip_tags?: string[]; // 跳过标签列表
@@ -122,9 +135,8 @@ const Template: FC = () => {
               dataIndex: 'types',
               key: 'types',
               render: (_: React.ReactNode, record: any) => {
-                if (record.types === 'sshKey') return 'SSH 任务模板';
-                if (record.types === 'password') return '用户密码';
-                if (record.types === 'none') return '无';
+                if (record.types === 'shell') return 'Shell';
+                if (record.types === 'playbook') return 'Playbook';
                 return record.types || '-';
               },
             },
@@ -146,8 +158,17 @@ const Template: FC = () => {
               valueType: 'option',
               key: 'option',
               align: 'center' as const,
-              width: 150,
+              width: 210,
               render: (_: any, record: any) => [
+                <a
+                  style={{ marginLeft: 10 }}
+                  key="execute"
+                  onClick={() => {
+                    console.log(123);
+                  }}
+                >
+                  <RightSquareOutlined /> 执行
+                </a>,
                 <a
                   style={{ marginLeft: 10 }}
                   key="edit"
@@ -336,20 +357,82 @@ const Template: FC = () => {
             value: item.id,
           }))}
         />
-        <ProFormSelect
-          label="变量"
+        <ProFormList
           name="variable"
-          tooltip="优先级高于变量组配置"
-          placeholder="请输入变量"
-          mode="tags"
-        />
-        <ProFormSelect
-          label="额外参数"
+          label="变量"
+          creatorButtonProps={{
+            position: 'bottom',
+            creatorButtonText: '新增变量',
+          }}
+          itemRender={({ listDom, action }) => (
+            <Flex align="center" gap={5}>
+              <div style={{ width: '100%' }}>{listDom}</div>
+              <div>{action}</div>
+            </Flex>
+          )}
+        >
+          <Flex gap={15}>
+            <ProFormText
+              style={{ width: '100%' }}
+              name="key"
+              placeholder="请输入键"
+              rules={[
+                { required: true, message: '请输入键' },
+                {
+                  pattern: /^[a-zA-Z][a-zA-Z0-9_]*$/,
+                  message: '字母开头，字母、数字、下划线',
+                },
+              ]}
+            />
+            <ProFormText
+              style={{ width: '100%' }}
+              name="value"
+              placeholder="请输入值"
+              rules={[{ required: true, message: '请输入值' }]}
+            />
+            <Form.Item style={{ width: 230 }} valuePropName="checked" name="is_prompt">
+              <Checkbox>是否提示</Checkbox>
+            </Form.Item>
+          </Flex>
+        </ProFormList>
+        <ProFormList
           name="args"
-          tooltip="优先级高于变量组配置"
-          placeholder="请输入额外参数"
-          mode="tags"
-        />
+          label="额外参数"
+          creatorButtonProps={{
+            position: 'bottom',
+            creatorButtonText: '新增额外参数',
+          }}
+          itemRender={({ listDom, action }) => (
+            <Flex align="center" gap={5}>
+              <div style={{ width: '100%' }}>{listDom}</div>
+              <div>{action}</div>
+            </Flex>
+          )}
+        >
+          <Flex gap={15}>
+            <ProFormText
+              style={{ width: '100%' }}
+              name="key"
+              placeholder="请输入键"
+              rules={[
+                { required: true, message: '请输入键' },
+                {
+                  pattern: /^[a-zA-Z][a-zA-Z0-9_]*$/,
+                  message: '字母开头，字母、数字、下划线',
+                },
+              ]}
+            />
+            <ProFormText
+              style={{ width: '100%' }}
+              name="value"
+              placeholder="请输入值"
+              rules={[{ required: true, message: '请输入值' }]}
+            />
+            <Form.Item style={{ width: 230 }} valuePropName="checked" name="is_prompt">
+              <Checkbox>是否提示</Checkbox>
+            </Form.Item>
+          </Flex>
+        </ProFormList>
         <ProFormSelect
           label="限制"
           name="limit"
