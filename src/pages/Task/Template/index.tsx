@@ -19,6 +19,7 @@ import {
 } from '@/services/task/template';
 import { variableList } from '@/services/task/variable';
 import { inventoryList } from '@/services/task/inventory';
+import MonacoEditor from '@/components/MonacoEditor';
 
 interface TemplateData {
   id?: string | undefined;
@@ -87,6 +88,10 @@ const Template: FC = () => {
         content: '',
         variable_id: undefined,
         variable: [],
+        args: [],
+        limit: [],
+        tags: [],
+        skip_tags: [],
       });
     }
   }, [modalVisible]);
@@ -147,7 +152,12 @@ const Template: FC = () => {
                   style={{ marginLeft: 10 }}
                   key="edit"
                   onClick={() => {
-                    setTemplateForm({ ...record });
+                    const _data = {
+                      ...record,
+                      variable_id:
+                        record?.variable_id === '' ? undefined : record.variable_id || undefined,
+                    };
+                    setTemplateForm(_data);
                     setModalStatus('edit');
                     setModalVisible(true);
                   }}
@@ -232,14 +242,19 @@ const Template: FC = () => {
           },
         }}
         onFinish={async (values) => {
+          const _data = {
+            ...values,
+            content: templateForm.content,
+          };
+
           if (modalStatus === 'create') {
             // 调用创建接口
-            await createTemplate(values);
+            await createTemplate(_data);
             await handleReload();
             messageApi.success('创建成功');
           } else if (modalStatus === 'edit') {
             // 调用更新接口
-            await updateTemplate(templateForm?.id, values, {});
+            await updateTemplate(templateForm?.id, _data, {});
             await handleReload();
             messageApi.success('更新成功');
           }
@@ -250,7 +265,7 @@ const Template: FC = () => {
         onOpenChange={(visible) => {
           setModalVisible(visible);
         }}
-        width={650}
+        width={680}
         onValuesChange={(_, allValues) => setTemplateForm({ ...templateForm, ...allValues })}
       >
         <Row gutter={15}>
@@ -272,65 +287,89 @@ const Template: FC = () => {
               ]}
               placeholder="请选择类型"
               rules={[{ required: true, message: '请选择类型' }]}
-            />
-          </Col>
-          <Col span={12}>
-            <ProFormSelect
-              label="主机清单"
-              name="inventory"
-              placeholder="请选择主机清单"
-              options={inventorys.map((item) => ({
-                label: item.name,
-                value: item.id,
-              }))}
-            />
-          </Col>
-          <Col span={12}>
-            <ProFormSelect
-              label="变量组"
-              name="variable_id"
-              placeholder="请选择变量组"
-              options={variables.map((item) => ({
-                label: (
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span>{item.name}</span>
-                    <span style={{ color: '#888' }}>{item.types}</span>
-                  </div>
-                ),
-                value: item.id,
-              }))}
+              fieldProps={{
+                value: templateForm.types,
+                onChange: (value) =>
+                  setTemplateForm({ ...templateForm, types: value as 'shell' | 'playbook' }),
+              }}
             />
           </Col>
         </Row>
+        {templateForm.types === 'playbook' && (
+          <ProFormSelect
+            label="主机清单"
+            name="inventory"
+            placeholder="请选择主机清单"
+            options={inventorys.map((item) => ({
+              label: item.name,
+              value: item.id,
+            }))}
+            rules={[{ required: true, message: '请选择主机清单' }]}
+          />
+        )}
+        {templateForm.types === 'shell' && (
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ marginBottom: 8 }}>内容</div>
+            <MonacoEditor
+              codeType={templateForm.types}
+              value={templateForm.content}
+              onChange={(value: string) => {
+                setTemplateForm({
+                  ...templateForm,
+                  content: value,
+                });
+              }}
+            />
+          </div>
+        )}
+        <ProFormSelect
+          label="变量组"
+          name="variable_id"
+          placeholder="请选择变量组"
+          options={variables.map((item) => ({
+            label: (
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>{item.name}</span>
+                <span style={{ color: '#888' }}>{item.types}</span>
+              </div>
+            ),
+            value: item.id,
+          }))}
+        />
         <ProFormSelect
           label="变量"
           name="variable"
           tooltip="优先级高于变量组配置"
           placeholder="请输入变量"
+          mode="tags"
         />
         <ProFormSelect
           label="额外参数"
           name="args"
           tooltip="优先级高于变量组配置"
           placeholder="请输入额外参数"
+          mode="tags"
         />
         <ProFormSelect
           label="限制"
           name="limit"
           placeholder="请输入限制"
           tooltip="限制 Playbook 仅在指定的主机或组上执行"
+          mode="tags"
         />
         <ProFormSelect
           label="标签"
           name="tags"
           placeholder="请输入标签"
           tooltip="仅执行带有指定标签的任务"
+          mode="tags"
         />
         <ProFormSelect
           label="跳过标签"
           name="skip_tags"
           placeholder="请输入跳过标签"
           tooltip="跳过带有指定标签的任务"
+          mode="tags"
         />
         <ProFormTextArea label="备注" name="remarks" placeholder="请输入备注" />
       </DrawerForm>

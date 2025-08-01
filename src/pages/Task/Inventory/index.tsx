@@ -217,14 +217,19 @@ const Inventory: FC = () => {
           },
         }}
         onFinish={async (values) => {
+          const _data = {
+            ...values,
+            content: inventoryForm.content,
+          };
+
           if (modalStatus === 'create') {
             // 调用创建接口
-            await createInventory(values);
+            await createInventory(_data);
             await handleReload();
             messageApi.success('创建成功');
           } else if (modalStatus === 'edit') {
             // 调用更新接口
-            await updateInventory(inventoryForm?.id, values, {});
+            await updateInventory(inventoryForm?.id, _data, {});
             await handleReload();
             messageApi.success('更新成功');
           }
@@ -297,7 +302,13 @@ const Inventory: FC = () => {
         </Row>
         <div style={{ marginBottom: 24 }}>
           <div style={{ marginBottom: 8 }}>内容</div>
-          <MonacoEditor codeType={inventoryForm.types} value={inventoryForm.content} />
+          <MonacoEditor
+            codeType={inventoryForm.types}
+            value={inventoryForm.content}
+            onChange={(value) => {
+              setInventoryForm({ ...inventoryForm, content: value });
+            }}
+          />
         </div>
         <ProFormTextArea label="备注" name="remarks" placeholder="请输入备注" />
       </ModalForm>
