@@ -185,7 +185,6 @@ const Template: FC = () => {
                         value: arg,
                       });
                     }
-                    console.log(p);
                     _data.args = p;
                     setTemplateForm(_data);
                     setModalStatus('edit');
@@ -442,26 +441,41 @@ const Template: FC = () => {
             />
           </Flex>
         </ProFormList>
-        <ProFormSelect
+        <ProFormText
           label="限制"
           name="limit"
-          placeholder="请输入限制"
-          tooltip="限制 Playbook 仅在指定的主机或组上执行"
-          mode="tags"
+          placeholder="请输入限制，eg：all:!failed_servers,*.example.com,config"
+          tooltip="限制 Playbook 仅在指定的主机或组上执行，多个分组使用逗号分隔"
+          rules={[
+            {
+              pattern: /^\S+$/,
+              message: '不能包含空白字符',
+            },
+          ]}
         />
-        <ProFormSelect
+        <ProFormText
           label="标签"
           name="tags"
-          placeholder="请输入标签"
-          tooltip="仅执行带有指定标签的任务"
-          mode="tags"
+          placeholder="请输入标签，eg：install,configure"
+          tooltip="仅执行带有指定标签的任务，多个标签使用逗号分隔"
+          rules={[
+            {
+              pattern: /^\S+$/,
+              message: '不能包含空白字符',
+            },
+          ]}
         />
-        <ProFormSelect
+        <ProFormText
           label="跳过标签"
           name="skip_tags"
-          placeholder="请输入跳过标签"
-          tooltip="跳过带有指定标签的任务"
-          mode="tags"
+          placeholder="请输入跳过标签，eg：install,configure"
+          tooltip="跳过带有指定标签的任务，多个标签使用逗号分隔"
+          rules={[
+            {
+              pattern: /^\S+$/,
+              message: '不能包含空白字符',
+            },
+          ]}
         />
         <ProFormTextArea label="备注" name="remarks" placeholder="请输入备注" />
       </DrawerForm>
