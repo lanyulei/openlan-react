@@ -240,10 +240,11 @@ const Variable: FC = () => {
         </Row>
         <ProFormList
           name="additional"
-          label="额外参数"
+          label="额外变量"
+          tooltip="--extra-vars 参数用于在运行 Playbook 时传递额外的变量，这些变量可以覆盖 Playbook 中定义的变量。"
           creatorButtonProps={{
             position: 'bottom',
-            creatorButtonText: '新增额外参数',
+            creatorButtonText: '新增额外变量',
           }}
           itemRender={({ listDom, action }) => (
             <Flex align="center" gap={5}>

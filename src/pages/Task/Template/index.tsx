@@ -1,8 +1,9 @@
-import React, { FC, useEffect, useRef } from 'react';
+import React, { FC, Fragment, useEffect, useRef } from 'react';
 import {
   ActionType,
   DrawerForm,
   PageContainer,
+  ProFormCheckbox,
   ProFormList,
   ProFormSelect,
   ProFormText,
@@ -17,7 +18,7 @@ import {
   RightSquareOutlined,
   SearchOutlined,
 } from '@ant-design/icons';
-import { Button, Checkbox, Col, Flex, Form, Input, message, Modal, Row } from 'antd';
+import { Button, Col, Flex, Form, Input, message, Modal, Row } from 'antd';
 import {
   createTemplate,
   deleteTemplate,
@@ -178,6 +179,14 @@ const Template: FC = () => {
                       variable_id:
                         record?.variable_id === '' ? undefined : record.variable_id || undefined,
                     };
+                    const p = [];
+                    for (let arg of _data?.args || []) {
+                      p.push({
+                        value: arg,
+                      });
+                    }
+                    console.log(p);
+                    _data.args = p;
                     setTemplateForm(_data);
                     setModalStatus('edit');
                     setModalVisible(true);
@@ -267,6 +276,17 @@ const Template: FC = () => {
             ...values,
             content: templateForm.content,
           };
+
+          const p = [];
+          // @ts-ignore
+          for (let arg of _data?.args || []) {
+            if (arg.value) {
+              p.push(arg.value);
+            }
+          }
+
+          // @ts-ignore
+          _data.args = p;
 
           if (modalStatus === 'create') {
             // 调用创建接口
@@ -390,14 +410,15 @@ const Template: FC = () => {
               placeholder="请输入值"
               rules={[{ required: true, message: '请输入值' }]}
             />
-            <Form.Item style={{ width: 230 }} valuePropName="checked" name="is_prompt">
-              <Checkbox>是否提示</Checkbox>
-            </Form.Item>
+            <div style={{ width: 230 }}>
+              <ProFormCheckbox name="is_prompt">是否提示</ProFormCheckbox>
+            </div>
           </Flex>
         </ProFormList>
         <ProFormList
           name="args"
           label="额外参数"
+          tooltip="Ansible 执行过程中额外需要的参数，eg：-l webservers"
           creatorButtonProps={{
             position: 'bottom',
             creatorButtonText: '新增额外参数',
@@ -412,25 +433,13 @@ const Template: FC = () => {
           <Flex gap={15}>
             <ProFormText
               style={{ width: '100%' }}
-              name="key"
-              placeholder="请输入键"
+              name="value"
+              placeholder="请输入参数值，eg：-l webservers"
               rules={[
-                { required: true, message: '请输入键' },
-                {
-                  pattern: /^[a-zA-Z][a-zA-Z0-9_]*$/,
-                  message: '字母开头，字母、数字、下划线',
-                },
+                { required: true, message: '请输入参数值' },
+                { whitespace: true, message: '前后不能有空白字符' },
               ]}
             />
-            <ProFormText
-              style={{ width: '100%' }}
-              name="value"
-              placeholder="请输入值"
-              rules={[{ required: true, message: '请输入值' }]}
-            />
-            <Form.Item style={{ width: 230 }} valuePropName="checked" name="is_prompt">
-              <Checkbox>是否提示</Checkbox>
-            </Form.Item>
           </Flex>
         </ProFormList>
         <ProFormSelect
