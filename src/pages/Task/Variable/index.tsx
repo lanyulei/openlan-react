@@ -85,15 +85,7 @@ const Variable: FC = () => {
                   style={{ marginLeft: 10 }}
                   key="edit"
                   onClick={() => {
-                    const _data = JSON.parse(JSON.stringify(record));
-                    // 处理 additional 和 environment 字段
-                    _data.additional = Object.entries(_data.additional || {}).map(
-                      ([key, value]) => ({ key, value }),
-                    );
-                    _data.environment = Object.entries(_data.environment || {}).map(
-                      ([key, value]) => ({ key, value }),
-                    );
-                    setCurrentRecord(_data);
+                    setCurrentRecord(record);
                     setModalStatus('edit');
                     setModalVisible(true);
                   }}
@@ -178,28 +170,14 @@ const Variable: FC = () => {
           },
         }}
         onFinish={async (values) => {
-          const _data = JSON.parse(JSON.stringify(values));
-          let additional: any = {};
-          for (const item of _data.additional || []) {
-            additional[item.key] = item.value;
-          }
-
-          let environment: any = {};
-          for (const item of _data.environment || []) {
-            environment[item.key] = item.value;
-          }
-
-          _data.additional = additional;
-          _data.environment = environment;
-
           if (modalStatus === 'create') {
             // 调用创建接口
-            await createVariable(_data);
+            await createVariable(values);
             await handleReload();
             messageApi.success('创建成功');
           } else if (modalStatus === 'edit') {
             // 调用更新接口
-            await updateVariable(currentRecord.id, _data, {});
+            await updateVariable(currentRecord.id, values, {});
             await handleReload();
             messageApi.success('更新成功');
           }

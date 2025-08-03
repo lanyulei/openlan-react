@@ -2,6 +2,7 @@ import React, { FC, Fragment, useEffect, useRef } from 'react';
 import {
   ActionType,
   DrawerForm,
+  ModalForm,
   PageContainer,
   ProFormCheckbox,
   ProFormList,
@@ -22,6 +23,7 @@ import { Button, Col, Flex, Form, Input, message, Modal, Row } from 'antd';
 import {
   createTemplate,
   deleteTemplate,
+  templateDetailById,
   templateList,
   updateTemplate,
 } from '@/services/task/template';
@@ -51,13 +53,15 @@ interface TemplateData {
 
 const Template: FC = () => {
   const [form] = Form.useForm();
+  const [modalForm] = Form.useForm();
   const [messageApi, messageContextHolder] = message.useMessage();
   const [modal, modalContextHolder] = Modal.useModal();
   const actionRef = useRef<ActionType>();
   const [query, setQuery] = React.useState<any>({
     name: undefined,
   });
-  const [modalStatus, setModalStatus] = React.useState<string>('create'); // create | edit
+  const [drawerStatus, setDrawerStatus] = React.useState<string>('create'); // create | edit
+  const [drawerVisible, setDrawerVisible] = React.useState<boolean>(false);
   const [modalVisible, setModalVisible] = React.useState<boolean>(false);
   const [templateForm, setTemplateForm] = React.useState<TemplateData>({
     id: undefined,
@@ -68,6 +72,7 @@ const Template: FC = () => {
   });
   const [variables, setVariables] = React.useState<any[]>([]);
   const [inventorys, setInventorys] = React.useState<any[]>([]);
+  const [templateDetail, setTemplateDetail] = React.useState<any>();
 
   const handleReload = async () => {
     await actionRef?.current?.reload();
@@ -93,7 +98,7 @@ const Template: FC = () => {
   };
 
   useEffect(() => {
-    if (modalVisible && templateForm) {
+    if (drawerVisible && templateForm) {
       form.setFieldsValue(templateForm);
     } else {
       setTemplateForm({
@@ -108,7 +113,7 @@ const Template: FC = () => {
         skip_tags: [],
       });
     }
-  }, [modalVisible]);
+  }, [drawerVisible]);
 
   useEffect(() => {
     (async () => {
@@ -117,6 +122,8 @@ const Template: FC = () => {
     })();
   }, []);
 
+  // @ts-ignore
+  // @ts-ignore
   return (
     <>
       {modalContextHolder}
@@ -164,8 +171,10 @@ const Template: FC = () => {
                 <a
                   style={{ marginLeft: 10 }}
                   key="execute"
-                  onClick={() => {
-                    console.log(123);
+                  onClick={async () => {
+                    const res = await templateDetailById(record.id);
+                    setTemplateDetail(res.data);
+                    setModalVisible(true);
                   }}
                 >
                   <RightSquareOutlined /> 执行
@@ -187,8 +196,8 @@ const Template: FC = () => {
                     }
                     _data.args = p;
                     setTemplateForm(_data);
-                    setModalStatus('edit');
-                    setModalVisible(true);
+                    setDrawerStatus('edit');
+                    setDrawerVisible(true);
                   }}
                 >
                   <EditOutlined /> 编辑
@@ -231,8 +240,8 @@ const Template: FC = () => {
           toolBarRender={() => [
             <Button
               onClick={() => {
-                setModalStatus('create');
-                setModalVisible(true);
+                setDrawerStatus('create');
+                setDrawerVisible(true);
               }}
               key="addTemplate"
               type="primary"
@@ -261,7 +270,7 @@ const Template: FC = () => {
       </PageContainer>
 
       <DrawerForm
-        title={modalStatus === 'create' ? '新建任务模板' : '编辑任务模板'}
+        title={drawerStatus === 'create' ? '新建任务模板' : '编辑任务模板'}
         form={form}
         autoFocusFirstInput
         drawerProps={{
@@ -287,12 +296,12 @@ const Template: FC = () => {
           // @ts-ignore
           _data.args = p;
 
-          if (modalStatus === 'create') {
+          if (drawerStatus === 'create') {
             // 调用创建接口
             await createTemplate(_data);
             await handleReload();
             messageApi.success('创建成功');
-          } else if (modalStatus === 'edit') {
+          } else if (drawerStatus === 'edit') {
             // 调用更新接口
             await updateTemplate(templateForm?.id, _data, {});
             await handleReload();
@@ -301,9 +310,9 @@ const Template: FC = () => {
 
           return true;
         }}
-        open={modalVisible}
+        open={drawerVisible}
         onOpenChange={(visible) => {
-          setModalVisible(visible);
+          setDrawerVisible(visible);
         }}
         width={680}
         onValuesChange={(_, allValues) => setTemplateForm({ ...templateForm, ...allValues })}
@@ -479,6 +488,33 @@ const Template: FC = () => {
         />
         <ProFormTextArea label="备注" name="remarks" placeholder="请输入备注" />
       </DrawerForm>
+
+      <ModalForm
+        title="执行任务"
+        form={modalForm}
+        autoFocusFirstInput
+        modalProps={{
+          destroyOnHidden: true,
+          onCancel: () => console.log('run'),
+        }}
+        submitTimeout={2000}
+        onFinish={async (values) => {
+          console.log(values);
+          return true;
+        }}
+        onOpenChange={(visible) => {
+          setModalVisible(visible);
+        }}
+        open={modalVisible}
+      >
+        {(templateDetail?.variable as KeyValue[] | undefined)?.map((item) => (
+          <React.Fragment key={item.key}>
+            {item?.is_prompt && (
+              <ProFormText name={item.key} label={item.key} initialValue={item.value} />
+            )}
+          </React.Fragment>
+        ))}
+      </ModalForm>
     </>
   );
 };
