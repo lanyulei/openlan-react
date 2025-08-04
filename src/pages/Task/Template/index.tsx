@@ -19,7 +19,7 @@ import {
   RightSquareOutlined,
   SearchOutlined,
 } from '@ant-design/icons';
-import { Button, Col, Flex, Form, Input, message, Modal, Row } from 'antd';
+import { Alert, Button, Col, Flex, Form, Input, message, Modal, Row } from 'antd';
 import {
   createTemplate,
   deleteTemplate,
@@ -507,13 +507,25 @@ const Template: FC = () => {
         }}
         open={modalVisible}
       >
-        {(templateDetail?.variable as KeyValue[] | undefined)?.map((item) => (
-          <React.Fragment key={item.key}>
-            {item?.is_prompt && (
-              <ProFormText name={item.key} label={item.key} initialValue={item.value} />
-            )}
-          </React.Fragment>
-        ))}
+        <Alert
+          style={{ marginTop: 16, marginBottom: 16 }}
+          message="确认是否执行此任务？"
+          type="info"
+        />
+        <div>
+          {(templateDetail?.variable as KeyValue[] | undefined)?.map((item) => (
+            <React.Fragment key={item.key}>
+              {item?.is_prompt && (
+                <ProFormText
+                  name={item.key}
+                  label={item.key}
+                  initialValue={item.value}
+                  rules={[{ required: true, message: `请输入${item.key}` }]}
+                />
+              )}
+            </React.Fragment>
+          ))}
+        </div>
       </ModalForm>
     </>
   );
