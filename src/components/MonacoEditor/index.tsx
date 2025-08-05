@@ -9,6 +9,7 @@ interface MonacoEditorProps {
   width?: string | number;
   codeType?: string;
   readOnly?: boolean;
+  placeholder?: string;
 }
 
 const MonacoEditor: FC<MonacoEditorProps> = ({
@@ -18,6 +19,7 @@ const MonacoEditor: FC<MonacoEditorProps> = ({
   width = '100%',
   codeType = 'shell',
   readOnly = false,
+  placeholder = '请输入内容...',
 }) => {
   const [editorCode, setEditorCode] = useState(value);
 
@@ -67,6 +69,7 @@ const MonacoEditor: FC<MonacoEditorProps> = ({
           matchBrackets: 'always',
           theme: 'vs-light',
           readOnly: readOnly,
+          placeholder: placeholder, // 支持 placeholder
         }}
         onMount={(editor, monaco) => {
           if (codeType === 'ini') {

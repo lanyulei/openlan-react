@@ -40,6 +40,7 @@ interface KeyValue {
 interface TemplateData {
   id?: string | undefined;
   name: string;
+  host_type?: 'inventory' | 'host'; // 目标主机类型
   types: 'shell' | 'playbook'; // 模板类型
   content: string; // 模板内容
   variable_id: string | undefined; // 绑定变量 ID
@@ -67,6 +68,7 @@ const Template: FC = () => {
     id: undefined,
     name: '',
     types: 'shell',
+    host_type: 'inventory',
     content: '',
     variable_id: undefined,
   });
@@ -104,6 +106,7 @@ const Template: FC = () => {
       setTemplateForm({
         name: '',
         types: 'shell',
+        host_type: 'inventory',
         content: '',
         variable_id: undefined,
         variable: [],
@@ -318,7 +321,7 @@ const Template: FC = () => {
         onValuesChange={(_, allValues) => setTemplateForm({ ...templateForm, ...allValues })}
       >
         <Row gutter={15}>
-          <Col span={12}>
+          <Col span={24}>
             <ProFormText
               name="name"
               label="名称"
@@ -343,8 +346,27 @@ const Template: FC = () => {
               }}
             />
           </Col>
+          <Col span={12}>
+            <ProFormSelect
+              label="目标主机类型"
+              name="host_type"
+              placeholder="请选择目标主机类型"
+              tooltip="自定义主机列表，则需要用户输入主机列表"
+              options={[
+                {
+                  label: '主机清单',
+                  value: 'inventory',
+                },
+                {
+                  label: '自定义主机列表',
+                  value: 'host',
+                },
+              ]}
+              rules={[{ required: true, message: '请选择目标主机类型' }]}
+            />
+          </Col>
         </Row>
-        {templateForm.types === 'playbook' && (
+        {templateForm?.host_type === 'inventory' && (
           <ProFormSelect
             label="主机清单"
             name="inventory"
@@ -356,21 +378,24 @@ const Template: FC = () => {
             rules={[{ required: true, message: '请选择主机清单' }]}
           />
         )}
-        {templateForm.types === 'shell' && (
-          <div style={{ marginBottom: 24 }}>
-            <div style={{ marginBottom: 8 }}>内容</div>
-            <MonacoEditor
-              codeType={templateForm.types}
-              value={templateForm.content}
-              onChange={(value: string) => {
-                setTemplateForm({
-                  ...templateForm,
-                  content: value,
-                });
-              }}
-            />
-          </div>
-        )}
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ marginBottom: 8 }}>内容</div>
+          <MonacoEditor
+            placeholder={
+              templateForm.types === 'shell'
+                ? '请输入 Shell 脚本内容...'
+                : '请输入 Playbook (YAML) 内容...'
+            }
+            codeType={templateForm.types}
+            value={templateForm.content}
+            onChange={(value: string) => {
+              setTemplateForm({
+                ...templateForm,
+                content: value,
+              });
+            }}
+          />
+        </div>
         <ProFormSelect
           label="变量组"
           name="variable_id"
@@ -512,6 +537,13 @@ const Template: FC = () => {
           message="确认是否执行此任务？"
           type="info"
         />
+        {templateDetail?.host_type === 'host' && (
+          <ProFormTextArea
+            label="自定义主机列表"
+            name="host"
+            placeholder="请输入主机名或者 IP 地址，每行一个"
+          />
+        )}
         <div>
           {(templateDetail?.variable as KeyValue[] | undefined)?.map((item) => (
             <React.Fragment key={item.key}>
