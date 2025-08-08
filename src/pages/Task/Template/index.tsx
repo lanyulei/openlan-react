@@ -342,7 +342,11 @@ const Template: FC = () => {
               fieldProps={{
                 value: templateForm.types,
                 onChange: (value) =>
-                  setTemplateForm({ ...templateForm, types: value as 'shell' | 'playbook' }),
+                  setTemplateForm({
+                    ...templateForm,
+                    types: value as 'shell' | 'playbook',
+                    content: '',
+                  }),
               }}
             />
           </Col>
