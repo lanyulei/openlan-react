@@ -30,6 +30,7 @@ import {
 import { variableList } from '@/services/task/variable';
 import { inventoryList } from '@/services/task/inventory';
 import MonacoEditor from '@/components/MonacoEditor';
+import { executeTask } from '@/services/task/execute';
 
 type TemplateType = 'adhoc' | 'playbook';
 const Adhoc: TemplateType = 'adhoc';
@@ -548,8 +549,10 @@ const Template: FC = () => {
         }}
         submitTimeout={2000}
         onFinish={async (values) => {
-          // await executeTask(values);
-          console.log(values);
+          await executeTask({
+            ...values,
+            template_id: templateDetail?.id,
+          });
           return true;
         }}
         onOpenChange={(visible) => {
@@ -579,16 +582,16 @@ const Template: FC = () => {
         )}
         <div>
           {(templateDetail?.variable as KeyValue[] | undefined)?.map((item) => (
-            <React.Fragment key={item.key}>
+            <Fragment key={item.key}>
               {item?.is_prompt && (
                 <ProFormText
-                  name={item.key}
+                  name={['variables', item.key]}
                   label={item.key}
                   initialValue={item.value}
                   rules={[{ required: true, message: `请输入${item.key}` }]}
                 />
               )}
-            </React.Fragment>
+            </Fragment>
           ))}
         </div>
       </ModalForm>
