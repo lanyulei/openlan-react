@@ -394,7 +394,7 @@ const Template: FC = () => {
                 ? '请输入 Shell 脚本内容...'
                 : '请输入 Playbook (YAML) 内容...'
             }
-            codeType={templateForm.types}
+            codeType={templateForm.types === Adhoc ? 'shell' : 'yaml'}
             value={templateForm.content}
             onChange={(value: string) => {
               setTemplateForm({
@@ -493,10 +493,7 @@ const Template: FC = () => {
               style={{ width: '100%' }}
               name="value"
               placeholder="请输入参数值，eg：-l webservers"
-              rules={[
-                { required: true, message: '请输入参数值' },
-                { whitespace: true, message: '前后不能有空白字符' },
-              ]}
+              rules={[{ whitespace: true, message: '前后不能有空白字符' }]}
             />
           </Flex>
         </ProFormList>
