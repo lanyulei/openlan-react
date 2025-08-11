@@ -217,7 +217,7 @@ const Variable: FC = () => {
           {/*</Col>*/}
         </Row>
         <ProFormList
-          name="additional"
+          name="extra_vars"
           label="额外变量"
           tooltip="--extra-vars 参数用于在运行 Playbook 时传递额外的变量，这些变量可以覆盖 Playbook 中定义的变量。"
           creatorButtonProps={{

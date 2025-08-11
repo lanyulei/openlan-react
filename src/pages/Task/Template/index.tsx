@@ -31,6 +31,10 @@ import { variableList } from '@/services/task/variable';
 import { inventoryList } from '@/services/task/inventory';
 import MonacoEditor from '@/components/MonacoEditor';
 
+type TemplateType = 'adhoc' | 'playbook';
+const Adhoc: TemplateType = 'adhoc';
+const Playbook: TemplateType = 'playbook';
+
 interface KeyValue {
   key: string;
   value: string;
@@ -41,7 +45,7 @@ interface TemplateData {
   id?: string | undefined;
   name: string;
   host_type?: 'inventory' | 'host'; // 目标主机类型
-  types: 'shell' | 'playbook'; // 模板类型
+  types: TemplateType; // 模板类型
   content: string; // 模板内容
   variable_id: string | undefined; // 绑定变量 ID
   variable?: KeyValue[]; // 变量内容
@@ -67,7 +71,7 @@ const Template: FC = () => {
   const [templateForm, setTemplateForm] = React.useState<TemplateData>({
     id: undefined,
     name: '',
-    types: 'shell',
+    types: Adhoc,
     host_type: 'inventory',
     content: '',
     variable_id: undefined,
@@ -105,7 +109,7 @@ const Template: FC = () => {
     } else {
       setTemplateForm({
         name: '',
-        types: 'shell',
+        types: Adhoc,
         host_type: 'inventory',
         content: '',
         variable_id: undefined,
@@ -146,8 +150,8 @@ const Template: FC = () => {
               dataIndex: 'types',
               key: 'types',
               render: (_: React.ReactNode, record: any) => {
-                if (record.types === 'shell') return 'Shell';
-                if (record.types === 'playbook') return 'Playbook';
+                if (record.types === Adhoc) return 'Shell';
+                if (record.types === Playbook) return 'Playbook';
                 return record.types || '-';
               },
             },
@@ -334,8 +338,8 @@ const Template: FC = () => {
               name="types"
               label="类型"
               options={[
-                { label: 'Shell', value: 'shell' },
-                { label: 'Playbook', value: 'playbook' },
+                { label: 'Shell', value: Adhoc },
+                { label: 'Playbook', value: Playbook },
               ]}
               placeholder="请选择类型"
               rules={[{ required: true, message: '请选择类型' }]}
@@ -344,7 +348,7 @@ const Template: FC = () => {
                 onChange: (value) =>
                   setTemplateForm({
                     ...templateForm,
-                    types: value as 'shell' | 'playbook',
+                    types: value as TemplateType,
                     content: '',
                   }),
               }}
@@ -382,11 +386,10 @@ const Template: FC = () => {
             rules={[{ required: true, message: '请选择主机清单' }]}
           />
         )}
-        <div style={{ marginBottom: 24 }}>
-          <div style={{ marginBottom: 8 }}>内容</div>
+        <Form.Item label="内容">
           <MonacoEditor
             placeholder={
-              templateForm.types === 'shell'
+              templateForm.types === Adhoc
                 ? '请输入 Shell 脚本内容...'
                 : '请输入 Playbook (YAML) 内容...'
             }
@@ -399,7 +402,7 @@ const Template: FC = () => {
               });
             }}
           />
-        </div>
+        </Form.Item>
         <ProFormSelect
           label="变量组"
           name="variable_id"
