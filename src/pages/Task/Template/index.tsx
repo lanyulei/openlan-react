@@ -403,23 +403,40 @@ const Template: FC = () => {
             }}
           />
         </Form.Item>
-        <ProFormSelect
-          label="变量组"
-          name="variable_id"
-          placeholder="请选择变量组"
-          options={variables.map((item) => ({
-            label: (
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>{item.name}</span>
-                <span style={{ color: '#888' }}>{item.types}</span>
-              </div>
-            ),
-            value: item.id,
-          }))}
-        />
+        <Row gutter={15}>
+          <Col span={12}>
+            <ProFormSelect
+              label="变量组"
+              name="variable_id"
+              placeholder="请选择变量组"
+              tooltip="公共的变量配置，包含环境变量及额外变量"
+              options={variables.map((item) => ({
+                label: (
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span>{item.name}</span>
+                    <span style={{ color: '#888' }}>{item.types}</span>
+                  </div>
+                ),
+                value: item.id,
+              }))}
+            />
+          </Col>
+          <Col span={12}>
+            <ProFormSelect
+              name="debug"
+              label="是否开启调试"
+              tooltip="调试（-vvv）用于开启最高等级的详细调试输出，显示执行过程中的完整调试信息"
+              options={[
+                { label: '是', value: true },
+                { label: '否', value: false },
+              ]}
+            />
+          </Col>
+        </Row>
         <ProFormList
           name="variable"
           label="变量"
+          tooltip="变量（--extra-vars）用于在运行时向 Playbook 传递额外的变量和值。"
           creatorButtonProps={{
             position: 'bottom',
             creatorButtonText: '新增变量',
@@ -531,6 +548,7 @@ const Template: FC = () => {
         }}
         submitTimeout={2000}
         onFinish={async (values) => {
+          // await executeTask(values);
           console.log(values);
           return true;
         }}
@@ -544,6 +562,14 @@ const Template: FC = () => {
           message="确认是否执行此任务？"
           type="info"
         />
+        <Row>
+          <Col span={8}>
+            <ProFormCheckbox name="check">预运行（--check）</ProFormCheckbox>
+          </Col>
+          <Col span={8}>
+            <ProFormCheckbox name="diff">差异（--diff）</ProFormCheckbox>
+          </Col>
+        </Row>
         {templateDetail?.host_type === 'host' && (
           <ProFormTextArea
             label="自定义主机列表"
