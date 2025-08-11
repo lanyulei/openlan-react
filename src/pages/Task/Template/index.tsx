@@ -553,6 +553,12 @@ const Template: FC = () => {
             ...values,
             template_id: templateDetail?.id,
           };
+
+          if (templateDetail?.types === Adhoc) {
+            _data.check = false;
+            _data.diff = false;
+          }
+
           await executeTask(_data);
           return true;
         }}
@@ -566,26 +572,28 @@ const Template: FC = () => {
           message="确认是否执行此任务？"
           type="info"
         />
-        <Row>
-          <Col span={8}>
-            <ProFormCheckbox
-              label="预运行"
-              name="check"
-              tooltip="预运行（--check）用于执行预演模式（dry-run），只预测将要发生的变更而不实际修改目标主机。"
-            >
-              --check
-            </ProFormCheckbox>
-          </Col>
-          <Col span={8}>
-            <ProFormCheckbox
-              label="差异"
-              name="diff"
-              tooltip="差异（--diff）用于在修改文件或模板时显示变更前后的差异内容。"
-            >
-              --diff
-            </ProFormCheckbox>
-          </Col>
-        </Row>
+        {templateDetail?.types === Playbook && (
+          <Row>
+            <Col span={8}>
+              <ProFormCheckbox
+                label="预运行"
+                name="check"
+                tooltip="预运行（--check）用于执行预演模式（dry-run），只预测将要发生的变更而不实际修改目标主机。"
+              >
+                --check
+              </ProFormCheckbox>
+            </Col>
+            <Col span={8}>
+              <ProFormCheckbox
+                label="差异"
+                name="diff"
+                tooltip="差异（--diff）用于在修改文件或模板时显示变更前后的差异内容。"
+              >
+                --diff
+              </ProFormCheckbox>
+            </Col>
+          </Row>
+        )}
         {templateDetail?.host_type === 'host' && (
           <ProFormTextArea
             label="自定义主机列表"
