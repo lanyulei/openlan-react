@@ -549,10 +549,11 @@ const Template: FC = () => {
         }}
         submitTimeout={2000}
         onFinish={async (values) => {
-          await executeTask({
+          const _data = {
             ...values,
             template_id: templateDetail?.id,
-          });
+          };
+          await executeTask(_data);
           return true;
         }}
         onOpenChange={(visible) => {
@@ -567,10 +568,22 @@ const Template: FC = () => {
         />
         <Row>
           <Col span={8}>
-            <ProFormCheckbox name="check">预运行（--check）</ProFormCheckbox>
+            <ProFormCheckbox
+              label="预运行"
+              name="check"
+              tooltip="预运行（--check）用于执行预演模式（dry-run），只预测将要发生的变更而不实际修改目标主机。"
+            >
+              --check
+            </ProFormCheckbox>
           </Col>
           <Col span={8}>
-            <ProFormCheckbox name="diff">差异（--diff）</ProFormCheckbox>
+            <ProFormCheckbox
+              label="差异"
+              name="diff"
+              tooltip="差异（--diff）用于在修改文件或模板时显示变更前后的差异内容。"
+            >
+              --diff
+            </ProFormCheckbox>
           </Col>
         </Row>
         {templateDetail?.host_type === 'host' && (
@@ -578,6 +591,7 @@ const Template: FC = () => {
             label="自定义主机列表"
             name="host"
             placeholder="请输入主机名或者 IP 地址，每行一个"
+            tooltip="自定义主机列表，多个主机使用换行分隔"
           />
         )}
         <div>
