@@ -51,9 +51,9 @@ interface TemplateData {
   variable_id: string | undefined; // 绑定变量 ID
   variable?: KeyValue[]; // 变量内容
   args?: KeyValue[]; // 参数列表
-  limit?: string[]; // 限制列表
-  tags?: string[]; // 标签列表
-  skip_tags?: string[]; // 跳过标签列表
+  limit?: string; // 限制列表
+  tags?: string; // 标签列表
+  skip_tags?: string; // 跳过标签列表
   remarks?: string; // 备注
 }
 
@@ -72,8 +72,8 @@ const Template: FC = () => {
   const [templateForm, setTemplateForm] = React.useState<TemplateData>({
     id: undefined,
     name: '',
-    types: Adhoc,
-    host_type: 'inventory',
+    types: Playbook,
+    host_type: 'host',
     content: '',
     variable_id: undefined,
   });
@@ -110,18 +110,24 @@ const Template: FC = () => {
     } else {
       setTemplateForm({
         name: '',
-        types: Adhoc,
-        host_type: 'inventory',
+        types: Playbook,
+        host_type: 'host',
         content: '',
         variable_id: undefined,
         variable: [],
         args: [],
-        limit: [],
-        tags: [],
-        skip_tags: [],
+        limit: '',
+        tags: '',
+        skip_tags: '',
       });
     }
   }, [drawerVisible]);
+
+  useEffect(() => {
+    if (modalVisible) {
+      modalForm.resetFields();
+    }
+  }, [modalVisible]);
 
   useEffect(() => {
     (async () => {
@@ -504,36 +510,18 @@ const Template: FC = () => {
               name="limit"
               placeholder="请输入限制，eg：all:!failed_servers,*.example.com,config"
               tooltip="限制 Playbook 仅在指定的主机或组上执行，多个分组使用逗号分隔"
-              rules={[
-                {
-                  pattern: /^\S+$/,
-                  message: '不能包含空白字符',
-                },
-              ]}
             />
             <ProFormText
               label="标签"
               name="tags"
               placeholder="请输入标签，eg：install,configure"
               tooltip="仅执行带有指定标签的任务，多个标签使用逗号分隔"
-              rules={[
-                {
-                  pattern: /^\S+$/,
-                  message: '不能包含空白字符',
-                },
-              ]}
             />
             <ProFormText
               label="跳过标签"
               name="skip_tags"
               placeholder="请输入跳过标签，eg：install,configure"
               tooltip="跳过带有指定标签的任务，多个标签使用逗号分隔"
-              rules={[
-                {
-                  pattern: /^\S+$/,
-                  message: '不能包含空白字符',
-                },
-              ]}
             />
           </>
         )}
