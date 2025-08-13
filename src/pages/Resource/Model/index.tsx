@@ -262,6 +262,8 @@ const Models: FC = () => {
             await getList();
             messageApi.success('模型分组更新成功');
           }
+
+          setModalVisit(false);
         }}
         initialValues={groupForm}
         onValuesChange={(_, values) => {
