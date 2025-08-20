@@ -84,7 +84,7 @@ const History: FC = () => {
               valueType: 'option',
               key: 'option',
               align: 'center' as const,
-              width: 120,
+              width: 100,
               render: () => [
                 <a style={{ marginLeft: 10 }} key="view" onClick={() => {}}>
                   <EyeOutlined /> 查看
