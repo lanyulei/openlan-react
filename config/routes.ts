@@ -236,6 +236,11 @@ export default [
         component: './Task/Template',
       },
       {
+        path: '/task/history',
+        name: 'history',
+        component: './Task/History',
+      },
+      {
         path: '/task/variable',
         name: 'variable',
         component: './Task/Variable',

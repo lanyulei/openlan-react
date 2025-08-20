@@ -40,6 +40,7 @@ export default {
   'menu.task': '任务管理',
   'menu.task.overview': '概览',
   'menu.task.template': '任务模板',
+  'menu.task.history': '执行历史',
   'menu.task.variable': '变量管理',
   'menu.task.inventory': '主机清单',
   'menu.task.secret': '秘钥管理',
