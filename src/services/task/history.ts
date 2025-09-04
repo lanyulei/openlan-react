@@ -10,3 +10,15 @@ export async function taskHistoryList(params: object, options?: { [key: string]:
     ...(options || {}),
   });
 }
+
+export async function taskHistoryDetails(
+  id: string,
+  params: object,
+  options?: { [key: string]: any },
+) {
+  return request(`${V1}/task/history/${id}`, {
+    method: 'GET',
+    params,
+    ...(options || {}),
+  });
+}

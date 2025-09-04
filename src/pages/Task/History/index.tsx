@@ -1,17 +1,32 @@
 import React, { FC, useEffect, useRef } from 'react';
-import { ActionType, PageContainer, ProTable } from '@ant-design/pro-components';
+import { ActionType, DrawerForm, PageContainer, ProTable } from '@ant-design/pro-components';
 import styles from '@/pages/Resource/Cloud/Account/index.less';
 import { EyeOutlined } from '@ant-design/icons';
-import { Select } from 'antd';
-import { taskHistoryList } from '@/services/task/history';
+import { Col, Form, Row, Select } from 'antd';
+import { taskHistoryDetails, taskHistoryList } from '@/services/task/history';
 import { templateList } from '@/services/task/template';
+import dayjs from 'dayjs';
+
+interface HistoryDetails {
+  command: string;
+  create_time: string;
+  executor: string;
+  id: string;
+  result: string;
+  status: string;
+  template: string;
+  update_time: string;
+}
 
 const History: FC = () => {
+  const [form] = Form.useForm();
   const actionRef = useRef<ActionType>();
   const [query, setQuery] = React.useState<any>({
     task_template_id: undefined,
   });
   const [selectOptions, setSelectOptions] = React.useState<any[]>([]);
+  const [historyDetails, setHistoryDetails] = React.useState<HistoryDetails>();
+  const [visible, setVisible] = React.useState<boolean>(false);
 
   const handleReload = async () => {
     await actionRef?.current?.reload();
@@ -85,8 +100,16 @@ const History: FC = () => {
               key: 'option',
               align: 'center' as const,
               width: 100,
-              render: () => [
-                <a style={{ marginLeft: 10 }} key="view" onClick={() => {}}>
+              render: (_: any, record: any) => [
+                <a
+                  style={{ marginLeft: 10 }}
+                  key="view"
+                  onClick={async () => {
+                    const res = await taskHistoryDetails(record?.id, {});
+                    setHistoryDetails(res.data || {});
+                    setVisible(true);
+                  }}
+                >
                   <EyeOutlined /> 查看
                 </a>,
               ],
@@ -122,6 +145,69 @@ const History: FC = () => {
           search={false}
         />
       </PageContainer>
+
+      <DrawerForm
+        title="执行详情"
+        form={form}
+        autoFocusFirstInput
+        drawerProps={{
+          destroyOnHidden: true,
+        }}
+        onFinish={async (values: any) => {
+          console.log(values);
+          return true;
+        }}
+        open={visible}
+        onOpenChange={setVisible}
+        submitter={false}
+      >
+        <Row gutter={16}>
+          <Col span={12}>
+            <div style={{ marginBottom: '15px' }}>
+              <span>ID：</span>
+              <span style={{ color: '#606266' }}>{historyDetails?.id}</span>
+            </div>
+          </Col>
+          <Col span={12}>
+            <div style={{ marginBottom: '15px' }}>
+              <span>执行人：</span>
+              <span style={{ color: '#606266' }}>{historyDetails?.executor}</span>
+            </div>
+          </Col>
+          <Col span={12}>
+            <div style={{ marginBottom: '15px' }}>
+              <span>创建时间：</span>
+              <span style={{ color: '#606266' }}>
+                {historyDetails?.create_time
+                  ? dayjs(historyDetails.update_time).format('YYYY-MM-DD HH:mm:ss')
+                  : ''}
+              </span>
+            </div>
+          </Col>
+          <Col span={12}>
+            <div style={{ marginBottom: '15px' }}>
+              <span>更新时间：</span>
+              <span style={{ color: '#606266' }}>
+                {historyDetails?.update_time
+                  ? dayjs(historyDetails.update_time).format('YYYY-MM-DD HH:mm:ss')
+                  : ''}
+              </span>
+            </div>
+          </Col>
+        </Row>
+        <Form.Item label="详情：" name="result">
+          <div
+            style={{
+              border: '1px solid #f0f0f0',
+              padding: '10px',
+              borderRadius: '4px',
+              background: '#f5f7fb',
+            }}
+          >
+            <pre style={{ color: '#606266' }}>{historyDetails?.result}</pre>
+          </div>
+        </Form.Item>
+      </DrawerForm>
     </>
   );
 };
