@@ -204,7 +204,7 @@ const History: FC = () => {
               background: '#f5f7fb',
             }}
           >
-            <pre style={{ color: '#606266' }}>{historyDetails?.result}</pre>
+            <pre style={{ color: '#606266', whiteSpace: 'pre-wrap' }}>{historyDetails?.result}</pre>
           </div>
         </Form.Item>
       </DrawerForm>
