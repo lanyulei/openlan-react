@@ -214,7 +214,7 @@ const Secret: FC = () => {
         width={650}
         onValuesChange={(_, allValues) => setSecretForm({ ...secretForm, ...allValues })}
       >
-        <Row gutter={15}>
+        <Row gutter={16}>
           <Col span={12}>
             <ProFormText
               name="name"

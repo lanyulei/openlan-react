@@ -128,14 +128,14 @@ const UserList: FC = () => {
               dataIndex: 'create_time',
               key: 'create_time',
               valueType: 'dateTime',
-              width: 160,
+              width: 170,
             },
             {
               title: '更新时间',
               dataIndex: 'update_time',
               key: 'update_time',
               valueType: 'dateTime',
-              width: 160,
+              width: 170,
             },
             {
               title: '操作',
@@ -322,17 +322,12 @@ const UserList: FC = () => {
               ]}
             />
           </Col>
-          {userForm?.is_admin && (
+          {!userForm?.is_admin && (
             <Col span={24}>
               <ProFormSelect
                 name="role"
                 label="角色"
                 placeholder="请选择角色"
-                options={[
-                  { label: '管理员', value: 'admin' },
-                  { label: '用户', value: 'user' },
-                  { label: '访客', value: 'guest' },
-                ]}
                 request={async () => {
                   try {
                     const res = await roleList();

@@ -331,7 +331,7 @@ const Template: FC = () => {
         width={680}
         onValuesChange={(_, allValues) => setTemplateForm({ ...templateForm, ...allValues })}
       >
-        <Row gutter={15}>
+        <Row gutter={16}>
           <Col span={24}>
             <ProFormText
               name="name"
@@ -410,7 +410,7 @@ const Template: FC = () => {
             }}
           />
         </Form.Item>
-        <Row gutter={15}>
+        <Row gutter={16}>
           <Col span={12}>
             <ProFormSelect
               label="变量组"
