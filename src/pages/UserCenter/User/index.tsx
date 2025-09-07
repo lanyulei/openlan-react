@@ -3,6 +3,7 @@ import {
   ActionType,
   ModalForm,
   PageContainer,
+  ProFormSelect,
   ProFormSwitch,
   ProFormText,
   ProFormTextArea,
@@ -12,6 +13,7 @@ import styles from '@/pages/Resource/Cloud/Account/index.less';
 import { createUser, deleteUser, getUserList, updateUser } from '@/services/system/user';
 import { DeleteOutlined, EditOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import { Button, Col, Form, Input, message, Modal, Row, Tag } from 'antd';
+import { roleList } from '@/services/system/role';
 
 interface UserInterface {
   id?: string;
@@ -23,6 +25,7 @@ interface UserInterface {
   tel?: string;
   status: boolean;
   is_admin: boolean;
+  role: string[];
   remark?: string;
 }
 
@@ -58,6 +61,7 @@ const UserList: FC = () => {
         tel: '',
         status: true,
         is_admin: false,
+        role: [],
         remark: '',
       });
     }
@@ -318,6 +322,40 @@ const UserList: FC = () => {
               ]}
             />
           </Col>
+          {userForm?.is_admin && (
+            <Col span={24}>
+              <ProFormSelect
+                name="role"
+                label="角色"
+                placeholder="请选择角色"
+                options={[
+                  { label: '管理员', value: 'admin' },
+                  { label: '用户', value: 'user' },
+                  { label: '访客', value: 'guest' },
+                ]}
+                request={async () => {
+                  try {
+                    const res = await roleList();
+                    const list = res.data?.list || [];
+                    return (list || []).map((item: any) => ({
+                      label: item.name,
+                      value: item.id,
+                    }));
+                  } catch (error) {
+                    console.error('获取角色列表失败', error);
+                    return [];
+                  }
+                }}
+                fieldProps={{
+                  mode: 'multiple',
+                  showSearch: true,
+                  allowClear: true,
+                  optionFilterProp: 'label',
+                  maxTagCount: 'responsive',
+                }}
+              />
+            </Col>
+          )}
           <Col span={12}>
             <ProFormSwitch
               name="status"
@@ -332,6 +370,13 @@ const UserList: FC = () => {
               label="是否管理员"
               checkedChildren="是"
               unCheckedChildren="否"
+              fieldProps={{
+                checked: userForm?.is_admin,
+                onChange: (checked: boolean) =>
+                  setUserForm((prev: UserInterface | undefined) =>
+                    prev ? { ...prev, is_admin: checked } : prev,
+                  ),
+              }}
             />
           </Col>
           <Col span={24}>
