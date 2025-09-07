@@ -19,3 +19,29 @@ export async function getUserList(params: object, options?: { [key: string]: any
     ...(options || {}),
   });
 }
+
+/* 创建用户 POST /api/v1/system/user */
+export async function createUser(data: object, options?: { [key: string]: any }) {
+  return request(`${V1}/system/user`, {
+    method: 'POST',
+    data,
+    ...(options || {}),
+  });
+}
+
+/* 更新用户 PUT /api/v1/system/user */
+export async function updateUser(id: string, data: object, options?: { [key: string]: any }) {
+  return request(`${V1}/system/user/${id}`, {
+    method: 'PUT',
+    data,
+    ...(options || {}),
+  });
+}
+
+/* 删除用户 DELETE /api/v1/system/user */
+export async function deleteUser(id: string, options?: { [key: string]: any }) {
+  return request(`${V1}/system/user/${id}`, {
+    method: 'DELETE',
+    ...(options || {}),
+  });
+}

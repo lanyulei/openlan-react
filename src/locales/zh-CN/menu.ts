@@ -44,6 +44,9 @@ export default {
   'menu.task.variable': '变量管理',
   'menu.task.inventory': '主机清单',
   'menu.task.secret': '秘钥管理',
+  'menu.userCenter': '用户中心',
+  'menu.userCenter.user': '用户管理',
+  'menu.userCenter.role': '角色管理',
 
   'menu.login': '登录',
   'menu.register': '注册',

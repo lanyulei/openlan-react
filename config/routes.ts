@@ -18,7 +18,7 @@ export default [
       {
         name: 'login',
         path: '/user/login',
-        component: './User/Login',
+        component: './UserCenter/Login',
       },
     ],
   },
@@ -254,6 +254,27 @@ export default [
         path: '/task/secret',
         name: 'secret',
         component: './Task/Secret',
+      },
+    ],
+  },
+  {
+    path: '/user-center',
+    name: 'userCenter',
+    icon: 'User',
+    routes: [
+      {
+        path: '/user-center',
+        redirect: '/user-center/user',
+      },
+      {
+        path: '/user-center/user',
+        name: 'user',
+        component: './UserCenter/User',
+      },
+      {
+        path: '/user-center/role',
+        name: 'role',
+        component: './UserCenter/Role',
       },
     ],
   },
