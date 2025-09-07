@@ -128,14 +128,14 @@ const UserList: FC = () => {
               dataIndex: 'create_time',
               key: 'create_time',
               valueType: 'dateTime',
-              width: 170,
+              minWidth: 170,
             },
             {
               title: '更新时间',
               dataIndex: 'update_time',
               key: 'update_time',
               valueType: 'dateTime',
-              width: 170,
+              minWidth: 170,
             },
             {
               title: '操作',
