@@ -10,8 +10,15 @@ import {
 } from '@ant-design/pro-components';
 import styles from '@/pages/Resource/Cloud/Account/index.less';
 import { createRole, deleteRole, roleList, updateRole } from '@/services/system/role';
-import { DeleteOutlined, EditOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
+import {
+  BlockOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  PlusOutlined,
+  SearchOutlined,
+} from '@ant-design/icons';
 import { Button, Col, Form, Input, message, Modal, Row, Tag } from 'antd';
+import { useNavigate } from 'react-router-dom';
 
 interface RoleInterface {
   id?: string;
@@ -21,6 +28,7 @@ interface RoleInterface {
 }
 
 const RoleList: FC = () => {
+  const navigate = useNavigate();
   const [modalForm] = Form.useForm();
   const [modal, modalContextHolder] = Modal.useModal();
   const [messageApi, messageContextHolder] = message.useMessage();
@@ -90,14 +98,14 @@ const RoleList: FC = () => {
               dataIndex: 'create_time',
               key: 'create_time',
               valueType: 'dateTime',
-              minWidth: 170,
+              width: 170,
             },
             {
               title: '更新时间',
               dataIndex: 'update_time',
               key: 'update_time',
               valueType: 'dateTime',
-              minWidth: 170,
+              width: 170,
             },
             {
               title: '操作',
@@ -105,8 +113,17 @@ const RoleList: FC = () => {
               valueType: 'option',
               key: 'option',
               align: 'center' as const,
-              width: 150,
+              width: 210,
               render: (_: any, record: any) => [
+                <a
+                  style={{ marginLeft: 10 }}
+                  key="edit"
+                  onClick={() => {
+                    navigate(`/user-center/role/${record.id}/permission`);
+                  }}
+                >
+                  <BlockOutlined /> 权限
+                </a>,
                 <a
                   style={{ marginLeft: 10 }}
                   key="edit"

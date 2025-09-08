@@ -276,6 +276,12 @@ export default [
         name: 'role',
         component: './UserCenter/Role',
       },
+      {
+        path: '/user-center/role/:id/permission',
+        name: 'rolePermission',
+        component: './UserCenter/Role/permission',
+        hideInMenu: true,
+      },
     ],
   },
   // 内置配置

@@ -47,6 +47,7 @@ export default {
   'menu.userCenter': '用户中心',
   'menu.userCenter.user': '用户管理',
   'menu.userCenter.role': '角色管理',
+  'menu.userCenter.rolePermission': '角色权限',
 
   'menu.login': '登录',
   'menu.register': '注册',
