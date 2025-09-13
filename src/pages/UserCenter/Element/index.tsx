@@ -1,69 +1,18 @@
 import { FC, Key, useEffect, useState } from 'react';
 import { PageContainer, ProCard } from '@ant-design/pro-components';
 import { Flex, Tree, TreeDataNode, TreeProps } from 'antd';
+import { permissionTree } from '@/services/system/permission';
+import { useIntl } from '@umijs/max';
 
-const treeData: TreeDataNode[] = [
-  {
-    title: '0-0',
-    key: '0-0',
-    children: [
-      {
-        title: '0-0-0',
-        key: '0-0-0',
-        children: [
-          { title: '0-0-0-0', key: '0-0-0-0' },
-          { title: '0-0-0-1', key: '0-0-0-1' },
-          { title: '0-0-0-2', key: '0-0-0-2' },
-        ],
-      },
-      {
-        title: '0-0-1',
-        key: '0-0-1',
-        children: [
-          { title: '0-0-1-0', key: '0-0-1-0' },
-          { title: '0-0-1-1', key: '0-0-1-1' },
-          { title: '0-0-1-2', key: '0-0-1-2' },
-        ],
-      },
-      {
-        title: '0-0-2',
-        key: '0-0-2',
-      },
-    ],
-  },
-  {
-    title: '0-1',
-    key: '0-1',
-    children: [
-      { title: '0-1-0-0', key: '0-1-0-0' },
-      { title: '0-1-0-1', key: '0-1-0-1' },
-      { title: '0-1-0-2', key: '0-1-0-2' },
-    ],
-  },
-  {
-    title: '0-2',
-    key: '0-2',
-  },
-];
+interface TreeDataInterface {
+  menu: TreeDataNode[];
+  element: object;
+}
 
 const Element: FC = () => {
-  const [expandedKeys, setExpandedKeys] = useState<Key[]>(['0-0-0', '0-0-1']);
-  const [checkedKeys, setCheckedKeys] = useState<Key[]>(['0-0-0']);
+  const intl = useIntl();
   const [selectedKeys, setSelectedKeys] = useState<Key[]>([]);
-  const [autoExpandParent, setAutoExpandParent] = useState<boolean>(true);
-
-  const onExpand: TreeProps['onExpand'] = (expandedKeysValue) => {
-    console.log('onExpand', expandedKeysValue);
-    // if not set autoExpandParent to false, if children expanded, parent can not collapse.
-    // or, you can remove all expanded children keys.
-    setExpandedKeys(expandedKeysValue);
-    setAutoExpandParent(false);
-  };
-
-  const onCheck: TreeProps['onCheck'] = (checkedKeysValue) => {
-    console.log('onCheck', checkedKeysValue);
-    setCheckedKeys(checkedKeysValue as Key[]);
-  };
+  const [treeData, setTreeData] = useState<TreeDataInterface>();
 
   const onSelect: TreeProps['onSelect'] = (selectedKeysValue, info) => {
     console.log('onSelect', info);
@@ -71,7 +20,10 @@ const Element: FC = () => {
   };
 
   useEffect(() => {
-    // 获取路由数据
+    (async () => {
+      const res = await permissionTree();
+      setTreeData(res.data);
+    })();
   }, []);
 
   return (
@@ -81,16 +33,19 @@ const Element: FC = () => {
           <ProCard bordered style={{ maxWidth: 300 }}>
             <Tree
               checkable
-              onExpand={onExpand}
-              expandedKeys={expandedKeys}
-              autoExpandParent={autoExpandParent}
-              onCheck={onCheck}
-              checkedKeys={checkedKeys}
               onSelect={onSelect}
               selectedKeys={selectedKeys}
-              treeData={treeData}
-              onRightClick={() => {
-                console.log(123123);
+              fieldNames={{ title: 'name', key: 'id', children: 'children' }}
+              treeData={treeData?.menu}
+              titleRender={(node: any) => (
+                <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  {node?.icon && <span style={{ marginRight: 8 }}>{node.icon}</span>}
+                  {intl.formatMessage({ id: `menu.${node?.intl}`, defaultMessage: node?.name })}
+                </span>
+              )}
+              onRightClick={(info) => {
+                info.event.preventDefault(); // 阻止浏览器默认菜单
+                console.log('右键节点', info.node);
               }}
             />
           </ProCard>
