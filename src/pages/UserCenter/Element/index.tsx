@@ -3,6 +3,7 @@ import { PageContainer, ProCard } from '@ant-design/pro-components';
 import { Flex, Tree, TreeDataNode, TreeProps } from 'antd';
 import { permissionTree } from '@/services/system/permission';
 import { useIntl } from '@umijs/max';
+import * as Icons from '@ant-design/icons';
 
 interface TreeDataInterface {
   menu: TreeDataNode[];
@@ -37,12 +38,38 @@ const Element: FC = () => {
               selectedKeys={selectedKeys}
               fieldNames={{ title: 'name', key: 'id', children: 'children' }}
               treeData={treeData?.menu}
-              titleRender={(node: any) => (
-                <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                  {node?.icon && <span style={{ marginRight: 8 }}>{node.icon}</span>}
-                  {intl.formatMessage({ id: `menu.${node?.intl}`, defaultMessage: node?.name })}
-                </span>
-              )}
+              titleRender={(node: any) => {
+                const getIconComponent = (icon?: string) => {
+                  if (!icon) return null;
+                  // 转 PascalCase，并兼容 kebab/underscore 命名
+                  const pascal = icon
+                    .trim()
+                    .replace(/[-_](\w)/g, (_: string, c: string) => c.toUpperCase())
+                    .replace(/^\w/, (s) => s.toUpperCase());
+
+                  const candidates = [
+                    pascal, // 已经是完整名，如 UserOutlined
+                    `${pascal}Outlined`,
+                    `${pascal}Filled`,
+                    `${pascal}TwoTone`,
+                  ];
+
+                  for (const key of candidates) {
+                    const Comp = (Icons as any)[key];
+                    if (Comp) return Comp;
+                  }
+                  return null;
+                };
+
+                const IconComp = getIconComponent(node?.icon);
+
+                return (
+                  <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                    {IconComp ? <IconComp style={{ marginRight: 8 }} /> : null}
+                    {intl.formatMessage({ id: `menu.${node?.intl}`, defaultMessage: node?.name })}
+                  </span>
+                );
+              }}
               onRightClick={(info) => {
                 info.event.preventDefault(); // 阻止浏览器默认菜单
                 console.log('右键节点', info.node);
