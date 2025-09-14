@@ -363,13 +363,6 @@ export default [
         code: 'userCenter:role',
       },
       {
-        path: '/user-center/element',
-        name: 'element',
-        component: './UserCenter/Element',
-        access: 'routeFilter',
-        code: 'userCenter:element',
-      },
-      {
         path: '/user-center/role/:id/permission',
         name: 'rolePermission',
         component: './UserCenter/Role/permission',
