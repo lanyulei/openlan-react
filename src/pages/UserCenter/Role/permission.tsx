@@ -1,9 +1,10 @@
 import { FC, Key, useEffect, useState } from 'react';
 import { PageContainer, ProCard } from '@ant-design/pro-components';
-import { Flex, Tree, TreeDataNode, TreeProps } from 'antd';
+import { Button, Flex, message, Tree, TreeDataNode, TreeProps } from 'antd';
 import { permissionTree } from '@/services/system/permission';
-import { useIntl } from '@umijs/max';
+import { useIntl, useParams } from '@umijs/max';
 import * as Icons from '@ant-design/icons';
+import { getRolePermission, setRolePermission } from '@/services/system/role';
 
 interface TreeDataInterface {
   menu: TreeDataNode[];
@@ -12,29 +13,67 @@ interface TreeDataInterface {
 
 const Element: FC = () => {
   const intl = useIntl();
+  const params = useParams();
+  const [messageApi, messageContextHolder] = message.useMessage();
   const [selectedKeys, setSelectedKeys] = useState<Key[]>([]);
+  const [checkedKeys, setCheckedKeys] = useState<Key[]>([]);
   const [treeData, setTreeData] = useState<TreeDataInterface>();
+  const [autoExpandParent, setAutoExpandParent] = useState<boolean>(true);
+  const [expandedKeys, setExpandedKeys] = useState<Key[]>([]);
 
-  const onSelect: TreeProps['onSelect'] = (selectedKeysValue, info) => {
-    console.log('onSelect', info);
+  const onExpand: TreeProps['onExpand'] = (expandedKeysValue) => {
+    setExpandedKeys(expandedKeysValue);
+    setAutoExpandParent(false);
+  };
+
+  const onSelect: TreeProps['onSelect'] = (selectedKeysValue) => {
     setSelectedKeys(selectedKeysValue);
+  };
+
+  const onCheck: TreeProps['onCheck'] = (checkedKeysValue) => {
+    const keys: Key[] = Array.isArray(checkedKeysValue)
+      ? checkedKeysValue
+      : checkedKeysValue.checked;
+    setCheckedKeys(keys);
+  };
+
+  const handleSubmit = async () => {
+    await setRolePermission(params.id as string, { permission_ids: checkedKeys });
+    messageApi.success('保存成功');
   };
 
   useEffect(() => {
     (async () => {
+      const rp = await getRolePermission(params.id as string);
+      setCheckedKeys(rp.data || []);
+
       const res = await permissionTree();
+      setExpandedKeys([res.data.menu[0]?.id]);
       setTreeData(res.data);
     })();
   }, []);
 
   return (
     <>
-      <PageContainer content="角色权限分配用于管理和控制用户对系统资源的访问权限，通过分配不同的权限给角色，实现对用户操作的精细化管理。">
+      {messageContextHolder}
+      <PageContainer
+        content="角色权限分配用于管理和控制用户对系统资源的访问权限，通过分配不同的权限给角色，实现对用户操作的精细化管理。"
+        extra={
+          <Button type="primary" onClick={handleSubmit}>
+            保存
+          </Button>
+        }
+      >
         <Flex gap={16}>
           <ProCard bordered style={{ maxWidth: 300 }}>
             <Tree
               checkable
+              onExpand={onExpand}
               onSelect={onSelect}
+              onCheck={onCheck}
+              checkedKeys={checkedKeys}
+              expandedKeys={expandedKeys}
+              autoExpandParent={autoExpandParent}
               selectedKeys={selectedKeys}
               fieldNames={{ title: 'name', key: 'id', children: 'children' }}
               treeData={treeData?.menu}

@@ -117,7 +117,7 @@ const RoleList: FC = () => {
               render: (_: any, record: any) => [
                 <a
                   style={{ marginLeft: 10 }}
-                  key="edit"
+                  key="permission"
                   onClick={() => {
                     navigate(`/user-center/role/${record.id}/permission`);
                   }}

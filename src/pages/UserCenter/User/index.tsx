@@ -274,7 +274,23 @@ const UserList: FC = () => {
                   name="password"
                   label="密码"
                   placeholder="请输入密码"
-                  rules={[{ required: true, message: '密码为必填项' }]}
+                  rules={[
+                    { required: true, message: '密码为必填项' },
+                    () => ({
+                      validator(_, value) {
+                        if (!value) return Promise.resolve();
+                        const startsWithLetter = /^[A-Za-z]/.test(value);
+                        const hasLetter = /[A-Za-z]/.test(value);
+                        const hasNumber = /\d/.test(value);
+                        const hasSpecial = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(value);
+                        return startsWithLetter && hasLetter && hasNumber && hasSpecial
+                          ? Promise.resolve()
+                          : Promise.reject(
+                              new Error('密码必须以英文字母开头，并包含字母、数字和英文特殊字符'),
+                            );
+                      },
+                    }),
+                  ]}
                 />
               </Col>
               <Col span={12}>

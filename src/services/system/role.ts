@@ -37,3 +37,24 @@ export async function deleteRole(id: string, options?: { [key: string]: any }) {
     ...(options || {}),
   });
 }
+
+/* 保存角色权限 PUT /api/v1/system/role/:id/permission */
+export async function setRolePermission(
+  id: string,
+  data: object,
+  options?: { [key: string]: any },
+) {
+  return request(`${V1}/system/role/${id}/permission`, {
+    method: 'PUT',
+    ...(options || {}),
+    data,
+  });
+}
+
+/* 获取角色权限ID GET /api/v1/system/role/:id/permission */
+export async function getRolePermission(id: string, options?: { [key: string]: any }) {
+  return request(`${V1}/system/role/${id}/permission`, {
+    method: 'GET',
+    ...(options || {}),
+  });
+}
