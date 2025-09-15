@@ -6,10 +6,19 @@ import { useIntl, useParams } from '@umijs/max';
 import * as Icons from '@ant-design/icons';
 import { getRolePermission, setRolePermission } from '@/services/system/role';
 
-interface TreeDataInterface {
-  menu: TreeDataNode[];
-  element: object;
-}
+const normalizeKey = (k: Key) => String(k);
+const collectIds = (nodes?: TreeDataNode[]): Set<string> => {
+  const set = new Set<string>();
+  const stack = Array.isArray(nodes) ? [...nodes] : [];
+  while (stack.length) {
+    const node = stack.pop() as any;
+    const id = node?.id;
+    if (id !== undefined && id !== null) set.add(normalizeKey(id));
+    const children = node?.children;
+    if (Array.isArray(children)) stack.push(...children);
+  }
+  return set;
+};
 
 const Element: FC = () => {
   const intl = useIntl();
@@ -17,7 +26,7 @@ const Element: FC = () => {
   const [messageApi, messageContextHolder] = message.useMessage();
   const [selectedKeys, setSelectedKeys] = useState<Key[]>([]);
   const [checkedKeys, setCheckedKeys] = useState<Key[]>([]);
-  const [treeData, setTreeData] = useState<TreeDataInterface>();
+  const [treeData, setTreeData] = useState<{ menu: TreeDataNode[]; element: object }>();
   const [autoExpandParent, setAutoExpandParent] = useState<boolean>(true);
   const [expandedKeys, setExpandedKeys] = useState<Key[]>([]);
 
@@ -25,11 +34,7 @@ const Element: FC = () => {
     setExpandedKeys(expandedKeysValue);
     setAutoExpandParent(false);
   };
-
-  const onSelect: TreeProps['onSelect'] = (selectedKeysValue) => {
-    setSelectedKeys(selectedKeysValue);
-  };
-
+  const onSelect: TreeProps['onSelect'] = (selectedKeysValue) => setSelectedKeys(selectedKeysValue);
   const onCheck: TreeProps['onCheck'] = (checkedKeysValue) => {
     const keys: Key[] = Array.isArray(checkedKeysValue)
       ? checkedKeysValue
@@ -44,14 +49,25 @@ const Element: FC = () => {
 
   useEffect(() => {
     (async () => {
-      const rp = await getRolePermission(params.id as string);
-      setCheckedKeys(rp.data || []);
+      // 并发获取树与角色权限
+      const [menuRes, rp] = await Promise.all([
+        permissionTree(),
+        getRolePermission(params.id as string),
+      ]);
 
-      const res = await permissionTree();
-      setExpandedKeys([res.data.menu[0]?.id]);
-      setTreeData(res.data);
+      setTreeData(menuRes.data);
+
+      // 只展开存在的 key
+      const firstId = menuRes.data?.menu?.[0]?.id;
+      setExpandedKeys(firstId !== null ? [firstId] : []);
+
+      // 过滤掉不在 menu 树中的权限 id，避免 Tree missing follow keys
+      const allMenuIds = collectIds(menuRes.data?.menu);
+      const rawKeys: Key[] = rp.data || [];
+      const filtered = rawKeys.map(normalizeKey).filter((k) => allMenuIds.has(k));
+      setCheckedKeys(filtered);
     })();
-  }, []);
+  }, [params.id]);
 
   return (
     <>
@@ -78,29 +94,20 @@ const Element: FC = () => {
               fieldNames={{ title: 'name', key: 'id', children: 'children' }}
               treeData={treeData?.menu}
               titleRender={(node: any) => {
-                const getIconComponent = (icon?: string) => {
-                  if (!icon) return null;
-                  // 转 PascalCase，并兼容 kebab/underscore 命名
-                  const pascal = icon
-                    .trim()
-                    .replace(/[-_](\w)/g, (_: string, c: string) => c.toUpperCase())
-                    .replace(/^\w/, (s) => s.toUpperCase());
-
-                  const candidates = [
-                    pascal, // 已经是完整名，如 UserOutlined
-                    `${pascal}Outlined`,
-                    `${pascal}Filled`,
-                    `${pascal}TwoTone`,
-                  ];
-
-                  for (const key of candidates) {
-                    const Comp = (Icons as any)[key];
-                    if (Comp) return Comp;
-                  }
-                  return null;
-                };
-
-                const IconComp = getIconComponent(node?.icon);
+                const pascal = String(node?.icon || '')
+                  .trim()
+                  .replace(/[-_](\w)/g, (_: string, c: string) => c.toUpperCase())
+                  .replace(/^\w/, (s) => s.toUpperCase());
+                const candidates = [
+                  pascal,
+                  `${pascal}Outlined`,
+                  `${pascal}Filled`,
+                  `${pascal}TwoTone`,
+                ];
+                const IconComp = candidates.reduce<any>(
+                  (acc, key) => acc || (Icons as any)[key],
+                  null,
+                );
 
                 return (
                   <span style={{ display: 'inline-flex', alignItems: 'center' }}>
@@ -112,7 +119,7 @@ const Element: FC = () => {
                 );
               }}
               onRightClick={(info) => {
-                info.event.preventDefault(); // 阻止浏览器默认菜单
+                info.event.preventDefault();
                 console.log('右键节点', info.node);
               }}
             />
@@ -121,16 +128,8 @@ const Element: FC = () => {
             tabs={{
               type: 'card',
               items: [
-                {
-                  key: 'Basic',
-                  label: '基本信息',
-                  children: '内容一',
-                },
-                {
-                  key: 'Element',
-                  label: '页面元素',
-                  children: '内容二',
-                },
+                { key: 'Basic', label: '基本信息', children: '内容一' },
+                { key: 'Element', label: '页面元素', children: '内容二' },
               ],
             }}
           />
