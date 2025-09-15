@@ -1,6 +1,15 @@
 import { FC, Key, useEffect, useState } from 'react';
 import { PageContainer, ProCard } from '@ant-design/pro-components';
-import { Button, Flex, message, Tree, TreeDataNode, TreeProps } from 'antd';
+import {
+  Button,
+  Checkbox,
+  CheckboxOptionType,
+  Flex,
+  message,
+  Tree,
+  TreeDataNode,
+  TreeProps,
+} from 'antd';
 import { permissionTree } from '@/services/system/permission';
 import { useIntl, useParams } from '@umijs/max';
 import * as Icons from '@ant-design/icons';
@@ -20,11 +29,17 @@ const collectIds = (nodes?: TreeDataNode[]): Set<string> => {
   return set;
 };
 
+const options: CheckboxOptionType<string>[] = [
+  { label: 'Apple', value: 'Apple', className: 'label-1' },
+  { label: 'Pear', value: 'Pear', className: 'label-2' },
+  { label: 'Orange', value: 'Orange', className: 'label-3' },
+];
+
 const Element: FC = () => {
   const intl = useIntl();
   const params = useParams();
   const [messageApi, messageContextHolder] = message.useMessage();
-  const [selectedKeys, setSelectedKeys] = useState<Key[]>([]);
+  // const [selectedValue, setSelectedValue] = useState({});
   const [checkedKeys, setCheckedKeys] = useState<Key[]>([]);
   const [treeData, setTreeData] = useState<{ menu: TreeDataNode[]; element: object }>();
   const [autoExpandParent, setAutoExpandParent] = useState<boolean>(true);
@@ -34,12 +49,19 @@ const Element: FC = () => {
     setExpandedKeys(expandedKeysValue);
     setAutoExpandParent(false);
   };
-  const onSelect: TreeProps['onSelect'] = (selectedKeysValue) => setSelectedKeys(selectedKeysValue);
+  const onSelect: TreeProps['onSelect'] = (selectedKeysValue, info) => {
+    console.log(info.node);
+    // setSelectedValue(info?.node);
+  };
   const onCheck: TreeProps['onCheck'] = (checkedKeysValue) => {
     const keys: Key[] = Array.isArray(checkedKeysValue)
       ? checkedKeysValue
       : checkedKeysValue.checked;
     setCheckedKeys(keys);
+  };
+
+  const onChange = (list: any[]) => {
+    console.log('checked = ', list);
   };
 
   const handleSubmit = async () => {
@@ -90,7 +112,6 @@ const Element: FC = () => {
               checkedKeys={checkedKeys}
               expandedKeys={expandedKeys}
               autoExpandParent={autoExpandParent}
-              selectedKeys={selectedKeys}
               fieldNames={{ title: 'name', key: 'id', children: 'children' }}
               treeData={treeData?.menu}
               titleRender={(node: any) => {
@@ -128,8 +149,19 @@ const Element: FC = () => {
             tabs={{
               type: 'card',
               items: [
-                { key: 'Basic', label: '基本信息', children: '内容一' },
-                { key: 'Element', label: '页面元素', children: '内容二' },
+                {
+                  key: 'Element',
+                  label: '页面元素',
+                  children: (
+                    <>
+                      <Checkbox.Group
+                        options={options}
+                        defaultValue={['Pear']}
+                        onChange={onChange}
+                      />
+                    </>
+                  ),
+                },
               ],
             }}
           />
