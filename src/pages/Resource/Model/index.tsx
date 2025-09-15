@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { FC, useEffect, useRef, useState } from 'react';
+import { FC, Fragment, useEffect, useRef, useState } from 'react';
 import {
   ModalForm,
   PageContainer,
@@ -19,6 +19,7 @@ import styles from '../common.less';
 import type { MenuProps } from 'antd';
 import { Button, Dropdown, Input, message, Modal } from 'antd';
 import CreateModel from './components/CreateModel';
+import { Access, useAccess } from '@umijs/max';
 
 import { getModels } from '@/services/resource/model';
 import {
@@ -38,6 +39,7 @@ const Models: FC = () => {
   const [modal, modalContextHolder] = Modal.useModal();
   const [messageApi, messageContextHolder] = message.useMessage();
   const navigate = useNavigate();
+  const access = useAccess();
 
   interface CreateModelRef {
     showModal: (status: string, groupId: string, data: object | undefined) => void;
@@ -127,23 +129,24 @@ const Models: FC = () => {
         content="模型管理负责维护各类资源模型的基本信息、字段定义及元数据，确保模型结构规范统一，支持灵活扩展和高效管理。"
         header={{
           extra: [
-            <Button
-              type="primary"
-              key="1"
-              icon={<PlusCircleOutlined />}
-              onClick={() => {
-                setGroupForm({
-                  id: undefined,
-                  name: '',
-                  desc: '',
-                  order: 1,
-                });
-                setModalStatus('create');
-                setModalVisit(true);
-              }}
-            >
-              新建分组
-            </Button>,
+            <Access key="1" accessible={access.elementFilter('resource:model:create')}>
+              <Button
+                type="primary"
+                icon={<PlusCircleOutlined />}
+                onClick={() => {
+                  setGroupForm({
+                    id: undefined,
+                    name: '',
+                    desc: '',
+                    order: 1,
+                  });
+                  setModalStatus('create');
+                  setModalVisit(true);
+                }}
+              >
+                新建分组
+              </Button>
+            </Access>,
             <Input
               key="2"
               placeholder="请输入模型名称"
