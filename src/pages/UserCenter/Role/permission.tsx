@@ -1,18 +1,29 @@
 import { FC, Key, useEffect, useState } from 'react';
-import { PageContainer, ProCard } from '@ant-design/pro-components';
+import {
+  ModalForm,
+  PageContainer,
+  ProCard,
+  ProFormDigit,
+  ProFormText,
+  ProFormTextArea,
+} from '@ant-design/pro-components';
 import {
   Button,
   Checkbox,
-  CheckboxOptionType,
+  Col,
+  Empty,
   Flex,
+  Form,
   message,
+  Row,
   Tree,
   TreeDataNode,
   TreeProps,
 } from 'antd';
-import { permissionTree } from '@/services/system/permission';
+import { createPermission, permissionTree } from '@/services/system/permission';
 import { useIntl, useParams } from '@umijs/max';
 import * as Icons from '@ant-design/icons';
+import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { getRolePermission, setRolePermission } from '@/services/system/role';
 
 const normalizeKey = (k: Key) => String(k);
@@ -29,21 +40,18 @@ const collectIds = (nodes?: TreeDataNode[]): Set<string> => {
   return set;
 };
 
-const options: CheckboxOptionType<string>[] = [
-  { label: 'Apple', value: 'Apple', className: 'label-1' },
-  { label: 'Pear', value: 'Pear', className: 'label-2' },
-  { label: 'Orange', value: 'Orange', className: 'label-3' },
-];
-
 const Element: FC = () => {
   const intl = useIntl();
   const params = useParams();
+  const [form] = Form.useForm();
   const [messageApi, messageContextHolder] = message.useMessage();
-  // const [selectedValue, setSelectedValue] = useState({});
+  const [selectedValue, setSelectedValue] = useState<any>({});
   const [checkedKeys, setCheckedKeys] = useState<Key[]>([]);
   const [treeData, setTreeData] = useState<{ menu: TreeDataNode[]; element: object }>();
   const [autoExpandParent, setAutoExpandParent] = useState<boolean>(true);
   const [expandedKeys, setExpandedKeys] = useState<Key[]>([]);
+  const [visible, setVisible] = useState(false);
+  const [status, setStatus] = useState<'create' | 'edit'>('create');
 
   const onExpand: TreeProps['onExpand'] = (expandedKeysValue) => {
     setExpandedKeys(expandedKeysValue);
@@ -51,7 +59,7 @@ const Element: FC = () => {
   };
   const onSelect: TreeProps['onSelect'] = (selectedKeysValue, info) => {
     console.log(info.node);
-    // setSelectedValue(info?.node);
+    setSelectedValue(info?.node);
   };
   const onCheck: TreeProps['onCheck'] = (checkedKeysValue) => {
     const keys: Key[] = Array.isArray(checkedKeysValue)
@@ -154,11 +162,56 @@ const Element: FC = () => {
                   label: '页面元素',
                   children: (
                     <>
-                      <Checkbox.Group
-                        options={options}
-                        defaultValue={['Pear']}
-                        onChange={onChange}
-                      />
+                      {(selectedValue as any)?.id ? (
+                        <>
+                          <Flex gap="small" wrap>
+                            <Button
+                              color="primary"
+                              variant="outlined"
+                              icon={<PlusOutlined />}
+                              onClick={() => {
+                                setStatus('create');
+                                setVisible(true);
+                              }}
+                            >
+                              新建
+                            </Button>
+                            <Button
+                              color="default"
+                              variant="outlined"
+                              icon={<EditOutlined />}
+                              onClick={() => {
+                                setStatus('edit');
+                                setVisible(true);
+                              }}
+                            >
+                              编辑
+                            </Button>
+                            <Button color="danger" variant="outlined" icon={<DeleteOutlined />}>
+                              删除
+                            </Button>
+                          </Flex>
+                          <Checkbox.Group
+                            style={{ marginTop: 16 }}
+                            options={(
+                              (treeData?.element as Record<string, any[]> | undefined)?.[
+                                String(selectedValue?.id ?? '')
+                              ] ?? []
+                            ).map((el: any) => ({
+                              label: el.name,
+                              value: el.id,
+                            }))}
+                            defaultValue={[]}
+                            onChange={onChange}
+                          />
+                        </>
+                      ) : (
+                        <Empty
+                          style={{ marginTop: 100 }}
+                          description="暂未选择菜单选项"
+                          image={Empty.PRESENTED_IMAGE_SIMPLE}
+                        />
+                      )}
                     </>
                   ),
                 },
@@ -167,6 +220,59 @@ const Element: FC = () => {
           />
         </Flex>
       </PageContainer>
+
+      <ModalForm
+        title="页面元素管理"
+        form={form}
+        autoFocusFirstInput
+        modalProps={{
+          destroyOnHidden: true,
+        }}
+        onFinish={async (values: any) => {
+          const params = {
+            ...values,
+            parent: selectedValue?.id,
+            types: 'element',
+            built_in: true,
+          };
+          if (status === 'create') {
+            await createPermission(params);
+            messageApi.success('创建成功');
+          } else if (status === 'edit') {
+            console.log('更新', values);
+            messageApi.success('更新成功');
+          }
+          return true;
+        }}
+        open={visible}
+        onOpenChange={setVisible}
+      >
+        <Row gutter={16}>
+          <Col span={12}>
+            <ProFormText
+              name="name"
+              label="名称"
+              placeholder="请输入名称"
+              rules={[{ required: true, message: '请输入名称' }]}
+            />
+          </Col>
+          <Col span={12}>
+            <ProFormText
+              name="code"
+              label="编码"
+              placeholder="请输入编码"
+              rules={[{ required: true, message: '请输入编码' }]}
+            />
+          </Col>
+        </Row>
+        <ProFormDigit name="sort" label="排序" min={0} fieldProps={{ precision: 0 }} />
+        <ProFormTextArea
+          name="remark"
+          label="备注"
+          placeholder="请输入备注"
+          fieldProps={{ rows: 3, maxLength: 500, showCount: true }}
+        />
+      </ModalForm>
     </>
   );
 };
