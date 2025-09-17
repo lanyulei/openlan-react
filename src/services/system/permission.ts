@@ -20,7 +20,7 @@ export async function createPermission(data: object, options?: { [key: string]: 
   });
 }
 
-/* 更新权限元素 PUT /api/v1/system/permission */
+/* 更新权限元素 PUT /api/v1/system/permission/:id */
 export async function updatePermission(id: string, data: object, options?: { [key: string]: any }) {
   return request(`${V1}/system/permission/${id}`, {
     method: 'PUT',
@@ -30,7 +30,10 @@ export async function updatePermission(id: string, data: object, options?: { [ke
 }
 
 /* 删除权限元素 DELETE /api/v1/system/permission */
-export async function deletePermission(data: { ids: string[] }, options?: { [key: string]: any }) {
+export async function deletePermission(
+  data: { ids: string[] | undefined },
+  options?: { [p: string]: any },
+) {
   return request(`${V1}/system/permission`, {
     method: 'DELETE',
     data,

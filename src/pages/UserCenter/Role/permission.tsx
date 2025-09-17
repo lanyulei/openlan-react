@@ -15,12 +15,18 @@ import {
   Flex,
   Form,
   message,
+  Modal,
   Row,
   Tree,
   TreeDataNode,
   TreeProps,
 } from 'antd';
-import { createPermission, permissionTree } from '@/services/system/permission';
+import {
+  createPermission,
+  deletePermission,
+  permissionTree,
+  updatePermission,
+} from '@/services/system/permission';
 import { useIntl, useParams } from '@umijs/max';
 import * as Icons from '@ant-design/icons';
 import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
@@ -52,6 +58,8 @@ const Element: FC = () => {
   const [expandedKeys, setExpandedKeys] = useState<Key[]>([]);
   const [visible, setVisible] = useState(false);
   const [status, setStatus] = useState<'create' | 'edit'>('create');
+  const [elementCheckedList, setElementCheckedList] = useState<string[]>();
+  const [modal, modalContextHolder] = Modal.useModal();
 
   const onExpand: TreeProps['onExpand'] = (expandedKeysValue) => {
     setExpandedKeys(expandedKeysValue);
@@ -69,7 +77,7 @@ const Element: FC = () => {
   };
 
   const onChange = (list: any[]) => {
-    console.log('checked = ', list);
+    setElementCheckedList(list);
   };
 
   const handleSubmit = async () => {
@@ -77,30 +85,46 @@ const Element: FC = () => {
     messageApi.success('保存成功');
   };
 
+  const getTreeData = async () => {
+    // 并发获取树与角色权限
+    const [menuRes, rp] = await Promise.all([
+      permissionTree(),
+      getRolePermission(params.id as string),
+    ]);
+
+    setTreeData(menuRes.data);
+
+    // 只展开存在的 key
+    const firstId = menuRes.data?.menu?.[0]?.id;
+    setExpandedKeys(firstId !== null ? [firstId] : []);
+
+    // 过滤掉不在 menu 树中的权限 id，避免 Tree missing follow keys
+    const allMenuIds = collectIds(menuRes.data?.menu);
+    const rawKeys: Key[] = rp.data || [];
+    const filtered = rawKeys.map(normalizeKey).filter((k) => allMenuIds.has(k));
+    setCheckedKeys(filtered);
+  };
+
+  useEffect(() => {
+    if (visible && status === 'create') {
+      form.setFieldsValue({
+        name: '',
+        code: '',
+        sort: undefined,
+        remark: '',
+      });
+    }
+  }, [visible]);
+
   useEffect(() => {
     (async () => {
-      // 并发获取树与角色权限
-      const [menuRes, rp] = await Promise.all([
-        permissionTree(),
-        getRolePermission(params.id as string),
-      ]);
-
-      setTreeData(menuRes.data);
-
-      // 只展开存在的 key
-      const firstId = menuRes.data?.menu?.[0]?.id;
-      setExpandedKeys(firstId !== null ? [firstId] : []);
-
-      // 过滤掉不在 menu 树中的权限 id，避免 Tree missing follow keys
-      const allMenuIds = collectIds(menuRes.data?.menu);
-      const rawKeys: Key[] = rp.data || [];
-      const filtered = rawKeys.map(normalizeKey).filter((k) => allMenuIds.has(k));
-      setCheckedKeys(filtered);
+      await getTreeData();
     })();
   }, [params.id]);
 
   return (
     <>
+      {modalContextHolder}
       {messageContextHolder}
       <PageContainer
         content="角色权限分配用于管理和控制用户对系统资源的访问权限，通过分配不同的权限给角色，实现对用户操作的精细化管理。"
@@ -180,14 +204,51 @@ const Element: FC = () => {
                               color="default"
                               variant="outlined"
                               icon={<EditOutlined />}
+                              disabled={!elementCheckedList || elementCheckedList.length !== 1}
                               onClick={() => {
+                                let elementId = elementCheckedList?.[0];
+                                if (!elementId) return;
+                                (
+                                  (treeData?.element as Record<string, any[]> | undefined)?.[
+                                    String(selectedValue?.id ?? '')
+                                  ] ?? []
+                                ).forEach((el: any) => {
+                                  if (el.id === elementId) {
+                                    form.setFieldsValue({
+                                      name: el.name,
+                                      code: el.code,
+                                      sort: el.sort,
+                                      remark: el.remark,
+                                    });
+                                  }
+                                });
                                 setStatus('edit');
                                 setVisible(true);
                               }}
                             >
                               编辑
                             </Button>
-                            <Button color="danger" variant="outlined" icon={<DeleteOutlined />}>
+                            <Button
+                              color="danger"
+                              variant="outlined"
+                              icon={<DeleteOutlined />}
+                              onClick={() => {
+                                modal.confirm({
+                                  title: '提示',
+                                  content: '确定是否批量删除选中的页面元素？',
+                                  okText: '确认',
+                                  cancelText: '取消',
+                                  onOk: async () => {
+                                    await deletePermission({
+                                      ids: elementCheckedList,
+                                    });
+                                    await getTreeData();
+                                    messageApi.success('删除成功');
+                                    return true;
+                                  },
+                                });
+                              }}
+                            >
                               删除
                             </Button>
                           </Flex>
@@ -237,9 +298,12 @@ const Element: FC = () => {
           };
           if (status === 'create') {
             await createPermission(params);
+            await getTreeData();
             messageApi.success('创建成功');
           } else if (status === 'edit') {
-            console.log('更新', values);
+            const elementId = elementCheckedList?.[0];
+            await updatePermission(elementId as string, params);
+            await getTreeData();
             messageApi.success('更新成功');
           }
           return true;
