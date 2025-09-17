@@ -1,4 +1,4 @@
-import { FC, Key, useEffect, useState } from 'react';
+import { FC, Key, SetStateAction, useEffect, useState } from 'react';
 import {
   ModalForm,
   PageContainer,
@@ -60,13 +60,14 @@ const Element: FC = () => {
   const [status, setStatus] = useState<'create' | 'edit'>('create');
   const [elementCheckedList, setElementCheckedList] = useState<string[]>();
   const [modal, modalContextHolder] = Modal.useModal();
+  const [editElementForm, setEditElementForm] = useState<any>();
+  const [checkedElementKeys, setCheckedElementKeys] = useState<Key[]>([]);
 
   const onExpand: TreeProps['onExpand'] = (expandedKeysValue) => {
     setExpandedKeys(expandedKeysValue);
     setAutoExpandParent(false);
   };
   const onSelect: TreeProps['onSelect'] = (selectedKeysValue, info) => {
-    console.log(info.node);
     setSelectedValue(info?.node);
   };
   const onCheck: TreeProps['onCheck'] = (checkedKeysValue) => {
@@ -81,7 +82,8 @@ const Element: FC = () => {
   };
 
   const handleSubmit = async () => {
-    await setRolePermission(params.id as string, { permission_ids: checkedKeys });
+    const permissionIds = [...checkedKeys, ...(elementCheckedList || [])];
+    await setRolePermission(params.id as string, { permission_ids: permissionIds });
     messageApi.success('保存成功');
   };
 
@@ -98,21 +100,39 @@ const Element: FC = () => {
     const firstId = menuRes.data?.menu?.[0]?.id;
     setExpandedKeys(firstId !== null ? [firstId] : []);
 
-    // 过滤掉不在 menu 树中的权限 id，避免 Tree missing follow keys
+    // 过滤掉不在 menu 树中的权限 id
     const allMenuIds = collectIds(menuRes.data?.menu);
     const rawKeys: Key[] = rp.data || [];
-    const filtered = rawKeys.map(normalizeKey).filter((k) => allMenuIds.has(k));
+    const elementKeys: SetStateAction<Key[]> = [];
+    const filtered = rawKeys.map(normalizeKey).filter((k) => {
+      if (!allMenuIds.has(k)) {
+        console.log('不在 menu 树中的权限 ID:', k);
+        elementKeys.push(k);
+        return false;
+      }
+      return true;
+    });
+    setCheckedElementKeys(elementKeys);
     setCheckedKeys(filtered);
   };
 
   useEffect(() => {
-    if (visible && status === 'create') {
-      form.setFieldsValue({
-        name: '',
-        code: '',
-        sort: undefined,
-        remark: '',
-      });
+    if (visible) {
+      if (status === 'create') {
+        form.setFieldsValue({
+          name: '',
+          code: '',
+          sort: undefined,
+          remark: '',
+        });
+      } else if (status === 'edit') {
+        form.setFieldsValue({
+          name: editElementForm.name,
+          code: editElementForm.code,
+          sort: editElementForm.sort,
+          remark: editElementForm.remark,
+        });
+      }
     }
   }, [visible]);
 
@@ -173,7 +193,6 @@ const Element: FC = () => {
               }}
               onRightClick={(info) => {
                 info.event.preventDefault();
-                console.log('右键节点', info.node);
               }}
             />
           </ProCard>
@@ -214,12 +233,7 @@ const Element: FC = () => {
                                   ] ?? []
                                 ).forEach((el: any) => {
                                   if (el.id === elementId) {
-                                    form.setFieldsValue({
-                                      name: el.name,
-                                      code: el.code,
-                                      sort: el.sort,
-                                      remark: el.remark,
-                                    });
+                                    setEditElementForm(el);
                                   }
                                 });
                                 setStatus('edit');
@@ -262,7 +276,7 @@ const Element: FC = () => {
                               label: el.name,
                               value: el.id,
                             }))}
-                            defaultValue={[]}
+                            defaultValue={checkedElementKeys}
                             onChange={onChange}
                           />
                         </>
@@ -301,7 +315,7 @@ const Element: FC = () => {
             await getTreeData();
             messageApi.success('创建成功');
           } else if (status === 'edit') {
-            const elementId = elementCheckedList?.[0];
+            const elementId = editElementForm?.id;
             await updatePermission(elementId as string, params);
             await getTreeData();
             messageApi.success('更新成功');
