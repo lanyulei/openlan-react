@@ -2,7 +2,7 @@
 import type { RequestConfig } from '@umijs/max';
 import { message, notification } from 'antd';
 import { getItem } from './utils/session';
-import { SUCCESS_CODE, TOKEN_KEY } from './utils/variable';
+import { SUCCESS_CODE, TOKEN_EXPIRED_CODE, TOKEN_KEY } from './utils/variable';
 
 // 错误处理方案： 错误类型
 enum ErrorShowType {
@@ -110,6 +110,11 @@ export const errorConfig: RequestConfig = {
       const { data } = response as unknown as ResponseStructure;
 
       if (data?.code !== SUCCESS_CODE) {
+        if (data?.code === TOKEN_EXPIRED_CODE) {
+          // 跳转到登录页
+          window.location.href = '/user/login';
+          return;
+        }
         return Promise.reject({
           message: data?.message || 'Request error',
           code: data?.code,
